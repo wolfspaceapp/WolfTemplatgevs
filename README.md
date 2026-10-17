@@ -13,6 +13,20 @@ como base de datos**. Optimizada para empaquetar con **AppsGeyser** u otro wrapp
 | `styles.css` | Diseño móvil (tema oscuro / naranja) |
 | `config.js` | **⚙️ Lo único que editas:** tu blog y etiquetas |
 | `app.js` | Motor que lee el feed de Blogger y arma la app |
+| `generador.html` | **🛠️ Generador de código** para crear las entradas de Blogger sin escribir HTML a mano |
+
+## 🛠️ Generador de entradas (`generador.html`)
+
+Para no escribir el HTML a mano, abre **`generador.html`** en cualquier navegador:
+
+1. Rellena el formulario: título, portada, sinopsis, tipo, clasificación, idioma, géneros, secciones y episodios.
+2. Pulsa **📋 Copiar código**.
+3. En Blogger crea una **entrada nueva**, cambia al modo **HTML** (`</>`), pega el código.
+4. Pulsa **🏷️ Ver etiquetas** y añade esas mismas etiquetas (labels) a la entrada.
+5. Publica. La app mostrará el anime automáticamente.
+
+El generador produce exactamente el formato que la app lee (primera imagen = portada,
+y episodios en `[EP]...[/EP]`), así que no hay que recordar la sintaxis.
 
 ---
 

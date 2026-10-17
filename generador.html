@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Generador de entradas — NekoWolf</title>
+<style>
+  :root{ --accent:#f47521; --bg:#0a0a0a; --bg2:#141414; --card:#1a1a1a; --line:rgba(255,255,255,.1); --muted:#9b9b9b; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.5;}
+  header{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,rgba(10,10,10,.98),rgba(10,10,10,.9));backdrop-filter:blur(8px);
+    padding:16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;}
+  header .logo{width:34px;height:34px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;}
+  header h1{font-size:18px;}
+  header p{font-size:12px;color:var(--muted);}
+  .wrap{max-width:860px;margin:0 auto;padding:18px 16px 60px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:620px){ .grid2{grid-template-columns:1fr;} }
+
+  .section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px;}
+  .section h2{font-size:15px;margin-bottom:14px;color:var(--accent);display:flex;align-items:center;gap:8px;}
+  label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:#ddd;}
+  .hint{font-size:11px;color:var(--muted);font-weight:400;margin-top:3px;}
+  input[type=text],input[type=url],textarea,select{
+    width:100%;background:#0e0e0e;border:1px solid var(--line);border-radius:9px;color:#fff;padding:11px 12px;font-size:14px;font-family:inherit;outline:none;}
+  input:focus,textarea:focus,select:focus{border-color:var(--accent);}
+  textarea{resize:vertical;min-height:70px;}
+  .field{margin-bottom:14px;}
+
+  /* chips géneros */
+  .chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{padding:7px 13px;border-radius:30px;background:#0e0e0e;border:1px solid var(--line);font-size:13px;cursor:pointer;user-select:none;}
+  .chip.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700;}
+
+  /* toggles */
+  .toggles{display:flex;flex-wrap:wrap;gap:18px;}
+  .tg{display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;}
+  .tg input{width:18px;height:18px;accent-color:var(--accent);}
+
+  /* episodios */
+  .ep-item{background:#0e0e0e;border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;position:relative;}
+  .ep-item .ep-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .ep-item .ep-head b{font-size:13px;color:var(--accent);}
+  .ep-del{background:none;border:none;color:#ff6b6b;font-size:13px;cursor:pointer;font-weight:700;}
+  .btn{background:var(--accent);color:#fff;border:none;border-radius:30px;padding:12px 20px;font-size:14px;font-weight:800;cursor:pointer;}
+  .btn.ghost{background:#0e0e0e;border:1px solid var(--line);color:#fff;}
+  .btn:active{transform:scale(.98);}
+  .row-btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+
+  /* salida */
+  .output{position:sticky;bottom:0;}
+  .out-box{background:#000;border:1px solid var(--accent);border-radius:12px;padding:14px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:12px;white-space:pre-wrap;word-break:break-word;max-height:260px;overflow:auto;color:#d6ffd6;}
+  .copied{color:#4caf50;font-size:13px;font-weight:700;margin-left:10px;opacity:0;transition:opacity .3s;}
+  .copied.show{opacity:1;}
+  .steps{font-size:13px;color:#ccc;background:rgba(244,117,33,.08);border:1px solid rgba(244,117,33,.35);border-radius:10px;padding:14px;margin-bottom:16px;}
+  .steps b{color:var(--accent);}
+  .steps code{background:#000;padding:1px 5px;border-radius:4px;font-size:12px;}
+  .preview-poster{width:90px;height:130px;border-radius:8px;object-fit:cover;background:#222;border:1px solid var(--line);}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo" id="hLogo">N</div>
+  <div>
+    <h1>Generador de entradas</h1>
+    <p>Rellena los datos y copia el código a tu post de Blogger</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="steps">
+    <b>¿Cómo funciona?</b> Completa el formulario → copia el código generado → en Blogger crea una
+    <b>entrada nueva</b>, cambia al modo <b>HTML</b> (botón <code>&lt;/&gt;</code>), pega el código,
+    añade las <b>etiquetas</b> que te indica el generador y publica. ¡La app lo mostrará solo!
+  </div>
+
+  <!-- DATOS PRINCIPALES -->
+  <div class="section">
+    <h2>📺 Datos del anime</h2>
+    <div class="field">
+      <label>Título <span class="hint">(será el título de la entrada en Blogger)</span></label>
+      <input type="text" id="f_title" placeholder="Ej: Watari-kun's ****** Is about to Collapse" />
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label>URL de la portada (poster)</label>
+        <input type="url" id="f_poster" placeholder="https://.../poster.jpg" />
+        <div class="hint">La app usa esta imagen como portada.</div>
+      </div>
+      <div class="field">
+        <label>Vista previa</label>
+        <img id="prev" class="preview-poster" alt="poster" />
+      </div>
+    </div>
+    <div class="field">
+      <label>Sinopsis</label>
+      <textarea id="f_synopsis" placeholder="Naoto Watari vive dedicado por completo a su hermana menor..."></textarea>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label>Tipo</label>
+        <select id="f_type">
+          <option value="serie">Serie</option>
+          <option value="pelicula">Película</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Clasificación</label>
+        <select id="f_rating">
+          <option value="">— Sin clasificación —</option>
+          <option value="todos">Todos</option>
+          <option value="7+">7+</option>
+          <option value="14+">14+</option>
+          <option value="16+">16+</option>
+          <option value="18+">18+</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Idioma / audio</label>
+      <div class="toggles">
+        <label class="tg"><input type="checkbox" id="f_sub" checked /> Subtitulado (Sub)</label>
+        <label class="tg"><input type="checkbox" id="f_dub" /> Doblaje (Dob)</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- GÉNEROS / CATEGORÍAS -->
+  <div class="section">
+    <h2>🏷️ Géneros y secciones <span class="hint" style="font-weight:400"> (= etiquetas de Blogger)</span></h2>
+    <div class="field">
+      <label>Géneros</label>
+      <div class="chips" id="genreChips"></div>
+    </div>
+    <div class="field" style="margin-top:14px">
+      <label>Mostrar también en estas secciones</label>
+      <div class="chips" id="sectionChips"></div>
+      <div class="hint">Ej: "Destacado" lo pone en el hero del inicio; "Nuevo" en Episodios Nuevos; "Simulcast" en Simulcasts.</div>
+    </div>
+    <div class="field" style="margin-top:14px">
+      <label>Otras etiquetas (separadas por coma)</label>
+      <input type="text" id="f_extraTags" placeholder="Ej: Verano 2026, Estudio MAPPA" />
+    </div>
+  </div>
+
+  <!-- EPISODIOS -->
+  <div class="section">
+    <h2>🎬 Episodios</h2>
+    <div id="epList"></div>
+    <div class="row-btns">
+      <button class="btn ghost" id="addEp">+ Añadir episodio</button>
+      <button class="btn ghost" id="addMany">+ Añadir 12 de golpe</button>
+    </div>
+  </div>
+
+  <!-- SALIDA -->
+  <div class="section output">
+    <h2>✅ Código generado <span class="copied" id="copiedMsg">¡Copiado!</span></h2>
+    <div class="out-box" id="outCode">Completa el título para generar el código…</div>
+    <div class="row-btns">
+      <button class="btn" id="btnCopy">📋 Copiar código</button>
+      <button class="btn ghost" id="btnTags">🏷️ Ver etiquetas a poner</button>
+      <button class="btn ghost" id="btnReset">🗑️ Limpiar todo</button>
+    </div>
+    <div class="hint" id="tagsHint" style="margin-top:12px;display:none"></div>
+  </div>
+
+</div>
+
+<script>
+/* === Config: géneros/secciones deben coincidir con config.js de la app === */
+var GENRES = ["Accion","Comedia","Drama","Romance","Fantasia","Shounen","Terror","Ciencia Ficcion","Recuentos de la Vida","Aventura","Magia","Misterio","Deportes","Isekai"];
+var SECTIONS = ["Destacado","Nuevo","Popular","Simulcast"];
+
+var state = { genres:new Set(), sections:new Set(["Nuevo"]), eps:[] };
+
+/* ---------- chips ---------- */
+function buildChips(container, list, setRef){
+  container.innerHTML = "";
+  list.forEach(function(g){
+    var c = document.createElement("div");
+    c.className = "chip" + (setRef.has(g) ? " on" : "");
+    c.textContent = g;
+    c.onclick = function(){
+      if(setRef.has(g)){ setRef.delete(g); c.classList.remove("on"); }
+      else { setRef.add(g); c.classList.add("on"); }
+      render();
+    };
+    container.appendChild(c);
+  });
+}
+buildChips(document.getElementById("genreChips"), GENRES, state.genres);
+buildChips(document.getElementById("sectionChips"), SECTIONS, state.sections);
+
+/* ---------- episodios ---------- */
+function epRow(ep, idx){
+  var d = document.createElement("div");
+  d.className = "ep-item";
+  d.innerHTML =
+    '<div class="ep-head"><b>Episodio '+(idx+1)+'</b><button class="ep-del">Eliminar</button></div>'+
+    '<div class="field"><label>Título del episodio</label><input type="text" data-k="title" placeholder="Ej: El día en que la paz empezó a..." value="'+esc(ep.title)+'"></div>'+
+    '<div class="grid2">'+
+      '<div class="field"><label>URL del video</label><input type="url" data-k="url" placeholder="YouTube, Drive, Vimeo o .mp4" value="'+esc(ep.url)+'"></div>'+
+      '<div class="field"><label>Duración</label><input type="text" data-k="dur" placeholder="23m" value="'+esc(ep.dur)+'"></div>'+
+    '</div>'+
+    '<div class="grid2">'+
+      '<div class="field"><label>Miniatura (opcional)</label><input type="url" data-k="thumb" placeholder="https://.../thumb.jpg" value="'+esc(ep.thumb)+'"></div>'+
+      '<div class="field"><label>Descripción (opcional)</label><input type="text" data-k="desc" placeholder="Breve resumen" value="'+esc(ep.desc)+'"></div>'+
+    '</div>';
+  d.querySelector(".ep-del").onclick = function(){ state.eps.splice(idx,1); renderEps(); render(); };
+  d.querySelectorAll("input").forEach(function(inp){
+    inp.oninput = function(){ ep[inp.getAttribute("data-k")] = inp.value; render(); };
+  });
+  return d;
+}
+function renderEps(){
+  var list = document.getElementById("epList");
+  list.innerHTML = "";
+  if(!state.eps.length){ list.innerHTML = '<div class="hint">Aún no hay episodios. Añade al menos uno.</div>'; }
+  state.eps.forEach(function(ep,i){ list.appendChild(epRow(ep,i)); });
+}
+document.getElementById("addEp").onclick = function(){ state.eps.push(blankEp(state.eps.length)); renderEps(); render(); };
+document.getElementById("addMany").onclick = function(){ for(var i=0;i<12;i++) state.eps.push(blankEp(state.eps.length)); renderEps(); render(); };
+function blankEp(i){ return { title:"Episodio "+(i+1), url:"", dur:"23m", thumb:"", desc:"" }; }
+
+/* ---------- generación de código ---------- */
+function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+function allTags(){
+  var tags = [];
+  state.genres.forEach(function(g){ tags.push(g); });
+  state.sections.forEach(function(s){ tags.push(s); });
+  if(document.getElementById("f_type").value === "pelicula") tags.push("Pelicula");
+  if(document.getElementById("f_sub").checked) tags.push("Sub");
+  if(document.getElementById("f_dub").checked) tags.push("Dob");
+  var r = document.getElementById("f_rating").value; if(r) tags.push(r);
+  var extra = document.getElementById("f_extraTags").value.split(",").map(function(s){return s.trim();}).filter(Boolean);
+  tags = tags.concat(extra);
+  return tags.filter(function(t,i){ return tags.indexOf(t)===i; }); // únicos
+}
+
+function genCode(){
+  var title = document.getElementById("f_title").value.trim();
+  var poster = document.getElementById("f_poster").value.trim();
+  var syn = document.getElementById("f_synopsis").value.trim();
+  if(!title) return "";
+
+  var out = "";
+  // 1) Portada: la app toma la PRIMERA imagen del post
+  if(poster) out += '<img src="'+esc(poster)+'" alt="'+esc(title)+'" />\n';
+  // 2) Sinopsis
+  if(syn) out += '<p>'+esc(syn)+'</p>\n';
+  // 3) Episodios en el formato que lee la app
+  state.eps.forEach(function(ep){
+    if(!ep.url && !ep.title) return;
+    out += '[EP]'+(ep.title||"").replace(/\|/g,"/")+'|'+(ep.url||"")+'|'+(ep.dur||"")+'|'+(ep.desc||"").replace(/\|/g,"/")+'|'+(ep.thumb||"")+'[/EP]\n';
+  });
+  return out.trim();
+}
+
+function render(){
+  var code = genCode();
+  var box = document.getElementById("outCode");
+  box.textContent = code || "Completa el título para generar el código…";
+
+  // vista previa poster
+  var p = document.getElementById("f_poster").value.trim();
+  var prev = document.getElementById("prev");
+  if(p){ prev.src = p; } else { prev.removeAttribute("src"); }
+
+  // etiquetas
+  var tags = allTags();
+  var th = document.getElementById("tagsHint");
+  th.innerHTML = '<b>Etiquetas (labels) a añadir en Blogger:</b><br>'+
+    (tags.length ? tags.map(function(t){return '<span style="display:inline-block;background:#000;border:1px solid var(--accent);color:#f47521;padding:3px 9px;border-radius:20px;margin:3px 4px 0 0;font-size:12px">'+esc(t)+'</span>';}).join("") : '<span style="color:var(--muted)">Selecciona géneros/secciones arriba.</span>');
+}
+
+/* ---------- botones ---------- */
+document.getElementById("btnCopy").onclick = function(){
+  var code = genCode();
+  if(!code){ alert("Primero completa al menos el título."); return; }
+  navigator.clipboard.writeText(code).then(function(){
+    var m = document.getElementById("copiedMsg"); m.classList.add("show");
+    setTimeout(function(){ m.classList.remove("show"); }, 1500);
+  }).catch(function(){
+    // fallback
+    var t = document.createElement("textarea"); t.value = code; document.body.appendChild(t); t.select();
+    try{ document.execCommand("copy"); }catch(e){}
+    t.remove();
+    var m = document.getElementById("copiedMsg"); m.classList.add("show"); setTimeout(function(){ m.classList.remove("show"); }, 1500);
+  });
+};
+document.getElementById("btnTags").onclick = function(){
+  var th = document.getElementById("tagsHint");
+  th.style.display = th.style.display === "none" ? "block" : "none";
+};
+document.getElementById("btnReset").onclick = function(){
+  if(!confirm("¿Limpiar todos los campos?")) return;
+  document.querySelectorAll("input[type=text],input[type=url],textarea").forEach(function(i){ i.value=""; });
+  document.getElementById("f_sub").checked = true;
+  document.getElementById("f_dub").checked = false;
+  document.getElementById("f_type").value = "serie";
+  document.getElementById("f_rating").value = "";
+  state.genres.clear(); state.sections = new Set(["Nuevo"]); state.eps = [];
+  buildChips(document.getElementById("genreChips"), GENRES, state.genres);
+  buildChips(document.getElementById("sectionChips"), SECTIONS, state.sections);
+  renderEps(); render();
+};
+
+/* ---------- init ---------- */
+["f_title","f_poster","f_synopsis","f_type","f_rating","f_extraTags"].forEach(function(id){
+  document.getElementById(id).addEventListener("input", render);
+});
+document.getElementById("f_sub").addEventListener("change", render);
+document.getElementById("f_dub").addEventListener("change", render);
+state.eps.push(blankEp(0));
+renderEps(); render();
+</script>
+</body>
+</html>
