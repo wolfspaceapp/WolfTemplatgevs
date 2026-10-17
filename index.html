@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>NekoWolf — Anime</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ===== Barra superior ===== -->
+  <header class="topbar" id="topbar">
+    <div class="topbar-logo" id="brandLogo">N</div>
+    <h1 class="topbar-title" id="pageTitle"></h1>
+    <div class="topbar-actions">
+      <button class="icon-btn" id="btnCast" aria-label="Cast">
+        <svg viewBox="0 0 24 24"><path d="M1 18v3h3c0-1.66-1.34-3-3-3zm0-4v2c2.76 0 5 2.24 5 5h2c0-3.87-3.13-7-7-7zm0-4v2c4.97 0 9 4.03 9 9h2c0-6.08-4.93-11-11-11zm20-7H3c-1.1 0-2 .9-2 2v3h2V5h18v14h-7v2h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+      </button>
+      <button class="icon-btn" id="btnSearch" aria-label="Buscar">
+        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 10-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1114 9.5 4.49 4.49 0 019.5 14z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===== Buscador overlay ===== -->
+  <div class="search-overlay" id="searchOverlay">
+    <div class="search-bar">
+      <button class="icon-btn" id="searchBack" aria-label="Volver">
+        <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z"/></svg>
+      </button>
+      <input id="searchInput" type="search" placeholder="Buscar anime..." autocomplete="off" />
+    </div>
+    <div class="search-results" id="searchResults"></div>
+  </div>
+
+  <!-- ===== Contenido principal ===== -->
+  <main id="app">
+    <!-- VIEWS se inyectan aquí -->
+    <section class="view" id="view-home"></section>
+    <section class="view hidden" id="view-mylists"></section>
+    <section class="view hidden" id="view-explore"></section>
+    <section class="view hidden" id="view-simulcasts"></section>
+    <section class="view hidden" id="view-account"></section>
+  </main>
+
+  <!-- ===== Pantalla de detalle (full) ===== -->
+  <div class="detail-screen hidden" id="detailScreen"></div>
+
+  <!-- ===== Reproductor ===== -->
+  <div class="player-screen hidden" id="playerScreen">
+    <button class="player-close icon-btn" id="playerClose" aria-label="Cerrar">
+      <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+    </button>
+    <div class="player-frame" id="playerFrame"></div>
+  </div>
+
+  <!-- ===== Barra inferior ===== -->
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="nav-item active" data-view="home">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span>Inicio</span>
+    </button>
+    <button class="nav-item" data-view="mylists">
+      <svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+      <span>Mis listas</span>
+    </button>
+    <button class="nav-item" data-view="explore">
+      <svg viewBox="0 0 24 24"><path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/></svg>
+      <span>Explorar</span>
+    </button>
+    <button class="nav-item" data-view="simulcasts">
+      <svg viewBox="0 0 24 24"><path d="M12 2l2.4 5 5.6.6-4 4 1.1 5.4L12 19l-5.1 2 1.1-5.4-4-4 5.6-.6z"/></svg>
+      <span>Simulcasts</span>
+    </button>
+    <button class="nav-item" data-view="account">
+      <svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-5 0-9 2.5-9 5.5V22h18v-2.5c0-3-4-5.5-9-5.5z"/></svg>
+      <span>Cuenta</span>
+    </button>
+  </nav>
+
+  <!-- Spinner global -->
+  <div class="global-loader hidden" id="globalLoader"><div class="spinner"></div></div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
