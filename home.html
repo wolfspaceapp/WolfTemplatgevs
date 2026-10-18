@@ -14,8 +14,8 @@
     --nav-h:62px;
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  html,body{height:100%;}
-  body{background:var(--bg);color:var(--text);overflow-x:hidden;
+  html,body{height:100%;overflow:hidden;overscroll-behavior:none;}
+  body{background:var(--bg);color:var(--text);overflow-x:hidden;position:fixed;inset:0;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;}
   img{display:block;max-width:100%;}
   button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer;}
@@ -44,7 +44,7 @@
   .icon-btn svg{width:23px;height:23px;}
 
   /* ===== Scroll container ===== */
-  main{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  main{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
   main::-webkit-scrollbar{width:0;}
   /* espacio al final para que la navbar flotante no tape el contenido */
   .rows{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 20px) !important;}
@@ -94,9 +94,9 @@
   .btn-round:active{transform:scale(.94);}
   .btn-round svg{width:18px;height:18px;}
 
-  .hero-dots{display:flex;gap:5px;justify-content:center;margin-top:13px;}
-  .hero-dots span{width:5px;height:5px;border-radius:999px;background:rgba(255,255,255,.28);transition:width .35s,background .35s;}
-  .hero-dots span.on{width:18px;background:var(--accent);}
+  .hero-dots{display:flex;gap:6px;justify-content:center;margin-top:13px;}
+  .hero-dots span{width:6px;height:6px;border-radius:999px;background:rgba(255,255,255,.3);cursor:pointer;transition:width .35s,background .35s;}
+  .hero-dots span.on{width:20px;background:var(--grad);box-shadow:0 0 8px rgba(var(--accent-rgb),.6);}
 
   /* ===== Filas / carruseles (compacto) ===== */
   .rows{padding:10px 0 20px;}
@@ -105,9 +105,9 @@
   .row-title{font-size:14.5px;font-weight:800;display:flex;align-items:center;gap:7px;}
   .row-title::before{content:"";width:3.5px;height:15px;border-radius:3px;background:var(--accent);}
   .row-more{font-size:11.5px;font-weight:700;color:var(--muted);}
-  .row-scroll{display:flex;gap:9px;overflow-x:auto;padding:0 14px 4px;scroll-snap-type:x proximity;}
+  .row-scroll{display:flex;gap:10px;overflow-x:auto;padding:2px 16px 4px;scroll-snap-type:x proximity;overscroll-behavior-x:contain;}
   .row-scroll::-webkit-scrollbar{height:0;}
-  .row-scroll::after{content:"";flex:0 0 4px;}
+  .row-scroll::after{content:"";flex:0 0 6px;}
 
   /* Card poster (compacta) */
   .card{flex:0 0 104px;scroll-snap-align:start;cursor:pointer;transition:transform .22s;}
@@ -139,19 +139,12 @@
   .card-wide .thumb{position:relative;width:184px;height:104px;border-radius:12px;overflow:hidden;background:var(--bg2);box-shadow:0 8px 18px -8px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.06);}
   .card-wide .thumb img{width:100%;height:100%;object-fit:cover;transition:transform .5s;}
   .card-wide:active .thumb img{transform:scale(1.07);}
-  .card-wide .thumb::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(0,0,0,.78));}
-  /* botón play circular con acento */
-  .card-wide .play-ic{position:absolute;right:8px;bottom:8px;z-index:2;width:30px;height:30px;border-radius:50%;
-    display:flex;align-items:center;justify-content:center;background:rgba(var(--accent-rgb),.92);box-shadow:0 3px 10px rgba(0,0,0,.5);}
-  .card-wide .play-ic svg{width:16px;height:16px;fill:#fff;margin-left:1px;}
+  .card-wide .thumb::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.6));}
   /* chip de nº de episodio arriba-izquierda */
   .card-wide .epchip{position:absolute;left:8px;top:8px;z-index:2;font-size:9.5px;font-weight:800;color:#fff;
     padding:3px 8px;border-radius:7px;background:rgba(12,12,14,.6);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);border:1px solid rgba(255,255,255,.14);}
   /* idioma abajo-izquierda */
   .card-wide .eplang{position:absolute;left:8px;bottom:8px;z-index:2;font-size:9px;font-weight:800;letter-spacing:.3px;color:var(--accent-2);}
-  /* barra de progreso sutil */
-  .card-wide .epbar{position:absolute;left:0;right:0;bottom:0;z-index:2;height:3px;background:rgba(255,255,255,.2);}
-  .card-wide .epbar i{display:block;height:100%;background:var(--grad);border-radius:0 2px 2px 0;}
   .card-wide .ctitle{font-size:12px;font-weight:700;margin-top:7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .card-wide .csub{font-size:10.5px;color:var(--muted);margin-top:1px;}
 
@@ -198,6 +191,17 @@
   .nav-item.active svg{stroke:var(--accent);fill:rgba(var(--accent-rgb),.16);animation:navPop .4s ease;}
   .nav-item.active span{color:var(--accent);}
 
+  /* ===== Ver todo (overlay cuadrícula) ===== */
+  .row-more:active{opacity:.6;}
+  .allview{position:fixed;inset:0;z-index:60;background:var(--bg);transform:translateX(100%);transition:transform .3s cubic-bezier(.22,.61,.36,1);display:flex;flex-direction:column;}
+  .allview.open{transform:translateX(0);}
+  .allbar{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 12px) 14px 12px;border-bottom:1px solid var(--border);}
+  .allbar b{font-size:16px;font-weight:800;}
+  .allgrid{flex:1;overflow-y:auto;overscroll-behavior:contain;display:grid;grid-template-columns:repeat(3,1fr);gap:14px 10px;padding:16px 14px calc(var(--nav-h) + 20px);}
+  .allgrid .card{flex:none;width:100%;}
+  .allgrid .card .poster{width:100%;height:auto;aspect-ratio:2/3;}
+  @media(max-width:360px){.allgrid{grid-template-columns:repeat(2,1fr);}}
+
   /* ===== Buscador overlay ===== */
   .search{position:fixed;inset:0;z-index:60;background:var(--bg);opacity:0;pointer-events:none;transition:opacity .25s;display:flex;flex-direction:column;}
   .search.open{opacity:1;pointer-events:auto;}
@@ -242,6 +246,17 @@
     <section class="hero" id="hero"></section>
     <div class="rows" id="rows"></div>
   </main>
+
+  <!-- ===== Ver todo (cuadrícula) ===== -->
+  <div class="allview" id="allView">
+    <div class="allbar">
+      <button class="icon-btn" id="allBack" aria-label="Volver">
+        <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z"/></svg>
+      </button>
+      <b id="allTitle">Título</b>
+    </div>
+    <div class="allgrid" id="allGrid"></div>
+  </div>
 
   <!-- ===== Buscador ===== -->
   <div class="search" id="search">
@@ -366,6 +381,20 @@ function bindHero(){
     s.querySelector("[data-info]").addEventListener("click",e=>{e.stopPropagation();go(it);});
     s.querySelector(".hero-bg").addEventListener("click",()=>go(it));
   });
+  // dots clicables (indicador)
+  h.querySelectorAll(".hero-dots span").forEach((d,i)=>{
+    d.addEventListener("click",()=>{ showHero(i); startHero(); });
+  });
+  // swipe horizontal para cambiar de slide destacado
+  let sx=0,sy=0,tracking=false;
+  h.addEventListener("touchstart",e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;tracking=true;},{passive:true});
+  h.addEventListener("touchend",e=>{
+    if(!tracking)return;tracking=false;
+    const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+    if(Math.abs(dx)>45 && Math.abs(dx)>Math.abs(dy)*1.5){
+      showHero(heroIdx + (dx<0?1:-1)); startHero();
+    }
+  },{passive:true});
 }
 function showHero(i){
   const h=document.getElementById("hero");
@@ -395,14 +424,11 @@ function cardHTML(it){
 function wideHTML(it){
   const epNum = it.type==="pelicula" ? "Película" : ("EP "+(it.eps||1));
   const lang = it.dub ? "LATINO" : (it.sub ? "SUB" : "");
-  const prog = 20 + Math.floor(Math.random()*60); // progreso visto (demo)
   return `<div class="card-wide" data-id="${esc(it.id)}">
     <div class="thumb">
       <img src="${img(it.backdrop)}" onerror="this.src='${FALL}'" alt=""/>
       <span class="epchip">${epNum}</span>
       ${lang?`<span class="eplang">${lang}</span>`:""}
-      <div class="play-ic"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-      <div class="epbar"><i style="width:${prog}%"></i></div>
     </div>
     <div class="ctitle">${esc(it.title)}</div>
     <div class="csub">${it.type==="pelicula"?"Película nueva":("Nuevo episodio")}</div>
@@ -414,24 +440,40 @@ function top10HTML(items){
       <div class="top10-card" data-id="${esc(it.id)}"><div class="top10-num">${i+1}</div>
       <div class="poster"><img src="${img(it.poster)}" onerror="this.src='${FALL}'" alt=""/></div></div>`).join("")}</div></div>`;
 }
-function rowHTML(title,items,variant){
+function rowHTML(title,items,variant,rowId){
   if(!items.length) return "";
   const inner = variant==="wide" ? items.map(wideHTML).join("") : items.map(cardHTML).join("");
-  return `<div class="row reveal"><div class="row-head"><div class="row-title">${esc(title)}</div><div class="row-more">Ver todo ›</div></div>
+  return `<div class="row reveal"><div class="row-head"><div class="row-title">${esc(title)}</div>
+    <button class="row-more" data-all="${rowId}">Ver todo ›</button></div>
     <div class="row-scroll">${inner}</div></div>`;
 }
 
 function renderRows(){
   const c=document.getElementById("rows");
   let html="";
-  ROWS.forEach(r=>{ html += rowHTML(r.title, DATA.filter(r.filter), r.variant); });
+  ROWS.forEach((r,i)=>{ html += rowHTML(r.title, DATA.filter(r.filter), r.variant, i); });
   html += top10HTML(DATA.slice().sort((a,b)=>b.rating-a.rating));
   c.innerHTML = html;
   c.querySelectorAll(".card,.card-wide,.top10-card").forEach(el=>{
     el.addEventListener("click",()=>{ const it=DATA.find(x=>x.id===el.dataset.id); if(it) go(it); });
   });
+  // "Ver todo" → abre la cuadrícula de esa fila
+  c.querySelectorAll("[data-all]").forEach(b=>{
+    b.addEventListener("click",()=>{ const r=ROWS[+b.dataset.all]; openAll(r.title, DATA.filter(r.filter)); });
+  });
   c.querySelectorAll(".row").forEach((row,i)=>row.style.animationDelay=(i*70)+"ms");
 }
+
+/* ----- "Ver todo": overlay con cuadrícula ----- */
+function openAll(title, items){
+  const ov=document.getElementById("allView");
+  document.getElementById("allTitle").textContent=title;
+  const grid=document.getElementById("allGrid");
+  grid.innerHTML=items.map(cardHTML).join("");
+  grid.querySelectorAll(".card").forEach(el=>el.addEventListener("click",()=>{const it=DATA.find(x=>x.id===el.dataset.id);if(it)go(it);}));
+  ov.classList.add("open");
+}
+document.getElementById("allBack").addEventListener("click",()=>document.getElementById("allView").classList.remove("open"));
 
 /* ----- Topbar sólida al hacer scroll ----- */
 document.getElementById("app").addEventListener("scroll",function(){
