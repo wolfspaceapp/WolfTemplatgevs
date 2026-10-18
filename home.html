@@ -147,20 +147,25 @@
   .card-wide .ctitle{font-size:12px;font-weight:700;margin-top:7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .card-wide .csub{font-size:10.5px;color:var(--muted);margin-top:1px;}
 
-  /* ===== Top 10 — rediseño ===== */
-  .top10 .row-scroll{gap:14px;padding:4px 16px 4px 40px;}
-  .top10-card{flex:0 0 110px;scroll-snap-align:start;position:relative;cursor:pointer;transition:transform .2s;}
-  .top10-card:active{transform:scale(.95);}
-  .top10-num{position:absolute;left:-34px;bottom:30px;z-index:1;font-size:88px;font-weight:900;line-height:.8;
-    color:#15151a;-webkit-text-stroke:2px rgba(var(--accent-rgb),.9);
-    text-shadow:0 0 22px rgba(var(--accent-rgb),.3);letter-spacing:-4px;}
-  .top10-card .poster{position:relative;z-index:2;width:110px;height:158px;border-radius:14px;overflow:hidden;background:var(--bg2);
+  /* ===== Top 10 — rediseño pro ===== */
+  .top10 .row-scroll{gap:6px;padding:4px 16px 4px;align-items:flex-start;}
+  .top10-card{flex:0 0 auto;scroll-snap-align:start;cursor:pointer;transition:transform .2s;
+    display:flex;align-items:flex-end;gap:2px;}
+  .top10-card:active{transform:scale(.96);}
+  /* número grande alineado al pie del póster, sin solaparse */
+  .top10-num{flex:0 0 auto;font-size:80px;font-weight:900;line-height:.72;letter-spacing:-6px;
+    color:transparent;-webkit-text-stroke:2px var(--accent);
+    filter:drop-shadow(0 4px 10px rgba(var(--accent-rgb),.35));
+    padding-bottom:2px;}
+  .top10-card:first-child{padding-left:4px;}
+  .top10-pic{flex:0 0 auto;}
+  .top10-pic .poster{position:relative;width:100px;height:146px;border-radius:13px;overflow:hidden;background:var(--bg2);
     box-shadow:0 10px 22px -8px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.08);}
-  .top10-card .poster img{width:100%;height:100%;object-fit:cover;}
-  .top10-card .poster::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,rgba(0,0,0,.65));}
-  .top10-card .trate{position:absolute;right:7px;bottom:7px;z-index:3;display:flex;align-items:center;gap:2px;font-size:10px;font-weight:800;color:#fff;}
-  .top10-card .trate svg{width:11px;height:11px;fill:#ffd04a;}
-  .top10-card .tname{font-size:11.5px;font-weight:700;margin-top:7px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .top10-pic .poster img{width:100%;height:100%;object-fit:cover;}
+  .top10-pic .poster::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 62%,rgba(0,0,0,.7));}
+  .top10-pic .trate{position:absolute;right:7px;bottom:7px;z-index:2;display:flex;align-items:center;gap:2px;font-size:10px;font-weight:800;color:#fff;}
+  .top10-pic .trate svg{width:11px;height:11px;fill:#ffd04a;}
+  .top10-pic .tname{font-size:11.5px;font-weight:700;margin-top:7px;line-height:1.2;width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
   /* ===== Vistas (Explorar / Mi lista / Cuenta) ===== */
   .view{animation:fadeIn .3s ease;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 20px);}
@@ -510,11 +515,13 @@ function top10HTML(items){
     <div class="row-scroll">${items.slice(0,10).map((it,i)=>`
       <div class="top10-card" data-id="${esc(it.id)}">
         <div class="top10-num">${i+1}</div>
-        <div class="poster">
-          <span class="trate"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>${it.rating}</span>
-          <img src="${img(it.poster)}" onerror="this.src='${FALL}'" alt=""/>
+        <div class="top10-pic">
+          <div class="poster">
+            <span class="trate"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>${it.rating}</span>
+            <img src="${img(it.poster)}" onerror="this.src='${FALL}'" alt=""/>
+          </div>
+          <div class="tname">${esc(it.title)}</div>
         </div>
-        <div class="tname">${esc(it.title)}</div>
       </div>`).join("")}</div></div>`;
 }
 function rowHTML(title,items,variant,rowId){
