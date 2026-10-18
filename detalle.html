@@ -394,21 +394,94 @@
   .cast-name{font-size:11px;font-weight:700;line-height:1.2;}
   .cast-role{font-size:10px;color:var(--muted);}
 
-  /* Player modal */
+  /* ====== REPRODUCTOR PROFESIONAL ====== */
   .player{
     position:fixed;inset:0;z-index:100;background:#000;
-    display:flex;align-items:center;justify-content:center;
     opacity:0;pointer-events:none;transition:opacity .3s;
+    overflow:hidden;
   }
   .player.open{opacity:1;pointer-events:auto;}
-  .player-close{
-    position:absolute;top:calc(env(safe-area-inset-top) + 14px);right:16px;z-index:2;
-    width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.14);
-    display:flex;align-items:center;justify-content:center;
+  /* escena de video (placeholder con fondo) */
+  .player-video{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 50% 40%, #1a1a1d, #000 70%);
   }
-  .player-close svg{width:24px;height:24px;fill:#fff;}
-  .player-box{width:100%;max-width:900px;aspect-ratio:16/9;background:#111;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:var(--muted);}
-  .player-box svg{width:64px;height:64px;fill:var(--accent);}
+  .player-video .big-play{
+    width:84px;height:84px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(244,117,33,.92);box-shadow:0 8px 30px rgba(0,0,0,.6);
+    transition:transform .2s;
+  }
+  .player-video .big-play:active{transform:scale(.9);}
+  .player-video .big-play svg{width:40px;height:40px;fill:#fff;}
+  .player-video.playing .big-play{display:none;}
+  .player-spinner{
+    position:absolute;width:52px;height:52px;border-radius:50%;
+    border:3px solid rgba(255,255,255,.18);border-top-color:var(--accent);
+    animation:spin .8s linear infinite;display:none;
+  }
+  .player.buffering .player-spinner{display:block;}
+  .player.buffering .big-play{display:none;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* overlay de controles (aparece/desaparece) */
+  .player-ui{
+    position:absolute;inset:0;z-index:2;
+    display:flex;flex-direction:column;justify-content:space-between;
+    background:linear-gradient(180deg,rgba(0,0,0,.6) 0%,rgba(0,0,0,0) 22%,rgba(0,0,0,0) 62%,rgba(0,0,0,.75) 100%);
+    opacity:1;transition:opacity .3s;
+  }
+  .player.hide-ui .player-ui{opacity:0;pointer-events:none;}
+
+  /* barra superior del reproductor */
+  .pl-top{
+    display:flex;align-items:center;gap:12px;
+    padding:calc(env(safe-area-inset-top) + 12px) 16px 10px;
+  }
+  .pl-top .pl-back{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);color:#fff;flex:0 0 auto;}
+  .pl-top .pl-back svg{width:24px;height:24px;}
+  .pl-titles{flex:1;min-width:0;}
+  .pl-titles b{display:block;font-size:15px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .pl-titles small{display:block;font-size:12px;color:#bbb;margin-top:1px;}
+  .pl-top .pl-setting{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);color:#fff;flex:0 0 auto;}
+  .pl-top .pl-setting svg{width:22px;height:22px;}
+
+  /* centro: retroceder / play / avanzar 10s */
+  .pl-center{display:flex;align-items:center;justify-content:center;gap:40px;}
+  .pl-c-btn{color:#fff;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative;}
+  .pl-c-btn svg{width:34px;height:34px;}
+  .pl-c-btn.main svg{width:58px;height:58px;}
+  .pl-c-btn small{position:absolute;font-size:8.5px;font-weight:800;top:12px;}
+  .pl-c-btn:active{transform:scale(.9);}
+
+  /* botón grande omitir intro */
+  .skip-intro{
+    position:absolute;right:16px;bottom:88px;z-index:3;
+    display:none;align-items:center;gap:7px;
+    padding:10px 16px;border-radius:10px;font-size:13.5px;font-weight:800;
+    background:rgba(255,255,255,.92);color:#111;
+    box-shadow:0 6px 20px rgba(0,0,0,.5);
+    animation:skipIn .3s ease;
+  }
+  .skip-intro.show{display:inline-flex;}
+  .skip-intro svg{width:18px;height:18px;fill:#111;}
+  @keyframes skipIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+  /* barra inferior: progreso + tiempos */
+  .pl-bottom{padding:0 16px calc(env(safe-area-inset-bottom) + 16px);}
+  .pl-time-row{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:700;color:#eee;}
+  .pl-seek{
+    flex:1;height:5px;border-radius:999px;background:rgba(255,255,255,.25);
+    position:relative;cursor:pointer;
+  }
+  .pl-seek-buffer{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:rgba(255,255,255,.35);width:0;}
+  .pl-seek-fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:var(--accent);width:0;}
+  .pl-seek-knob{position:absolute;top:50%;width:13px;height:13px;border-radius:50%;background:var(--accent);transform:translate(-50%,-50%);left:0;box-shadow:0 0 0 4px rgba(244,117,33,.25);}
+  .pl-actions{display:flex;align-items:center;justify-content:space-between;margin-top:12px;}
+  .pl-act{display:flex;align-items:center;gap:6px;color:#eee;font-size:12.5px;font-weight:700;}
+  .pl-act svg{width:20px;height:20px;}
+  .pl-act:active{transform:scale(.94);}
+  .pl-act.next{color:var(--accent);}
 
   /* ====== Bottom sheet "Mi lista" ====== */
   .sheet-backdrop{
@@ -600,14 +673,76 @@
 
   </div>
 
-  <!-- ===== Player modal ===== -->
+  <!-- ===== REPRODUCTOR PROFESIONAL ===== -->
   <div class="player" id="player">
-    <button class="player-close" id="playerClose" aria-label="Cerrar">
-      <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+    <!-- escena de video (placeholder; aquí iría <video>/<iframe> real) -->
+    <div class="player-video" id="playerVideo">
+      <button class="big-play" id="plBigPlay" aria-label="Reproducir">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <div class="player-spinner"></div>
+    </div>
+
+    <!-- botón omitir intro (solo serie, durante la intro) -->
+    <button class="skip-intro" id="skipIntro">
+      <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+      Omitir intro
     </button>
-    <div class="player-box" id="playerBox">
-      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-      <span id="playerLabel">Reproduciendo…</span>
+
+    <!-- overlay de controles -->
+    <div class="player-ui" id="playerUi">
+      <div class="pl-top">
+        <button class="pl-back" id="playerClose" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z"/></svg>
+        </button>
+        <div class="pl-titles">
+          <b id="plTitle">Título</b>
+          <small id="plSubtitle">—</small>
+        </div>
+        <button class="pl-setting" id="plSettings" aria-label="Opciones">
+          <svg viewBox="0 0 24 24"><path d="M19.14 12.94a7.49 7.49 0 000-1.88l2.03-1.58a.5.5 0 00.12-.64l-1.92-3.32a.5.5 0 00-.61-.22l-2.39.96a7.3 7.3 0 00-1.62-.94l-.36-2.54a.5.5 0 00-.5-.42h-3.84a.5.5 0 00-.5.42l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.5.5 0 00-.61.22L2.69 8.84a.5.5 0 00.12.64l2.03 1.58a7.49 7.49 0 000 1.88l-2.03 1.58a.5.5 0 00-.12.64l1.92 3.32c.14.24.42.33.68.22l2.39-.96c.49.38 1.03.7 1.62.94l.36 2.54c.05.24.26.42.5.42h3.84c.24 0 .45-.18.5-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.26.11.54.02.68-.22l1.92-3.32a.5.5 0 00-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1112 8.5a3.5 3.5 0 010 7z"/></svg>
+        </button>
+      </div>
+
+      <div class="pl-center">
+        <button class="pl-c-btn" id="plRew" aria-label="Retroceder 10s">
+          <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7a6 6 0 11-6 6H4a8 8 0 108-8z"/></svg>
+          <small>10</small>
+        </button>
+        <button class="pl-c-btn main" id="plPlayPause" aria-label="Play/Pausa">
+          <svg id="plPlayIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <button class="pl-c-btn" id="plFwd" aria-label="Avanzar 10s">
+          <svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7a6 6 0 106 6h2a8 8 0 11-8-8z"/></svg>
+          <small>10</small>
+        </button>
+      </div>
+
+      <div class="pl-bottom">
+        <div class="pl-time-row">
+          <span id="plCur">0:00</span>
+          <div class="pl-seek" id="plSeek">
+            <div class="pl-seek-buffer" id="plBuffer"></div>
+            <div class="pl-seek-fill" id="plFill"></div>
+            <div class="pl-seek-knob" id="plKnob"></div>
+          </div>
+          <span id="plDur">24:00</span>
+        </div>
+        <div class="pl-actions">
+          <button class="pl-act" id="plLang">
+            <svg viewBox="0 0 24 24"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04z"/></svg>
+            <span id="plLangTxt">Idioma</span>
+          </button>
+          <button class="pl-act" id="plFull">
+            <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+            <span>Pantalla</span>
+          </button>
+          <button class="pl-act next" id="plNext">
+            <span id="plNextTxt">Siguiente</span>
+            <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -687,6 +822,8 @@ const ANIME = {
       name: "Temporada 1",
       episodes: [
         { n:1, title:"Ryomen Sukuna", dur:"24m", desc:"Yuji conoce a Megumi y descubre el mundo de las maldiciones.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg",
+          // duración en segundos e intervalo de intro (para "Omitir intro")
+          duration: 1440, intro: { start: 40, end: 130 },
           // Fuentes por idioma → servidores (así se verá el flujo idioma → servidor → reproductor)
           sources: {
             "Latino":     [ {name:"YourUpload", url:"#"}, {name:"Streamtape", url:"#"}, {name:"Mega", url:"#"} ],
@@ -1006,7 +1143,15 @@ function openMovieFlow(){
   const sources = ANIME.sources || DEFAULT_SOURCES;
   openPlayFlow(sources, ANIME.title, (lang, srv) => {
     closePlaySheet();
-    openPlayer(`${ANIME.title} · ${lang} · ${srv.name}`);
+    openPlayer({
+      title: ANIME.title,
+      subtitle: `Película · ${lang} · ${srv.name}`,
+      duration: 6300,          // ~1h45m de ejemplo
+      intro: null,             // películas no tienen "omitir intro"
+      lang,
+      hasNext: false,
+      onNext: null
+    });
   });
 }
 
@@ -1117,14 +1262,24 @@ if (!isMovie && ANIME.seasons && ANIME.seasons.length){
      ============================================================ */
   function openEpisodeFlow(s, n){
     const ep = epByNum(s, n);
-    // fuentes POR EPISODIO; si el episodio no define, usa el fallback
     const sources = (ep && ep.sources) ? ep.sources : DEFAULT_SOURCES;
     openPlayFlow(sources, `${ANIME.seasons[s].name} · E${n}`, (lang, srv) => {
-      setWatched(s, n, true);     // marcar visto
-      saveResume(s, n);           // guardar "continuar viendo"
+      setWatched(s, n, true);
+      saveResume(s, n);
       renderEpisodes();
       closePlaySheet();
-      openPlayer(`${ANIME.seasons[s].name} · E${n} · ${lang} · ${srv.name}`);
+      // contexto completo para el reproductor profesional
+      const eps = ANIME.seasons[s].episodes;
+      const hasNext = eps.some(e => e.n === n + 1);
+      openPlayer({
+        title: ep ? ep.title : ("Episodio " + n),
+        subtitle: `${ANIME.seasons[s].name} · E${n} · ${lang} · ${srv.name}`,
+        duration: (ep && ep.duration) || 1440,
+        intro: (ep && ep.intro) || null,
+        lang,
+        hasNext,
+        onNext: hasNext ? () => openEpisodeFlow(s, n + 1) : null
+      });
     });
   }
 
@@ -1270,15 +1425,139 @@ btnHeroFav.addEventListener("click", () => {
 });
 
 /* ===== Reproductor ===== */
-const player = $("player");
-function openPlayer(label){
-  $("playerLabel").textContent = "Reproduciendo: " + label;
-  player.classList.add("open");
-  lockScroll(true);
+/* ============================================================
+   REPRODUCTOR PROFESIONAL
+   Simula la reproducción (tiempo que avanza) sobre un placeholder.
+   Para video real, sustituye playerVideo por <video>/<iframe> y
+   conecta currentTime/duration a este mismo controlador.
+   ============================================================ */
+const player      = $("player");
+const playerVideo = $("playerVideo");
+const playerUi    = $("playerUi");
+const plPlayIcon  = $("plPlayIcon");
+const plCur       = $("plCur");
+const plDur       = $("plDur");
+const plFill      = $("plFill");
+const plBuffer    = $("plBuffer");
+const plKnob      = $("plKnob");
+const plSeek      = $("plSeek");
+const skipIntro   = $("skipIntro");
+
+const ICON_PLAY  = "M8 5v14l11-7z";
+const ICON_PAUSE = "M6 5h4v14H6zm8 0h4v14h-4z";
+
+let plState = { dur:1440, cur:0, playing:false, intro:null, onNext:null, timer:null, hideTimer:null };
+
+function fmtTime(s){
+  s = Math.max(0, Math.floor(s));
+  const m = Math.floor(s/60), sec = s%60;
+  return m + ":" + String(sec).padStart(2,"0");
 }
-$("playerClose").addEventListener("click", () => {
-  player.classList.remove("open");
+function plRender(){
+  const pct = plState.dur ? (plState.cur/plState.dur)*100 : 0;
+  plFill.style.width = pct + "%";
+  plKnob.style.left  = pct + "%";
+  plBuffer.style.width = Math.min(100, pct + 12) + "%";
+  plCur.textContent = fmtTime(plState.cur);
+  plDur.textContent = fmtTime(plState.dur);
+  // mostrar "omitir intro" dentro del rango de intro
+  if (plState.intro && plState.cur >= plState.intro.start && plState.cur < plState.intro.end){
+    skipIntro.classList.add("show");
+  } else {
+    skipIntro.classList.remove("show");
+  }
+}
+function plTick(){
+  if (!plState.playing) return;
+  plState.cur += 1;
+  if (plState.cur >= plState.dur){
+    plState.cur = plState.dur; plSetPlaying(false);
+    if (plState.onNext){ toast("Reproduciendo siguiente…"); setTimeout(plState.onNext, 600); }
+  }
+  plRender();
+}
+function plSetPlaying(p){
+  plState.playing = p;
+  plPlayIcon.setAttribute("d", p ? ICON_PAUSE : ICON_PLAY);
+  playerVideo.classList.toggle("playing", p);
+  clearInterval(plState.timer);
+  if (p) plState.timer = setInterval(plTick, 1000);
+  if (p) scheduleHideUi();
+}
+function showUi(){
+  player.classList.remove("hide-ui");
+  scheduleHideUi();
+}
+function scheduleHideUi(){
+  clearTimeout(plState.hideTimer);
+  plState.hideTimer = setTimeout(() => {
+    if (plState.playing) player.classList.add("hide-ui");
+  }, 3200);
+}
+
+function openPlayer(data){
+  // compatibilidad: si llega un string, lo tratamos como subtítulo simple
+  if (typeof data === "string") data = { title:"Reproduciendo", subtitle:data, duration:1440 };
+  plState.dur = data.duration || 1440;
+  plState.cur = 0;
+  plState.intro = data.intro || null;
+  plState.onNext = data.onNext || null;
+  $("plTitle").textContent = data.title || "Reproduciendo";
+  $("plSubtitle").textContent = data.subtitle || "";
+  $("plLangTxt").textContent = data.lang || "Idioma";
+  $("plNext").style.display = data.hasNext ? "flex" : "none";
+
+  player.classList.add("open");
+  player.classList.remove("hide-ui");
+  // simular buffering breve y arrancar
+  player.classList.add("buffering");
+  plSetPlaying(false);
+  plRender();
+  lockScroll(true);
+  setTimeout(() => { player.classList.remove("buffering"); plSetPlaying(true); plRender(); }, 900);
+}
+function closePlayer(){
+  plSetPlaying(false);
+  clearTimeout(plState.hideTimer);
+  player.classList.remove("open","hide-ui","buffering");
   lockScroll(false);
+}
+
+/* Controles */
+$("playerClose").addEventListener("click", closePlayer);
+$("plPlayPause").addEventListener("click", () => { plSetPlaying(!plState.playing); showUi(); });
+$("plBigPlay").addEventListener("click", () => { plSetPlaying(true); showUi(); });
+$("plRew").addEventListener("click", () => { plState.cur = Math.max(0, plState.cur-10); plRender(); showUi(); });
+$("plFwd").addEventListener("click", () => { plState.cur = Math.min(plState.dur, plState.cur+10); plRender(); showUi(); });
+$("plNext").addEventListener("click", () => { if (plState.onNext) plState.onNext(); });
+$("plLang").addEventListener("click", () => toast("Cambiar idioma: usa el menú del episodio"));
+$("plSettings").addEventListener("click", () => toast("Calidad: Auto · 1080p · 720p"));
+$("plFull").addEventListener("click", () => {
+  const el = player;
+  if (!document.fullscreenElement){ (el.requestFullscreen||el.webkitRequestFullscreen||function(){}).call(el); }
+  else { (document.exitFullscreen||document.webkitExitFullscreen||function(){}).call(document); }
+});
+skipIntro.addEventListener("click", () => {
+  if (plState.intro){ plState.cur = plState.intro.end; plRender(); showUi(); toast("Intro omitida"); }
+});
+
+// Barra de progreso: tocar/arrastrar para buscar
+function seekTo(clientX){
+  const r = plSeek.getBoundingClientRect();
+  const ratio = Math.min(1, Math.max(0, (clientX - r.left)/r.width));
+  plState.cur = Math.round(ratio * plState.dur);
+  plRender();
+}
+let seeking = false;
+plSeek.addEventListener("click", (e) => { seekTo(e.clientX); showUi(); });
+plSeek.addEventListener("touchstart", (e) => { seeking = true; seekTo(e.touches[0].clientX); }, {passive:true});
+plSeek.addEventListener("touchmove", (e) => { if(seeking){ seekTo(e.touches[0].clientX); } }, {passive:true});
+plSeek.addEventListener("touchend", () => { seeking = false; showUi(); });
+
+// Tocar el video alterna la visibilidad de los controles
+playerVideo.addEventListener("click", () => {
+  if (player.classList.contains("hide-ui")) showUi();
+  else if (plState.playing) player.classList.add("hide-ui");
 });
 
 /* ===== Scroll: topbar sólida + PARALLAX del fondo ===== */
