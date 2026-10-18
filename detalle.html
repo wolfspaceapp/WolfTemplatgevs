@@ -164,13 +164,14 @@
 
   /* Genre chips (slider horizontal) */
   .chips{
-    display:flex;gap:8px;margin:0 -20px 20px;padding:0 20px 2px;
-    overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;
+    display:flex;gap:8px;margin:0 -20px 24px;padding:4px 20px 6px;
+    overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
+    scroll-snap-type:x proximity;
   }
   .chips::-webkit-scrollbar{height:0;}
   .chip{
     flex:0 0 auto;scroll-snap-align:start;
-    font-size:13px;font-weight:600;padding:7px 14px;border-radius:999px;white-space:nowrap;
+    font-size:13px;font-weight:600;line-height:1;padding:8px 15px;border-radius:999px;white-space:nowrap;
     background:var(--card);border:1px solid var(--border);color:#ddd;
     transition:transform .15s, border-color .2s;
   }
@@ -179,7 +180,7 @@
   /* ====== TABS (línea inferior en la activa) ====== */
   .tabs{
     position:sticky;top:calc(env(safe-area-inset-top) + 56px);z-index:30;
-    display:flex;margin:0 -20px 20px;padding:0 20px;
+    display:flex;margin:4px -20px 0;padding:0 20px;
     background:var(--bg);
     border-bottom:1px solid var(--border);
   }
@@ -199,11 +200,14 @@
   .tab.active{color:#fff;}
   .tab.active::after{transform:scaleX(1);opacity:1;}
 
-  .tab-panel{animation:fadeIn .35s ease;}
+  .tab-panel{padding-top:22px;animation:fadeIn .35s ease;}
   .tab-panel[hidden]{display:none;}
 
   /* Section */
   .section{margin-bottom:28px;}
+  .tab-panel > .section:last-child{margin-bottom:0;}
+  /* Separación de la sección Episodios (va tras los paneles) */
+  #episodesSection{margin-top:34px;}
   .section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;}
   .section-title{font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px;}
   .section-title::before{content:"";width:4px;height:18px;border-radius:3px;background:var(--accent);}
