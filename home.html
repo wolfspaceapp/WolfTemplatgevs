@@ -887,13 +887,31 @@ function stripTags(html){ var d=document.createElement("div"); d.innerHTML=html|
 function hasWord(labels,words){ return labels.some(function(l){ return (words||[]).some(function(w){ return nrm(l).indexOf(nrm(w))!==-1; }); }); }
 function countEps(html){ var m=(html||"").match(/\[EP\]/gi); return m?m.length:0; }
 
+/* URL personalizada del post: la que TÚ pones en el contenido de la entrada.
+   Acepta cualquiera de estas formas (usa la que prefieras en Blogger):
+     [URL]https://tusitio.com/lo-que-sea[/URL]
+     url: https://tusitio.com/lo-que-sea
+     enlace: https://tusitio.com/lo-que-sea
+     link: https://tusitio.com/lo-que-sea
+   (también funciona si la pones dentro de un bloque [NW]...[/NW]) */
+function customUrl(html){
+  var text=stripTags(html||"");
+  // 1) marcador explícito [URL]...[/URL]
+  var m=text.match(/\[URL\]\s*([\s\S]*?)\s*\[\/URL\]/i);
+  if(m && m[1]) return m[1].trim();
+  // 2) línea "url:/enlace:/link: https://..."
+  m=text.match(/(?:url|enlace|link)\s*[:：]\s*(https?:\/\/[^\s"'<>\[\]]+)/i);
+  if(m && m[1]) return m[1].trim();
+  return "";
+}
+
 function postToItem(entry){
   var title=entry.title?entry.title.$t:"Sin título";
   var html=(entry.content&&entry.content.$t)||(entry.summary&&entry.summary.$t)||"";
   var labels=(entry.category||[]).map(function(c){return c.term;});
   var poster=(entry.media$thumbnail&&entry.media$thumbnail.url)?hiRes(entry.media$thumbnail.url):firstImg(html);
-  var url=""; (entry.link||[]).forEach(function(l){ if(l.rel==="alternate") url=l.href; });
-  var id=entry.id?entry.id.$t.replace(/^.*post-/,""):url;
+  var postUrl=""; (entry.link||[]).forEach(function(l){ if(l.rel==="alternate") postUrl=l.href; });
+  var id=entry.id?entry.id.$t.replace(/^.*post-/,""):postUrl;
   var year=(entry.published&&entry.published.$t)?(entry.published.$t.match(/\d{4}/)||[""])[0]:"";
   // rating: busca un número decimal en el contenido tras "rating" o deja 0
   var rm=stripTags(html).match(/rating\s*[:：]?\s*([\d.]+)/i); var rating=rm?rm[1]:"";
@@ -906,20 +924,22 @@ function postToItem(entry){
     genres: labels.filter(function(l){ return BLOG.GENRES.some(function(g){return nrm(g)===nrm(l);}); }),
     eps: countEps(html)||1,
     poster: poster||"", backdrop: poster||"",
-    url: url              // enlace del post en Blogger (se abre al pulsar la tarjeta)
+    openUrl: customUrl(html),   // URL personalizada que pones en la entrada (se abre al pulsar)
+    postUrl: postUrl            // enlace del post en Blogger (respaldo si no hay openUrl)
   };
 }
 
-/* go(): al pulsar una entrada, abre el POST en Blogger (su URL real).
-   Blogger funciona como base de datos; el detalle lo muestra el propio post.
-   Intenta abrir en nueva pestaña (navegador); si el WebView lo bloquea,
-   navega en la misma vista (el botón atrás del teléfono regresa al home). */
+/* go(): al pulsar una entrada abre la URL PERSONALIZADA que definiste en la
+   entrada (marcador [URL]...[/URL] o línea "url:"). Si la entrada no trae una,
+   usa como respaldo la URL del propio post en Blogger.
+   Intenta nueva pestaña y, si el WebView lo bloquea, navega en la misma vista. */
 function go(item){
   if(!item){ return; }
-  if(!item.url){ alert("Esta entrada no tiene enlace de Blogger."); return; }
+  var target = item.openUrl || item.postUrl;
+  if(!target){ alert("Esta entrada no tiene una URL configurada. Añade [URL]https://...[/URL] en el post."); return; }
   var w = null;
-  try { w = window.open(item.url, "_blank", "noopener"); } catch (e) { w = null; }
-  if (!w) { location.href = item.url; }
+  try { w = window.open(target, "_blank", "noopener"); } catch (e) { w = null; }
+  if (!w) { location.href = target; }
 }
 
 function renderAll(){ heroItems = DATA.slice(0,5); renderHero(); renderRows(); }
