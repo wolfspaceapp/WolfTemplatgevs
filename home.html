@@ -412,6 +412,26 @@
   .d-season select{appearance:none;-webkit-appearance:none;background:transparent;color:#fff;font-size:13px;font-weight:700;
     border:none;outline:none;padding:8px 12px 8px 6px;cursor:pointer;max-width:150px;}
   .d-season select option{color:#111;}
+  .d-eps-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+  /* Ordenar: botón compacto (solo icono) con <select> encima transparente */
+  .d-sort{position:relative;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;
+    width:40px;height:40px;border-radius:10px;background:var(--card);border:1px solid var(--border);color:#fff;transition:transform .15s;}
+  .d-sort:active{transform:scale(.93);}
+  .d-sort svg{width:18px;height:18px;pointer-events:none;}
+  .d-sort select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;
+    appearance:none;-webkit-appearance:none;border:none;background:transparent;}
+  .d-sort select option{color:#111;}
+
+  /* Reparto (slider horizontal) */
+  .d-cast{display:flex;gap:14px;padding:2px 2px 4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;}
+  .d-cast::after{content:"";flex:0 0 2px;}
+  .d-cast::-webkit-scrollbar{height:0;}
+  .d-cast-card{flex:0 0 64px;scroll-snap-align:start;text-align:center;}
+  .d-cast-img{width:64px;height:64px;border-radius:50%;overflow:hidden;border:2px solid var(--border);margin:0 auto 7px;background:var(--bg2);}
+  .d-cast-img img{width:100%;height:100%;object-fit:cover;}
+  .d-cast-name{font-size:11px;font-weight:700;line-height:1.2;}
+  .d-cast-role{font-size:10px;color:var(--muted);}
+  .d-cast-empty{color:var(--muted);font-size:13px;padding:20px 4px;}
   .d-eplist{display:flex;flex-direction:column;gap:9px;}
   .d-ep{display:flex;gap:11px;padding:8px;border-radius:12px;background:var(--card);border:1px solid var(--border);cursor:pointer;
     transition:transform .18s,border-color .2s,background .2s;}
@@ -531,16 +551,28 @@
           <p class="d-synopsis clamp" id="dSynopsis"></p>
           <div class="d-readmore" id="dReadMore">Leer más ▾</div>
         </section>
+        <section class="d-panel" id="dpanel-reparto" hidden>
+          <div class="d-cast" id="dCastGrid"></div>
+        </section>
         <section class="d-panel" id="dpanel-info" hidden>
           <div class="d-infogrid" id="dInfoGrid"></div>
         </section>
         <section class="d-eps" id="dEpsSection" hidden>
           <div class="d-eps-head">
             <h2 class="d-section-title">Episodios</h2>
-            <label class="d-season" id="dSeasonWrap" for="dSeasonSelect">
-              <svg viewBox="0 0 24 24"><path d="M12 3L2 8l10 5 10-5-10-5zm0 7.5L4.21 7 12 3.5 19.79 7 12 10.5z"/></svg>
-              <select id="dSeasonSelect" aria-label="Temporada"></select>
-            </label>
+            <div class="d-eps-controls">
+              <label class="d-season" id="dSeasonWrap" for="dSeasonSelect">
+                <svg viewBox="0 0 24 24"><path d="M12 3L2 8l10 5 10-5-10-5zm0 7.5L4.21 7 12 3.5 19.79 7 12 10.5z"/></svg>
+                <select id="dSeasonSelect" aria-label="Temporada"></select>
+              </label>
+              <label class="d-sort" id="dSortWrap" for="dSortSelect" title="Ordenar">
+                <svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3zm0-5h12v-2H3zm0-7v2h18V6z"/></svg>
+                <select id="dSortSelect" aria-label="Ordenar episodios">
+                  <option value="asc">Primero los antiguos</option>
+                  <option value="desc">Primero los recientes</option>
+                </select>
+              </label>
+            </div>
           </div>
           <div class="d-eplist" id="dEpList"></div>
         </section>
@@ -1081,6 +1113,7 @@ function go(item){
 var DETAIL_CACHE = {};            // url -> objeto detalle ya parseado
 var CURRENT_DETAIL = null;        // objeto detalle abierto
 var CURRENT_SEASON = 0;
+var SORT_ASC = true;              // orden de episodios: true=antiguos primero
 
 function d$(id){ return document.getElementById(id); }
 
@@ -1116,6 +1149,12 @@ function buildDetail(item, htmlRaw, labels){
       eps.push({ n:i+1, title:(a.textContent||"").trim()||("Episodio "+(i+1)), dur:"", desc:"", thumb:null, sources:null, url:href });
     });
   }
+  // [CAST]  →  Nombre:Rol:ImagenURL, Nombre2:Rol2, ...
+  var cast=[], cm=text.match(/\[CAST\]([\s\S]*?)\[\/CAST\]/i);
+  if(cm) cm[1].split(",").forEach(function(c){ c=c.trim(); if(!c) return;
+    var i1=c.indexOf(":"), name=i1<0?c:c.slice(0,i1).trim(), rest=i1<0?"":c.slice(i1+1).trim(), role="", imgu="";
+    if(rest){ if(/^https?:\/\//i.test(rest)) imgu=rest; else { var i2=rest.indexOf(":"); if(i2<0) role=rest; else { role=rest.slice(0,i2).trim(); imgu=rest.slice(i2+1).trim(); } } }
+    if(name) cast.push({ name:name, role:role, img:imgu||"" }); });
   var poster=item.poster||hiRes(firstImg(htmlRaw))||META.poster||"";
   var synopsis=META.synopsis||text.replace(/\[(NW|EP|CAST)\][\s\S]*?\[\/(NW|EP|CAST)\]/gi,"").replace(/\s+/g," ").trim().slice(0,600);
   return {
@@ -1128,7 +1167,8 @@ function buildDetail(item, htmlRaw, labels){
     synopsis:synopsis||"Sin sinopsis disponible.",
     seasons:isMovie?null:[{name:META.season||"Temporada 1",episodes:eps}],
     sources:isMovie?(eps[0]&&eps[0].sources?eps[0].sources:null):null,
-    episodes:eps
+    episodes:eps,
+    cast:cast
   };
 }
 
@@ -1224,18 +1264,31 @@ function showDetail(a){
     .filter(function(p){return p[1]!=null && p[1]!=="";});
   d$("dInfoGrid").innerHTML=info.map(function(p){return '<div class="d-info-card"><div class="d-info-label">'+esc(p[0])+'</div><div class="d-info-value">'+esc(p[1])+'</div></div>';}).join("");
 
-  // tabs
-  d$("dTabs").innerHTML='<button class="tab active" data-dt="sinopsis">Sinopsis</button><button class="tab" data-dt="info">Información</button>';
+  // reparto
+  var cast=a.cast||[];
+  d$("dCastGrid").innerHTML = cast.length
+    ? cast.map(function(p){
+        var im=p.img||makePH(p.name||"?");
+        return '<div class="d-cast-card"><div class="d-cast-img"><img src="'+esc(im)+'" onerror="this.onerror=null;this.src=\''+makePH(p.name||"?")+'\'" alt=""/></div>'+
+          '<div class="d-cast-name">'+esc(p.name)+'</div>'+(p.role?'<div class="d-cast-role">'+esc(p.role)+'</div>':'')+'</div>';
+      }).join("")
+    : '<div class="d-cast-empty">Sin reparto. Añádelo en el post con [CAST]Nombre:Rol:imagen, …[/CAST]</div>';
+
+  // tabs (Sinopsis · Reparto · Información)
+  d$("dTabs").innerHTML='<button class="tab active" data-dt="sinopsis">Sinopsis</button>'+
+    '<button class="tab" data-dt="reparto">Reparto</button>'+
+    '<button class="tab" data-dt="info">Información</button>';
   d$("dTabs").querySelectorAll(".tab").forEach(function(b){
     b.addEventListener("click",function(){
       d$("dTabs").querySelectorAll(".tab").forEach(function(x){x.classList.remove("active");});
       b.classList.add("active");
       var t=b.dataset.dt;
       d$("dpanel-sinopsis").hidden=(t!=="sinopsis");
+      d$("dpanel-reparto").hidden=(t!=="reparto");
       d$("dpanel-info").hidden=(t!=="info");
     });
   });
-  d$("dpanel-sinopsis").hidden=false; d$("dpanel-info").hidden=true;
+  d$("dpanel-sinopsis").hidden=false; d$("dpanel-reparto").hidden=true; d$("dpanel-info").hidden=true;
 
   // botón reproducir
   d$("dPlayLabel").textContent=isMovie?"Reproducir película":"Reproducir E1";
@@ -1254,6 +1307,9 @@ function showDetail(a){
     var sel=d$("dSeasonSelect");
     sel.innerHTML=a.seasons.map(function(s,i){return '<option value="'+i+'">'+esc(s.name)+'</option>';}).join("");
     sel.onchange=function(){ CURRENT_SEASON=+sel.value; renderEpList(a); };
+    var sort=d$("dSortSelect");
+    SORT_ASC=true; sort.value="asc";
+    sort.onchange=function(){ SORT_ASC=(sort.value!=="desc"); renderEpList(a); };
     renderEpList(a);
   }
 
@@ -1263,9 +1319,11 @@ function showDetail(a){
 }
 
 function renderEpList(a){
-  var eps=(a.seasons[CURRENT_SEASON]&&a.seasons[CURRENT_SEASON].episodes)||[];
+  var base=(a.seasons[CURRENT_SEASON]&&a.seasons[CURRENT_SEASON].episodes)||[];
   var list=d$("dEpList");
-  if(!eps.length){ list.innerHTML='<div class="empty"><div class="ic">🎬</div><div class="big">Sin episodios</div><div>Agrega enlaces con [EP]…[/EP] en el post.</div></div>'; return; }
+  if(!base.length){ list.innerHTML='<div class="empty"><div class="ic">🎬</div><div class="big">Sin episodios</div><div>Agrega enlaces con [EP]…[/EP] en el post.</div></div>'; return; }
+  // aplica el orden elegido (antiguos primero / recientes primero)
+  var eps = SORT_ASC ? base.slice() : base.slice().reverse();
   list.innerHTML=eps.map(function(ep,i){
     return '<div class="d-ep" data-i="'+i+'">'+
       '<div class="d-ep-thumb"><img src="'+img(ep.thumb||a.poster)+'" onerror="this.src=\''+FALL+'\'" alt=""/>'+
