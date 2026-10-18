@@ -408,24 +408,20 @@
    Paleta actual: CyberKai (azul neon + magenta).
    ============================================================ */
 const THEME = {
-  accent:   "#00F0FF",   // azul neon cibernetico (acento principal)
-  accent2:  "#FF2DFA",   // magenta/violeta neon (secundario/brillos)
-  // Degradado (botones y acentos): azul -> magenta
-  gradFrom: "#00F0FF",
-  gradMid:  "#38B6FF",
-  gradTo:   "#FF2DFA",
+  accent:   "#FF00CC",   // magenta/rosa (acento principal)
+  accent2:  "#0088FF",   // azul (secundario/brillos)
+  // Degradado ARCOIRIS (rojo->naranja->amarillo->verde->azul->magenta)
+  gradCustom:"linear-gradient(135deg,#FF0000 0%,#FF8800 20%,#FFFF00 40%,#00FF00 58%,#0088FF 78%,#FF00CC 100%)",
   gradAngle:"135deg"
-  // NOTA: el fondo negro NO se cambia (se mantiene --bg oscuro del CSS).
+  // NOTA: el fondo negro NO se cambia.
 };
 (function(){
   var r=document.documentElement.style;
   r.setProperty("--accent",THEME.accent);
   r.setProperty("--accent-2",THEME.accent2);
-  r.setProperty("--grad","linear-gradient("+THEME.gradAngle+","+THEME.gradFrom+" 0%,"+THEME.gradMid+" 48%,"+THEME.gradTo+" 100%)");
+  r.setProperty("--grad",THEME.gradCustom);
   var m=THEME.accent.replace("#","").match(/^(..)(..)(..)$/);
   if(m) r.setProperty("--accent-rgb",parseInt(m[1],16)+", "+parseInt(m[2],16)+", "+parseInt(m[3],16));
-  // fondo: lo dejamos tal cual (negro). Si algún día quieres el negro CyberKai:
-  // r.setProperty("--bg","#050508");
 })();
 
 /* ============================================================
@@ -682,7 +678,7 @@ document.querySelectorAll(".nav-item").forEach(b=>{
 });
 
 /* ----- Explorar ----- */
-const GENRE_COLORS=["rgba(0,240,255,.8)","rgba(255,45,250,.78)","rgba(99,102,241,.8)","rgba(16,185,129,.8)","rgba(59,130,246,.8)","rgba(168,85,247,.8)","rgba(236,72,153,.8)","rgba(234,179,8,.82)"];
+const GENRE_COLORS=["rgba(255,0,0,.8)","rgba(255,136,0,.8)","rgba(255,255,0,.78)","rgba(0,255,0,.78)","rgba(0,136,255,.8)","rgba(255,0,204,.8)"];
 function renderExplore(){
   const genres=Array.from(new Set(DATA.flatMap(d=>d.genres)));
   const gc=document.getElementById("genreGrid");

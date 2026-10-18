@@ -815,16 +815,14 @@
    switches, selección, favorito, etc.).
    ============================================================ */
 const THEME = {
-  accent:    "#f47521",   // color principal (el "naranja")
-  accent2:   "#ff9a52",   // variante clara del acento (brillos/bordes)
+  accent:    "#FF00CC",   // color principal (magenta/rosa)
+  accent2:   "#0088FF",   // variante / secundario (azul)
 
-  // Degradado (botón reproducir y acentos). 3 paradas: claro → medio → oscuro
-  gradFrom:  "#ffa24d",   // inicio del degradado
-  gradMid:   "#f47521",   // centro del degradado
-  gradTo:    "#e8630e",   // final del degradado
-  gradAngle: "135deg",    // ángulo del degradado
+  // Degradado ARCOIRIS (rojo→naranja→amarillo→verde→azul→magenta)
+  gradCustom:"linear-gradient(135deg,#FF0000 0%,#FF8800 20%,#FFFF00 40%,#00FF00 58%,#0088FF 78%,#FF00CC 100%)",
+  gradAngle: "135deg",
 
-  // (opcional) fondos de la app
+  // fondos de la app (NEGRO — no se cambia)
   bg:        "#0a0a0a",
   bg2:       "#141414",
   card:      "#1a1a1a"
@@ -838,9 +836,8 @@ const THEME = {
   r.setProperty("--bg",       THEME.bg);
   r.setProperty("--bg2",      THEME.bg2);
   r.setProperty("--card",     THEME.card);
-  // degradado reutilizable
-  r.setProperty("--grad", `linear-gradient(${THEME.gradAngle}, ${THEME.gradFrom} 0%, ${THEME.gradMid} 48%, ${THEME.gradTo} 100%)`);
-  // versiones con alpha del acento (para fondos/sombras suaves)
+  // degradado: usa gradCustom si existe, si no las 3 paradas
+  r.setProperty("--grad", THEME.gradCustom || `linear-gradient(${THEME.gradAngle}, ${THEME.gradFrom} 0%, ${THEME.gradMid} 48%, ${THEME.gradTo} 100%)`);
   const rgb = hexToRgb(THEME.accent);
   if (rgb){
     r.setProperty("--accent-rgb", `${rgb.r}, ${rgb.g}, ${rgb.b}`);
