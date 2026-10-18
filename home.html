@@ -461,12 +461,27 @@ const THEME = {
 })();
 
 /* ============================================================
-   DATOS — reemplaza por tu feed de Blogger o tu backend.
+   CONFIGURACION DE BLOGGER — alimenta el home desde el feed
+   ------------------------------------------------------------
+   Pon el dominio de tu blog (sin barra final). Cada ENTRADA = un anime.
+   Si lo dejas vacío o de ejemplo, se usan los datos DEMO de abajo.
+   ============================================================ */
+const BLOG = {
+  URL: "",                         // ej: "https://tublog.blogspot.com"  (vacío = usa DEMO)
+  MAX: 150,                        // cuántos posts pedir
+  GENRES: ["Acción","Comedia","Drama","Romance","Fantasía","Shounen","Terror","Ciencia Ficción","Aventura","Sobrenatural"],
+  NUEVO_LABEL: "Nuevo",            // etiqueta que marca "nuevo episodio"
+  MOVIE_WORDS: ["pelicula","película","movie","film"],
+  DUB_WORDS: ["dob","doblaje","latino","dub"],
+  SUB_WORDS: ["sub","subtitulado"]
+};
+
+/* ============================================================
+   DATOS DEMO — se usan si no hay BLOG.URL configurado.
    Cada item: {id,title,poster,backdrop,type,year,rating,genres,eps,nuevo,sub,dub}
-   El botón/tarjeta enlaza a detalle.html?id=<id>
    ============================================================ */
 const P = "https://s4.anilist.co/file/anilistcdn/media/anime/";
-const DATA = [
+let DATA = [
   { id:"jjk",   title:"Jujutsu Kaisen",     type:"serie",    year:2024, rating:8.7, nuevo:true,  sub:true, dub:true,
     genres:["Acción","Shounen","Sobrenatural"], eps:24,
     poster:P+"cover/large/bx113415-bbBWj4pEFseh.jpg", backdrop:P+"banner/113415-jQBSkxWAAk83.jpg" },
@@ -867,9 +882,82 @@ function renderAccount(){
   </div>`;
 }
 
+/* ============================================================
+   ALIMENTACIÓN DESDE EL FEED DE BLOGGER
+   Convierte cada post del feed al formato de DATA. Usa JSONP
+   (evita problemas de CORS en apps empaquetadas / WebView).
+   ============================================================ */
+function feedUrl(){
+  var base=(BLOG.URL||"").replace(/\/+$/,"");
+  return base+"/feeds/posts/default?alt=json&max-results="+(BLOG.MAX||150)+"&callback=";
+}
+function fetchFeed(){
+  return new Promise(function(resolve,reject){
+    var cb="__nwfeed_"+Math.random().toString(36).slice(2);
+    var s=document.createElement("script"), done=false;
+    window[cb]=function(data){ done=true; resolve(data); clean(); };
+    function clean(){ try{delete window[cb];}catch(e){window[cb]=undefined;} if(s.parentNode) s.parentNode.removeChild(s); }
+    s.onerror=function(){ if(!done){ reject(new Error("No se pudo cargar el feed")); clean(); } };
+    s.src=feedUrl()+cb;
+    document.head.appendChild(s);
+    setTimeout(function(){ if(!done){ reject(new Error("Timeout del feed")); clean(); } },15000);
+  });
+}
+function nrm(s){ return (s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""); }
+function hiRes(u){ return u?u.replace(/\/s\d+(-c)?\//,"/s1600/").replace(/=s\d+(-c)?$/,"=s1600"):u; }
+function firstImg(html){ var m=(html||"").match(/<img[^>]+src=["']([^"']+)["']/i); return m?hiRes(m[1]):null; }
+function stripTags(html){ var d=document.createElement("div"); d.innerHTML=html||""; return (d.textContent||"").trim(); }
+function hasWord(labels,words){ return labels.some(function(l){ return (words||[]).some(function(w){ return nrm(l).indexOf(nrm(w))!==-1; }); }); }
+function countEps(html){ var m=(html||"").match(/\[EP\]/gi); return m?m.length:0; }
+
+function postToItem(entry){
+  var title=entry.title?entry.title.$t:"Sin título";
+  var html=(entry.content&&entry.content.$t)||(entry.summary&&entry.summary.$t)||"";
+  var labels=(entry.category||[]).map(function(c){return c.term;});
+  var poster=(entry.media$thumbnail&&entry.media$thumbnail.url)?hiRes(entry.media$thumbnail.url):firstImg(html);
+  var url=""; (entry.link||[]).forEach(function(l){ if(l.rel==="alternate") url=l.href; });
+  var id=entry.id?entry.id.$t.replace(/^.*post-/,""):url;
+  var year=(entry.published&&entry.published.$t)?(entry.published.$t.match(/\d{4}/)||[""])[0]:"";
+  // rating: busca un número decimal en el contenido tras "rating" o deja 0
+  var rm=stripTags(html).match(/rating\s*[:：]?\s*([\d.]+)/i); var rating=rm?rm[1]:"";
+  return {
+    id:id, title:title,
+    type: hasWord(labels,BLOG.MOVIE_WORDS) ? "pelicula" : "serie",
+    year: year, rating: rating||"",
+    nuevo: labels.indexOf(BLOG.NUEVO_LABEL)!==-1,
+    sub: hasWord(labels,BLOG.SUB_WORDS), dub: hasWord(labels,BLOG.DUB_WORDS),
+    genres: labels.filter(function(l){ return BLOG.GENRES.some(function(g){return nrm(g)===nrm(l);}); }),
+    eps: countEps(html)||1,
+    poster: poster||"", backdrop: poster||"",
+    url: url
+  };
+}
+
+/* En Blogger: go() navega al post real; sin feed, a detalle.html?id= */
+function goFeed(item){
+  if(item && item.url){ location.href=item.url; }
+  else { location.href="detalle.html?id="+encodeURIComponent(item.id); }
+}
+
+function renderAll(){ renderHero(); renderRows(); }
+
+function init(){
+  var usingFeed = BLOG.URL && !/^$|ejemplo|tublog/.test(BLOG.URL);
+  if(!usingFeed){ renderAll(); return; }   // sin feed → datos DEMO
+  fetchFeed().then(function(data){
+    var entries=(data&&data.feed&&data.feed.entry)||[];
+    var items=entries.map(postToItem).filter(function(x){return x.title;});
+    if(items.length){
+      DATA = items;
+      go = goFeed;                 // los clics abren el post real del blog
+      heroItems = DATA.slice(0,5);
+    }
+    renderAll();
+  }).catch(function(){ renderAll(); });   // si falla el feed, usa DEMO
+}
+
 /* ----- Init ----- */
-renderHero();
-renderRows();
+init();
 </script>
 </body>
 </html>
