@@ -401,11 +401,22 @@
     overflow:hidden;
   }
   .player.open{opacity:1;pointer-events:auto;}
-  /* escena de video (placeholder con fondo) */
+  /* escena de video */
   .player-video{
     position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
     background:radial-gradient(circle at 50% 40%, #1a1a1d, #000 70%);
   }
+  .player-video video,
+  .player-video iframe{
+    position:absolute;inset:0;width:100%;height:100%;border:0;background:#000;
+    display:none;
+  }
+  .player-video.mode-video video{display:block;}
+  .player-video.mode-iframe iframe{display:block;}
+  /* con iframe, el overlay de controles no puede capturar sus clics internos */
+  .player.mode-iframe .player-ui{pointer-events:none;}
+  .player.mode-iframe .player-ui .pl-top,
+  .player.mode-iframe .player-ui .pl-top *{pointer-events:auto;}
   .player-video .big-play{
     width:84px;height:84px;border-radius:50%;
     display:flex;align-items:center;justify-content:center;
@@ -675,8 +686,12 @@
 
   <!-- ===== REPRODUCTOR PROFESIONAL ===== -->
   <div class="player" id="player">
-    <!-- escena de video (placeholder; aquí iría <video>/<iframe> real) -->
+    <!-- escena de video -->
     <div class="player-video" id="playerVideo">
+      <!-- video HTML5 real (.mp4/.webm/.m3u8) -->
+      <video id="plVideoEl" playsinline webkit-playsinline preload="metadata"></video>
+      <!-- iframe para servidores embebidos (YouTube, Drive, etc.) -->
+      <iframe id="plIframeEl" allow="autoplay; encrypted-media; fullscreen" allowfullscreen referrerpolicy="no-referrer"></iframe>
       <button class="big-play" id="plBigPlay" aria-label="Reproducir">
         <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
       </button>
@@ -826,15 +841,16 @@ const ANIME = {
           duration: 1440, intro: { start: 40, end: 130 },
           // Fuentes por idioma → servidores (así se verá el flujo idioma → servidor → reproductor)
           sources: {
-            "Latino":     [ {name:"YourUpload", url:"#"}, {name:"Streamtape", url:"#"}, {name:"Mega", url:"#"} ],
-            "Subtitulado":[ {name:"YouTube", url:"#"}, {name:"Okru", url:"#"}, {name:"Mega", url:"#"} ],
-            "Castellano": [ {name:"Streamtape", url:"#"} ]
+            "Latino":     [ {name:"Directo MP4", url:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}, {name:"YouTube", url:"https://www.youtube.com/watch?v=aqz-KE-bpKQ"} ],
+            "Subtitulado":[ {name:"YouTube", url:"https://www.youtube.com/watch?v=aqz-KE-bpKQ"}, {name:"Directo MP4", url:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"} ],
+            "Castellano": [ {name:"Directo MP4", url:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"} ]
           }
         },
         { n:2, title:"Para mí mismo", dur:"24m", desc:"Yuji comienza su entrenamiento en la escuela técnica.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg",
+          duration: 1440, intro: { start: 20, end: 90 },
           sources: {
-            "Latino":     [ {name:"Streamtape", url:"#"}, {name:"Mega", url:"#"} ],
-            "Subtitulado":[ {name:"YouTube", url:"#"}, {name:"Okru", url:"#"} ]
+            "Latino":     [ {name:"Directo MP4", url:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"}, {name:"YouTube", url:"https://www.youtube.com/watch?v=aqz-KE-bpKQ"} ],
+            "Subtitulado":[ {name:"YouTube", url:"https://www.youtube.com/watch?v=aqz-KE-bpKQ"} ]
           }
         },
         { n:3, title:"La chica de acero", dur:"24m", desc:"Aparece Nobara Kugisaki y realiza su primera misión.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg" },
@@ -1146,7 +1162,8 @@ function openMovieFlow(){
     openPlayer({
       title: ANIME.title,
       subtitle: `Película · ${lang} · ${srv.name}`,
-      duration: 6300,          // ~1h45m de ejemplo
+      url: srv.url,
+      duration: 6300,          // fallback si el medio no reporta duración
       intro: null,             // películas no tienen "omitir intro"
       lang,
       hasNext: false,
@@ -1274,6 +1291,7 @@ if (!isMovie && ANIME.seasons && ANIME.seasons.length){
       openPlayer({
         title: ep ? ep.title : ("Episodio " + n),
         subtitle: `${ANIME.seasons[s].name} · E${n} · ${lang} · ${srv.name}`,
+        url: srv.url,
         duration: (ep && ep.duration) || 1440,
         intro: (ep && ep.intro) || null,
         lang,
@@ -1424,16 +1442,18 @@ btnHeroFav.addEventListener("click", () => {
   toast(isFav ? "Añadido a Favoritos" : "Quitado de Favoritos");
 });
 
-/* ===== Reproductor ===== */
 /* ============================================================
-   REPRODUCTOR PROFESIONAL
-   Simula la reproducción (tiempo que avanza) sobre un placeholder.
-   Para video real, sustituye playerVideo por <video>/<iframe> y
-   conecta currentTime/duration a este mismo controlador.
+   REPRODUCTOR PROFESIONAL — FUNCIONAL
+   - <video> HTML5 para .mp4/.webm/.m3u8/.ogg
+   - <iframe> para servidores embebibles (YouTube, Drive, Vimeo, Okru…)
+   Los controles personalizados actúan sobre el <video>. Con iframe se
+   delega su control interno (barra propia) y nuestros controles de tiempo
+   quedan informativos.
    ============================================================ */
 const player      = $("player");
 const playerVideo = $("playerVideo");
-const playerUi    = $("playerUi");
+const videoEl     = $("plVideoEl");
+const iframeEl    = $("plIframeEl");
 const plPlayIcon  = $("plPlayIcon");
 const plCur       = $("plCur");
 const plDur       = $("plDur");
@@ -1446,118 +1466,188 @@ const skipIntro   = $("skipIntro");
 const ICON_PLAY  = "M8 5v14l11-7z";
 const ICON_PAUSE = "M6 5h4v14H6zm8 0h4v14h-4z";
 
-let plState = { dur:1440, cur:0, playing:false, intro:null, onNext:null, timer:null, hideTimer:null };
+let plMode = "video";     // "video" | "iframe"
+let plIntro = null, plOnNext = null, plHideTimer = null;
 
 function fmtTime(s){
-  s = Math.max(0, Math.floor(s));
-  const m = Math.floor(s/60), sec = s%60;
-  return m + ":" + String(sec).padStart(2,"0");
+  s = Math.max(0, Math.floor(s || 0));
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+  const mm = (h>0) ? String(m).padStart(2,"0") : m;
+  return (h>0 ? h+":" : "") + mm + ":" + String(sec).padStart(2,"0");
 }
+
+/* --- Detección de tipo de fuente --- */
+function isDirectVideo(url){ return /\.(mp4|webm|ogg|m3u8|mov)(\?|$)/i.test(url); }
+function toEmbed(url){
+  // YouTube
+  let m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{6,})/);
+  if (m) return "https://www.youtube.com/embed/" + m[1] + "?autoplay=1&rel=0&playsinline=1";
+  // Google Drive
+  m = url.match(/drive\.google\.com\/file\/d\/([\w-]+)/);
+  if (m) return "https://drive.google.com/file/d/" + m[1] + "/preview";
+  // Vimeo
+  m = url.match(/vimeo\.com\/(\d+)/);
+  if (m) return "https://player.vimeo.com/video/" + m[1] + "?autoplay=1";
+  // OK.ru
+  m = url.match(/ok\.ru\/video\/(\d+)/);
+  if (m) return "https://ok.ru/videoembed/" + m[1];
+  // por defecto, intentar incrustar tal cual
+  return url;
+}
+
+/* --- Render de la barra de progreso (modo video) --- */
 function plRender(){
-  const pct = plState.dur ? (plState.cur/plState.dur)*100 : 0;
+  const dur = videoEl.duration || 0;
+  const cur = videoEl.currentTime || 0;
+  const pct = dur ? (cur/dur)*100 : 0;
   plFill.style.width = pct + "%";
   plKnob.style.left  = pct + "%";
-  plBuffer.style.width = Math.min(100, pct + 12) + "%";
-  plCur.textContent = fmtTime(plState.cur);
-  plDur.textContent = fmtTime(plState.dur);
-  // mostrar "omitir intro" dentro del rango de intro
-  if (plState.intro && plState.cur >= plState.intro.start && plState.cur < plState.intro.end){
-    skipIntro.classList.add("show");
-  } else {
-    skipIntro.classList.remove("show");
-  }
+  // buffer real
+  try {
+    if (videoEl.buffered.length){
+      const end = videoEl.buffered.end(videoEl.buffered.length-1);
+      plBuffer.style.width = (dur ? (end/dur)*100 : 0) + "%";
+    }
+  } catch(e){}
+  plCur.textContent = fmtTime(cur);
+  plDur.textContent = fmtTime(dur);
+  // omitir intro
+  if (plIntro && cur >= plIntro.start && cur < plIntro.end) skipIntro.classList.add("show");
+  else skipIntro.classList.remove("show");
 }
-function plTick(){
-  if (!plState.playing) return;
-  plState.cur += 1;
-  if (plState.cur >= plState.dur){
-    plState.cur = plState.dur; plSetPlaying(false);
-    if (plState.onNext){ toast("Reproduciendo siguiente…"); setTimeout(plState.onNext, 600); }
-  }
-  plRender();
-}
-function plSetPlaying(p){
-  plState.playing = p;
-  plPlayIcon.setAttribute("d", p ? ICON_PAUSE : ICON_PLAY);
-  playerVideo.classList.toggle("playing", p);
-  clearInterval(plState.timer);
-  if (p) plState.timer = setInterval(plTick, 1000);
-  if (p) scheduleHideUi();
-}
-function showUi(){
-  player.classList.remove("hide-ui");
-  scheduleHideUi();
-}
+
+function setPlayIcon(playing){ plPlayIcon.setAttribute("d", playing ? ICON_PAUSE : ICON_PLAY); }
+
+function showUi(){ player.classList.remove("hide-ui"); scheduleHideUi(); }
 function scheduleHideUi(){
-  clearTimeout(plState.hideTimer);
-  plState.hideTimer = setTimeout(() => {
-    if (plState.playing) player.classList.add("hide-ui");
-  }, 3200);
+  clearTimeout(plHideTimer);
+  plHideTimer = setTimeout(() => { if (!videoEl.paused && plMode==="video") player.classList.add("hide-ui"); }, 3200);
 }
 
 function openPlayer(data){
-  // compatibilidad: si llega un string, lo tratamos como subtítulo simple
-  if (typeof data === "string") data = { title:"Reproduciendo", subtitle:data, duration:1440 };
-  plState.dur = data.duration || 1440;
-  plState.cur = 0;
-  plState.intro = data.intro || null;
-  plState.onNext = data.onNext || null;
+  if (typeof data === "string") data = { title:"Reproduciendo", subtitle:data };
+  plIntro  = data.intro || null;
+  plOnNext = data.onNext || null;
   $("plTitle").textContent = data.title || "Reproduciendo";
   $("plSubtitle").textContent = data.subtitle || "";
   $("plLangTxt").textContent = data.lang || "Idioma";
   $("plNext").style.display = data.hasNext ? "flex" : "none";
 
+  const url = data.url && data.url !== "#" ? data.url : "";
   player.classList.add("open");
-  player.classList.remove("hide-ui");
-  // simular buffering breve y arrancar
-  player.classList.add("buffering");
-  plSetPlaying(false);
-  plRender();
+  player.classList.remove("hide-ui","mode-iframe");
   lockScroll(true);
-  setTimeout(() => { player.classList.remove("buffering"); plSetPlaying(true); plRender(); }, 900);
+
+  // Limpia medios previos
+  videoEl.removeAttribute("src"); videoEl.load?.();
+  iframeEl.src = "";
+
+  if (url && isDirectVideo(url)){
+    // ---- VIDEO HTML5 ----
+    plMode = "video";
+    playerVideo.classList.add("mode-video");
+    playerVideo.classList.remove("mode-iframe");
+    player.classList.remove("mode-iframe");
+    player.classList.add("buffering");
+    videoEl.src = url;
+    videoEl.play().catch(()=>{ player.classList.remove("buffering"); });
+  } else if (url){
+    // ---- IFRAME EMBEBIDO ----
+    plMode = "iframe";
+    playerVideo.classList.remove("mode-video");
+    playerVideo.classList.add("mode-iframe");
+    player.classList.add("mode-iframe");
+    player.classList.remove("buffering");
+    iframeEl.src = toEmbed(url);
+    plCur.textContent = "—"; plDur.textContent = "—";
+    plFill.style.width = "0"; plKnob.style.left = "0";
+  } else {
+    // sin URL válida: demo con un mp4 de muestra
+    plMode = "video";
+    playerVideo.classList.add("mode-video");
+    player.classList.remove("mode-iframe");
+    player.classList.add("buffering");
+    videoEl.src = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+    videoEl.play().catch(()=>{ player.classList.remove("buffering"); });
+    toast("Servidor demo (sin URL real)");
+  }
 }
+
 function closePlayer(){
-  plSetPlaying(false);
-  clearTimeout(plState.hideTimer);
-  player.classList.remove("open","hide-ui","buffering");
+  try { videoEl.pause(); } catch(e){}
+  videoEl.removeAttribute("src"); videoEl.load?.();
+  iframeEl.src = "";
+  clearTimeout(plHideTimer);
+  if (document.fullscreenElement) document.exitFullscreen?.();
+  player.classList.remove("open","hide-ui","buffering","mode-iframe");
   lockScroll(false);
 }
 
-/* Controles */
+/* --- Eventos del <video> real --- */
+videoEl.addEventListener("loadedmetadata", () => { player.classList.remove("buffering"); plRender(); });
+videoEl.addEventListener("waiting", () => player.classList.add("buffering"));
+videoEl.addEventListener("playing", () => { player.classList.remove("buffering"); setPlayIcon(true); playerVideo.classList.add("playing"); scheduleHideUi(); });
+videoEl.addEventListener("play",   () => { setPlayIcon(true); playerVideo.classList.add("playing"); });
+videoEl.addEventListener("pause",  () => { setPlayIcon(false); playerVideo.classList.remove("playing"); showUi(); });
+videoEl.addEventListener("timeupdate", plRender);
+videoEl.addEventListener("ended", () => {
+  setPlayIcon(false);
+  if (plOnNext){ toast("Reproduciendo siguiente…"); setTimeout(plOnNext, 700); }
+});
+videoEl.addEventListener("error", () => {
+  player.classList.remove("buffering");
+  toast("No se pudo cargar este servidor");
+});
+
+/* --- Controles --- */
+function togglePlay(){
+  if (plMode !== "video") return;        // con iframe manda su propio control
+  if (videoEl.paused) videoEl.play().catch(()=>{}); else videoEl.pause();
+  showUi();
+}
 $("playerClose").addEventListener("click", closePlayer);
-$("plPlayPause").addEventListener("click", () => { plSetPlaying(!plState.playing); showUi(); });
-$("plBigPlay").addEventListener("click", () => { plSetPlaying(true); showUi(); });
-$("plRew").addEventListener("click", () => { plState.cur = Math.max(0, plState.cur-10); plRender(); showUi(); });
-$("plFwd").addEventListener("click", () => { plState.cur = Math.min(plState.dur, plState.cur+10); plRender(); showUi(); });
-$("plNext").addEventListener("click", () => { if (plState.onNext) plState.onNext(); });
-$("plLang").addEventListener("click", () => toast("Cambiar idioma: usa el menú del episodio"));
-$("plSettings").addEventListener("click", () => toast("Calidad: Auto · 1080p · 720p"));
+$("plPlayPause").addEventListener("click", togglePlay);
+$("plBigPlay").addEventListener("click", () => { if (plMode==="video"){ videoEl.play().catch(()=>{}); } showUi(); });
+$("plRew").addEventListener("click", () => { if(plMode==="video"){ videoEl.currentTime = Math.max(0, videoEl.currentTime-10); plRender(); } showUi(); });
+$("plFwd").addEventListener("click", () => { if(plMode==="video"){ videoEl.currentTime = Math.min(videoEl.duration||0, videoEl.currentTime+10); plRender(); } showUi(); });
+$("plNext").addEventListener("click", () => { if (plOnNext) plOnNext(); });
+$("plLang").addEventListener("click", () => toast("Cambia el idioma desde el episodio"));
+$("plSettings").addEventListener("click", () => {
+  // ciclo de velocidad de reproducción (solo video)
+  if (plMode!=="video") return;
+  const speeds = [1, 1.25, 1.5, 2, 0.75];
+  const i = speeds.indexOf(videoEl.playbackRate);
+  videoEl.playbackRate = speeds[(i+1) % speeds.length];
+  toast("Velocidad: " + videoEl.playbackRate + "x");
+});
 $("plFull").addEventListener("click", () => {
-  const el = player;
-  if (!document.fullscreenElement){ (el.requestFullscreen||el.webkitRequestFullscreen||function(){}).call(el); }
+  if (!document.fullscreenElement){ (player.requestFullscreen||player.webkitRequestFullscreen||function(){}).call(player); }
   else { (document.exitFullscreen||document.webkitExitFullscreen||function(){}).call(document); }
 });
 skipIntro.addEventListener("click", () => {
-  if (plState.intro){ plState.cur = plState.intro.end; plRender(); showUi(); toast("Intro omitida"); }
+  if (plIntro && plMode==="video"){ videoEl.currentTime = plIntro.end; plRender(); showUi(); toast("Intro omitida"); }
 });
 
-// Barra de progreso: tocar/arrastrar para buscar
+/* --- Buscar en la barra (modo video) --- */
 function seekTo(clientX){
+  if (plMode!=="video" || !videoEl.duration) return;
   const r = plSeek.getBoundingClientRect();
   const ratio = Math.min(1, Math.max(0, (clientX - r.left)/r.width));
-  plState.cur = Math.round(ratio * plState.dur);
+  videoEl.currentTime = ratio * videoEl.duration;
   plRender();
 }
 let seeking = false;
 plSeek.addEventListener("click", (e) => { seekTo(e.clientX); showUi(); });
 plSeek.addEventListener("touchstart", (e) => { seeking = true; seekTo(e.touches[0].clientX); }, {passive:true});
-plSeek.addEventListener("touchmove", (e) => { if(seeking){ seekTo(e.touches[0].clientX); } }, {passive:true});
+plSeek.addEventListener("touchmove", (e) => { if(seeking) seekTo(e.touches[0].clientX); }, {passive:true});
 plSeek.addEventListener("touchend", () => { seeking = false; showUi(); });
 
-// Tocar el video alterna la visibilidad de los controles
-playerVideo.addEventListener("click", () => {
+/* Tocar la escena alterna controles (solo modo video) */
+playerVideo.addEventListener("click", (e) => {
+  if (e.target === iframeEl) return;
+  if (plMode!=="video") return;
   if (player.classList.contains("hide-ui")) showUi();
-  else if (plState.playing) player.classList.add("hide-ui");
+  else if (!videoEl.paused) player.classList.add("hide-ui");
 });
 
 /* ===== Scroll: topbar sólida + PARALLAX del fondo ===== */
