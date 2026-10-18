@@ -407,13 +407,13 @@
    ------------------------------------------------------------
    Aplica la paleta a toda la pantalla (acento, degradados, chips,
    navbar, etc.) SIN tocar el negro del fondo.
-   Paleta actual: CyberKai (azul neon + magenta).
+   Paleta actual: CyberKai (azul neon, sin rosado).
    ============================================================ */
 const THEME = {
   accent:   "#00F0FF",   // azul neon cibernetico (acento principal)
-  accent2:  "#FF2DFA",   // magenta/violeta neon (secundario/brillos)
-  // Degradado CyberKai: azul neon -> magenta neon
-  gradCustom:"linear-gradient(135deg,#00F0FF 0%,#4FB8FF 45%,#FF2DFA 100%)",
+  accent2:  "#4FB8FF",   // azul claro (secundario/brillos) — sin rosado
+  // Degradado CyberKai: azul neon -> azul profundo
+  gradCustom:"linear-gradient(135deg,#00F0FF 0%,#0095FF 55%,#0066E0 100%)",
   gradAngle:"135deg"
   // NOTA: el fondo negro NO se cambia.
 };
@@ -680,7 +680,7 @@ document.querySelectorAll(".nav-item").forEach(b=>{
 });
 
 /* ----- Explorar ----- */
-const GENRE_COLORS=["rgba(0,240,255,.82)","rgba(255,45,250,.8)","rgba(79,184,255,.8)","rgba(168,85,247,.8)","rgba(0,200,255,.8)","rgba(214,0,230,.8)"];
+const GENRE_COLORS=["rgba(0,240,255,.82)","rgba(0,149,255,.8)","rgba(79,184,255,.8)","rgba(0,102,224,.8)","rgba(0,200,255,.8)","rgba(56,130,246,.8)"];
 function renderExplore(){
   const genres=Array.from(new Set(DATA.flatMap(d=>d.genres)));
   const gc=document.getElementById("genreGrid");
