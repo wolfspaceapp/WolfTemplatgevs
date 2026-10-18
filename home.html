@@ -54,7 +54,6 @@
   .hero-slide{position:absolute;inset:0;opacity:0;transition:opacity .9s ease;pointer-events:none;}
   .hero-slide.on{opacity:1;pointer-events:auto;}
   .hero-bg{position:absolute;inset:0;background-size:cover;background-position:center top;}
-  .hero-slide.on .hero-bg{animation:slowZoom 8s ease-out forwards;}
   .hero-bg::after{content:"";position:absolute;inset:0;
     background:
       radial-gradient(130% 80% at 80% 15%, rgba(var(--accent-rgb),.16), transparent 55%),
@@ -123,12 +122,12 @@
   /* degradado inferior para legibilidad del rating/tipo */
   .card .poster::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.25) 0%,transparent 28%,transparent 58%,rgba(0,0,0,.72) 100%);}
   .card .badge{position:absolute;left:6px;top:6px;z-index:2;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;
-    padding:3px 7px;border-radius:999px;background:rgba(12,12,14,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.16);}
+    padding:3px 7px;border-radius:999px;background:rgba(12,12,14,.55);border:1px solid rgba(255,255,255,.16);}
   .card .badge.new{background:var(--grad);border-color:transparent;box-shadow:0 2px 8px rgba(var(--accent-rgb),.5);}
   .card .crate{position:absolute;left:7px;bottom:7px;z-index:2;display:flex;align-items:center;gap:2px;font-size:10px;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);}
   .card .crate svg{width:11px;height:11px;fill:#ffd04a;}
   .card .ctype{position:absolute;right:6px;bottom:7px;z-index:2;font-size:8.5px;font-weight:700;color:#eee;
-    padding:2px 6px;border-radius:6px;background:rgba(12,12,14,.6);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
+    padding:2px 6px;border-radius:6px;background:rgba(12,12,14,.6);}
   .card .ctitle{font-size:12px;font-weight:700;margin-top:7px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .card .csub{font-size:10px;color:var(--muted);margin-top:1px;display:flex;align-items:center;gap:4px;}
   .card .csub .lang{color:var(--accent-2);font-weight:700;}
@@ -142,7 +141,7 @@
   .card-wide .thumb::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.6));}
   /* chip de nº de episodio arriba-izquierda */
   .card-wide .epchip{position:absolute;left:8px;top:8px;z-index:2;font-size:9.5px;font-weight:800;color:#fff;
-    padding:3px 8px;border-radius:7px;background:rgba(12,12,14,.6);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);border:1px solid rgba(255,255,255,.14);}
+    padding:3px 8px;border-radius:7px;background:rgba(12,12,14,.6);border:1px solid rgba(255,255,255,.14);}
   /* idioma abajo-izquierda */
   .card-wide .eplang{position:absolute;left:8px;bottom:8px;z-index:2;font-size:9px;font-weight:800;letter-spacing:.3px;color:var(--accent-2);}
   .card-wide .ctitle{font-size:12px;font-weight:700;margin-top:7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -158,6 +157,56 @@
   .top10-card .poster{position:relative;z-index:2;width:88px;height:126px;border-radius:11px;overflow:hidden;background:var(--bg2);
     box-shadow:0 8px 18px -8px rgba(0,0,0,.75),0 0 0 1px rgba(255,255,255,.08);}
   .top10-card .poster img{width:100%;height:100%;object-fit:cover;}
+
+  /* ===== Vistas (Explorar / Mi lista / Cuenta) ===== */
+  .view{animation:fadeIn .3s ease;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 20px);}
+  #view-home{padding-bottom:0;}
+  .view.hidden{display:none;}
+  .view-title{font-size:19px;font-weight:900;letter-spacing:-.3px;padding:calc(env(safe-area-inset-top) + 64px) 16px 2px;}
+  .view-title + *{margin-top:12px;}
+  #view-explore .view-title:not(:first-child){padding-top:20px;}
+
+  /* Explorar: cuadrícula de géneros con imagen */
+  .genre-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;padding:0 16px;}
+  .genre-cell{position:relative;height:82px;border-radius:15px;overflow:hidden;cursor:pointer;
+    display:flex;align-items:flex-end;padding:12px;border:1px solid var(--border);
+    background:linear-gradient(135deg,rgba(var(--accent-rgb),.25),rgba(0,0,0,.5));transition:transform .18s;}
+  .genre-cell:active{transform:scale(.96);}
+  .genre-cell .gimg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.45;}
+  .genre-cell .gname{position:relative;z-index:1;font-size:14px;font-weight:800;text-shadow:0 2px 8px rgba(0,0,0,.8);}
+  .genre-cell::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.4),transparent);}
+
+  /* Mi lista: tabs + cuadrícula */
+  .list-tabs{display:flex;gap:8px;padding:0 16px;overflow-x:auto;}
+  .list-tabs::-webkit-scrollbar{height:0;}
+  .list-tab{flex:0 0 auto;font-size:12.5px;font-weight:700;color:var(--muted);padding:8px 15px;border-radius:999px;background:var(--card);border:1px solid var(--border);transition:.2s;}
+  .list-tab.on{color:#fff;background:var(--grad);border-color:transparent;}
+  .list-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 10px;padding:16px;}
+  .list-grid .card{flex:none;width:100%;}
+  .list-grid .card .poster{width:100%;height:auto;aspect-ratio:2/3;}
+  .empty{text-align:center;color:var(--muted);padding:60px 24px;}
+  .empty .ic{font-size:46px;margin-bottom:12px;}
+  .empty .big{font-size:16px;font-weight:800;color:#fff;margin-bottom:6px;}
+  @media(max-width:360px){.list-grid{grid-template-columns:repeat(2,1fr);}}
+
+  /* Cuenta */
+  .account{padding:calc(env(safe-area-inset-top) + 70px) 16px 20px;}
+  .acc-head{display:flex;align-items:center;gap:14px;margin-bottom:22px;}
+  .acc-avatar{width:60px;height:60px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#fff;box-shadow:0 8px 20px rgba(var(--accent-rgb),.4);}
+  .acc-head .n{font-size:18px;font-weight:800;}
+  .acc-head .e{font-size:12.5px;color:var(--muted);}
+  .acc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px;}
+  .acc-stat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center;}
+  .acc-stat b{display:block;font-size:20px;font-weight:900;color:var(--accent);}
+  .acc-stat small{font-size:11px;color:var(--muted);font-weight:700;}
+  .acc-list{display:flex;flex-direction:column;gap:2px;}
+  .acc-row{display:flex;align-items:center;gap:13px;padding:14px 12px;border-radius:12px;transition:background .2s;cursor:pointer;}
+  .acc-row:active{background:var(--card);}
+  .acc-row .ic{width:38px;height:38px;border-radius:11px;background:var(--card);display:flex;align-items:center;justify-content:center;color:var(--accent);flex:0 0 auto;}
+  .acc-row .ic svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .acc-row .lbl{flex:1;font-size:14.5px;font-weight:700;}
+  .acc-row .arr{color:var(--muted);}
+  .acc-row .arr svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 
   /* ===== NAVBAR PEGADA ABAJO — moderna con indicador superior ===== */
   @keyframes navPop{0%{transform:scale(.8);}60%{transform:scale(1.1);}100%{transform:scale(1);}}
@@ -243,8 +292,26 @@
 
   <!-- ===== Contenido ===== -->
   <main id="app">
-    <section class="hero" id="hero"></section>
-    <div class="rows" id="rows"></div>
+    <!-- Vista: Inicio -->
+    <div class="view" id="view-home">
+      <section class="hero" id="hero"></section>
+      <div class="rows" id="rows"></div>
+    </div>
+    <!-- Vista: Explorar -->
+    <div class="view hidden" id="view-explore">
+      <h2 class="view-title">Explorar</h2>
+      <div class="genre-grid" id="genreGrid"></div>
+      <h2 class="view-title">Tendencias</h2>
+      <div class="rows" id="exploreRows"></div>
+    </div>
+    <!-- Vista: Mi lista -->
+    <div class="view hidden" id="view-list">
+      <h2 class="view-title">Mi lista</h2>
+      <div class="list-tabs" id="listTabs"></div>
+      <div id="listBody"></div>
+    </div>
+    <!-- Vista: Cuenta -->
+    <div class="view hidden" id="view-account"></div>
   </main>
 
   <!-- ===== Ver todo (cuadrícula) ===== -->
@@ -275,7 +342,7 @@
       <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h5v-6h4v6h5V9.5"/></svg><span>Inicio</span>
     </button>
     <button class="nav-item" data-view="explore">
-      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span>Explorar</span>
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg><span>Explorar</span>
     </button>
     <button class="nav-item" data-view="list">
       <svg viewBox="0 0 24 24"><path d="M6 4h12a1 1 0 0 1 1 1v15l-7-3.5L5 20V5a1 1 0 0 1 1-1Z"/></svg><span>Mi lista</span>
@@ -496,15 +563,95 @@ sInput.addEventListener("input",()=>{
   sRes.querySelectorAll(".sr-item").forEach(el=>el.addEventListener("click",()=>{const it=DATA.find(x=>x.id===el.dataset.id);if(it)go(it);}));
 });
 
-/* ----- Barra inferior ----- */
+/* ----- Navegación entre vistas ----- */
+const RENDERED={home:true};
+function switchView(v){
+  document.querySelectorAll(".view").forEach(el=>el.classList.toggle("hidden", el.id!=="view-"+v));
+  document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active", b.dataset.view===v));
+  document.getElementById("app").scrollTop=0;
+  if(v==="list") renderList();          // siempre refresca (favoritos pueden cambiar)
+  else if(!RENDERED[v]){
+    if(v==="explore") renderExplore();
+    else if(v==="account") renderAccount();
+    RENDERED[v]=true;
+  }
+}
 document.querySelectorAll(".nav-item").forEach(b=>{
-  b.addEventListener("click",function(){
-    document.querySelectorAll(".nav-item").forEach(x=>x.classList.remove("active"));
-    this.classList.add("active");
-    const v=this.dataset.view;
-    if(v!=="home") alert("Vista '"+v+"' — conéctala a tu contenido (placeholder).");
-  });
+  b.addEventListener("click",()=>switchView(b.dataset.view));
 });
+
+/* ----- Explorar ----- */
+function renderExplore(){
+  const genres=Array.from(new Set(DATA.flatMap(d=>d.genres)));
+  const gc=document.getElementById("genreGrid");
+  gc.innerHTML=genres.map(g=>{
+    const sample=DATA.find(d=>d.genres.includes(g));
+    return `<div class="genre-cell" data-g="${esc(g)}"><div class="gimg" style="background-image:url('${img(sample&&sample.backdrop)}')"></div><span class="gname">${esc(g)}</span></div>`;
+  }).join("");
+  gc.querySelectorAll(".genre-cell").forEach(el=>el.addEventListener("click",()=>{
+    const g=el.dataset.g; openAll(g, DATA.filter(d=>d.genres.includes(g)));
+  }));
+  // filas de tendencias dentro de explorar
+  const er=document.getElementById("exploreRows");
+  er.innerHTML = rowHTML("Más populares", DATA.slice().sort((a,b)=>b.rating-a.rating), null, "pop");
+  er.querySelectorAll(".card").forEach(el=>el.addEventListener("click",()=>{const it=DATA.find(x=>x.id===el.dataset.id);if(it)go(it);}));
+  er.querySelectorAll("[data-all]").forEach(b=>b.addEventListener("click",()=>openAll("Más populares",DATA.slice().sort((a,b)=>b.rating-a.rating))));
+}
+
+/* ----- Mi lista (localStorage) ----- */
+function getFavs(){ try{return JSON.parse(localStorage.getItem("nw_favs")||"[]");}catch(e){return [];} }
+const LIST_TABS=[["fav","Favoritos"],["viendo","Viendo"],["hist","Historial"]];
+function renderList(){
+  const tabsEl=document.getElementById("listTabs");
+  if(!tabsEl.dataset.init){
+    tabsEl.innerHTML=LIST_TABS.map((t,i)=>`<button class="list-tab ${i===0?'on':''}" data-t="${t[0]}">${t[1]}</button>`).join("");
+    tabsEl.querySelectorAll(".list-tab").forEach(b=>b.addEventListener("click",()=>{
+      tabsEl.querySelectorAll(".list-tab").forEach(x=>x.classList.remove("on"));b.classList.add("on");showList(b.dataset.t);
+    }));
+    tabsEl.dataset.init="1";
+  }
+  showList("fav");
+}
+function showList(tab){
+  const body=document.getElementById("listBody");
+  let items=[];
+  if(tab==="fav"){ const f=getFavs(); items=DATA.filter(d=>f.includes(d.id)); }
+  if(!items.length){
+    const msg = tab==="fav" ? ["💔","Tu lista está vacía","Añade animes a tu lista desde la pantalla de detalle."]
+      : tab==="viendo" ? ["▶️","No estás viendo nada aún","Empieza un anime y aparecerá aquí."]
+      : ["🕐","Sin historial","Lo que veas se guardará aquí."];
+    body.innerHTML=`<div class="empty"><div class="ic">${msg[0]}</div><div class="big">${msg[1]}</div><div>${msg[2]}</div></div>`;
+    return;
+  }
+  body.innerHTML=`<div class="list-grid">${items.map(cardHTML).join("")}</div>`;
+  body.querySelectorAll(".card").forEach(el=>el.addEventListener("click",()=>{const it=DATA.find(x=>x.id===el.dataset.id);if(it)go(it);}));
+}
+
+/* ----- Cuenta ----- */
+function renderAccount(){
+  const favs=getFavs().length;
+  const v=document.getElementById("view-account");
+  const ICO={
+    user:'<path d="M12 12a4 4 0 100-8 4 4 0 000 8z"/><path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6"/>',
+    heart:'<path d="M12 21C5 15.5 3 12 3 8.5A4.5 4.5 0 0112 6a4.5 4.5 0 019 2.5C21 12 19 15.5 12 21z"/>',
+    down:'<path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M4 21h16"/>',
+    gear:'<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1l2-1.5-2-3.5-2.4 1a7 7 0 00-1.7-1L14.5 3h-5l-.3 2.5a7 7 0 00-1.7 1l-2.4-1-2 3.5 2 1.5a7 7 0 000 2l-2 1.5 2 3.5 2.4-1a7 7 0 001.7 1l.3 2.5h5l.3-2.5a7 7 0 001.7-1l2.4 1 2-3.5-2-1.5a7 7 0 00.1-1z"/>',
+    info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/>'
+  };
+  const rows=[["heart","Mis favoritos"],["down","Descargas"],["gear","Configuración"],["info","Acerca de NekoWolf"]];
+  v.innerHTML=`<div class="account">
+    <div class="acc-head"><div class="acc-avatar">N</div><div><div class="n">Invitado</div><div class="e">Inicia sesión para sincronizar</div></div></div>
+    <div class="acc-stats">
+      <div class="acc-stat"><b>${favs}</b><small>En mi lista</small></div>
+      <div class="acc-stat"><b>0</b><small>Vistos</small></div>
+      <div class="acc-stat"><b>0</b><small>Horas</small></div>
+    </div>
+    <div class="acc-list">
+      ${rows.map(r=>`<div class="acc-row"><span class="ic"><svg viewBox="0 0 24 24">${ICO[r[0]]}</svg></span><span class="lbl">${r[1]}</span><span class="arr"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span></div>`).join("")}
+    </div>
+    <p style="color:var(--muted);font-size:11.5px;text-align:center;margin-top:24px">NekoWolf · contenido vía Blogger</p>
+  </div>`;
+}
 
 /* ----- Init ----- */
 renderHero();
