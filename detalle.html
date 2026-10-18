@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0a0a" />
+<title>NekoWolf — Detalle del Anime</title>
+<style>
+  :root{
+    --accent:#f47521;
+    --accent-2:#ff9a52;
+    --bg:#0a0a0a;
+    --bg2:#141414;
+    --card:#1a1a1a;
+    --text:#ffffff;
+    --muted:#9b9b9b;
+    --border:rgba(255,255,255,.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    overflow-x:hidden;
+  }
+  img{display:block;max-width:100%;}
+  button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer;}
+  svg{fill:currentColor;}
+  a{color:inherit;text-decoration:none;}
+
+  /* ====== Keyframes ====== */
+  @keyframes fadeUp{from{opacity:0;transform:translateY(26px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+  @keyframes slowZoom{from{transform:scale(1.12);}to{transform:scale(1);}}
+  @keyframes pulseGlow{
+    0%,100%{box-shadow:0 0 0 0 rgba(244,117,33,.55);}
+    50%{box-shadow:0 0 0 14px rgba(244,117,33,0);}
+  }
+  @keyframes floatPoster{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+  @keyframes shimmer{0%{background-position:-200% 0;}100%{background-position:200% 0;}}
+
+  .reveal{opacity:0;animation:fadeUp .7s cubic-bezier(.22,.61,.36,1) forwards;}
+  .d1{animation-delay:.15s;}.d2{animation-delay:.28s;}.d3{animation-delay:.4s;}
+  .d4{animation-delay:.52s;}.d5{animation-delay:.64s;}.d6{animation-delay:.76s;}
+
+  /* ====== Top bar ====== */
+  .topbar{
+    position:fixed;top:0;left:0;right:0;z-index:40;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;
+    background:linear-gradient(180deg,rgba(10,10,10,.85),rgba(10,10,10,0));
+    transition:background .35s ease, backdrop-filter .35s ease;
+  }
+  .topbar.solid{
+    background:rgba(10,10,10,.92);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  .round-btn{
+    width:42px;height:42px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(20,20,20,.55);backdrop-filter:blur(6px);
+    color:#fff;transition:transform .2s, background .2s;
+  }
+  .round-btn:active{transform:scale(.9);background:rgba(244,117,33,.35);}
+  .round-btn svg{width:22px;height:22px;}
+  .top-actions{display:flex;gap:10px;}
+
+  /* ====== Hero ====== */
+  .hero{position:relative;width:100%;min-height:78vh;overflow:hidden;}
+  .hero-bg{
+    position:absolute;inset:0;background-size:cover;background-position:center;
+    animation:slowZoom 8s ease-out forwards;
+  }
+  .hero-bg::after{
+    content:"";position:absolute;inset:0;
+    background:
+      linear-gradient(180deg,rgba(10,10,10,.35) 0%,rgba(10,10,10,0) 30%,rgba(10,10,10,.75) 72%,var(--bg) 100%),
+      linear-gradient(90deg,rgba(10,10,10,.55),rgba(10,10,10,0) 60%);
+  }
+  .hero-inner{
+    position:relative;z-index:2;
+    display:flex;align-items:flex-end;gap:18px;
+    padding:0 20px 24px;min-height:78vh;
+  }
+  .poster{
+    flex:0 0 128px;width:128px;height:190px;border-radius:14px;overflow:hidden;
+    box-shadow:0 14px 34px rgba(0,0,0,.6);border:2px solid rgba(255,255,255,.1);
+    animation:floatPoster 6s ease-in-out infinite;
+  }
+  .poster img{width:100%;height:100%;object-fit:cover;}
+  .hero-meta{flex:1;min-width:0;padding-bottom:4px;}
+  .badges{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px;}
+  .badge{
+    font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
+    padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.1);
+    border:1px solid var(--border);
+  }
+  .badge.accent{background:var(--accent);color:#fff;border-color:transparent;}
+  .badge.hd{color:var(--accent-2);border-color:rgba(244,117,33,.5);}
+  h1.title{
+    font-size:26px;line-height:1.15;font-weight:800;margin-bottom:8px;
+    text-shadow:0 2px 12px rgba(0,0,0,.6);
+  }
+  .sub-meta{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;color:var(--muted);font-size:13.5px;font-weight:600;}
+  .sub-meta .dot{width:3px;height:3px;border-radius:50%;background:var(--muted);}
+  .rating{display:inline-flex;align-items:center;gap:4px;color:#ffd04a;}
+  .rating svg{width:15px;height:15px;}
+
+  /* ====== Content ====== */
+  .content{
+    position:relative;z-index:3;margin-top:-6px;
+    padding:4px 20px 60px;max-width:760px;
+  }
+
+  /* CTA buttons */
+  .cta-row{display:flex;gap:12px;margin:6px 0 26px;}
+  .btn-play{
+    flex:1;display:flex;align-items:center;justify-content:center;gap:9px;
+    padding:15px 20px;border-radius:14px;font-size:16px;font-weight:800;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    color:#fff;animation:pulseGlow 2.6s ease-in-out infinite;
+    transition:transform .18s;
+  }
+  .btn-play:active{transform:scale(.96);}
+  .btn-play svg{width:22px;height:22px;}
+  .btn-ghost{
+    width:54px;height:54px;flex:0 0 auto;border-radius:14px;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--card);border:1px solid var(--border);
+    transition:transform .18s, background .2s, color .2s;
+  }
+  .btn-ghost:active{transform:scale(.9);}
+  .btn-ghost.on{color:var(--accent);background:rgba(244,117,33,.14);border-color:rgba(244,117,33,.4);}
+  .btn-ghost svg{width:24px;height:24px;}
+
+  /* Genre chips */
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px;}
+  .chip{
+    font-size:13px;font-weight:600;padding:7px 14px;border-radius:999px;
+    background:var(--card);border:1px solid var(--border);color:#ddd;
+    transition:transform .15s, border-color .2s;
+  }
+  .chip:active{transform:scale(.94);border-color:var(--accent);}
+
+  /* Section */
+  .section{margin-bottom:28px;}
+  .section-title{font-size:17px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .section-title::before{content:"";width:4px;height:18px;border-radius:3px;background:var(--accent);}
+
+  .synopsis{color:#cfcfcf;font-size:15px;line-height:1.7;}
+  .synopsis.clamp{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;}
+  .read-more{margin-top:8px;color:var(--accent);font-weight:700;font-size:14px;}
+
+  /* Info grid */
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .info-card{
+    background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:14px;transition:transform .2s, border-color .2s;
+  }
+  .info-card:active{transform:translateY(-2px);border-color:rgba(244,117,33,.4);}
+  .info-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
+  .info-value{font-size:15px;font-weight:700;}
+
+  /* Episodes */
+  .ep-scroll{display:flex;gap:14px;overflow-x:auto;padding:2px 2px 10px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
+  .ep-scroll::-webkit-scrollbar{height:0;}
+  .ep-card{flex:0 0 220px;scroll-snap-align:start;cursor:pointer;}
+  .ep-thumb{
+    position:relative;width:100%;height:124px;border-radius:12px;overflow:hidden;
+    background:var(--bg2);border:1px solid var(--border);
+  }
+  .ep-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .4s;}
+  .ep-card:active .ep-thumb img{transform:scale(1.08);}
+  .ep-thumb .play-ov{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    background:rgba(0,0,0,.28);opacity:0;transition:opacity .25s;
+  }
+  .ep-card:hover .play-ov{opacity:1;}
+  .ep-thumb .play-ov svg{width:40px;height:40px;fill:#fff;}
+  .ep-num{position:absolute;left:8px;top:8px;background:var(--accent);font-size:11px;font-weight:800;padding:3px 8px;border-radius:7px;}
+  .ep-dur{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.7);font-size:11px;font-weight:700;padding:3px 7px;border-radius:6px;}
+  .ep-title{font-size:13.5px;font-weight:700;margin-top:8px;line-height:1.3;}
+  .ep-desc{font-size:12px;color:var(--muted);margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+
+  /* Cast */
+  .cast-scroll{display:flex;gap:16px;overflow-x:auto;padding-bottom:6px;}
+  .cast-scroll::-webkit-scrollbar{height:0;}
+  .cast-card{flex:0 0 76px;text-align:center;}
+  .cast-img{width:76px;height:76px;border-radius:50%;overflow:hidden;border:2px solid var(--border);margin:0 auto 8px;}
+  .cast-img img{width:100%;height:100%;object-fit:cover;}
+  .cast-name{font-size:12px;font-weight:700;line-height:1.2;}
+  .cast-role{font-size:11px;color:var(--muted);}
+
+  /* Player modal */
+  .player{
+    position:fixed;inset:0;z-index:100;background:#000;
+    display:flex;align-items:center;justify-content:center;
+    opacity:0;pointer-events:none;transition:opacity .3s;
+  }
+  .player.open{opacity:1;pointer-events:auto;}
+  .player-close{
+    position:absolute;top:calc(env(safe-area-inset-top) + 14px);right:16px;z-index:2;
+    width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.14);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .player-close svg{width:24px;height:24px;fill:#fff;}
+  .player-box{width:100%;max-width:900px;aspect-ratio:16/9;background:#111;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:var(--muted);}
+  .player-box svg{width:64px;height:64px;fill:var(--accent);}
+
+  /* Toast */
+  .toast{
+    position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 24px);
+    transform:translateX(-50%) translateY(20px);
+    background:#fff;color:#111;font-weight:700;font-size:14px;
+    padding:12px 20px;border-radius:999px;z-index:120;
+    opacity:0;transition:opacity .3s, transform .3s;box-shadow:0 8px 30px rgba(0,0,0,.4);
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media(min-width:680px){
+    .poster{flex-basis:168px;width:168px;height:248px;}
+    h1.title{font-size:34px;}
+    .hero{min-height:70vh;}
+    .hero-inner{min-height:70vh;}
+  }
+</style>
+</head>
+<body>
+
+  <!-- ===== Top bar ===== -->
+  <header class="topbar" id="topbar">
+    <button class="round-btn" aria-label="Volver" onclick="history.back()">
+      <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z"/></svg>
+    </button>
+    <div class="top-actions">
+      <button class="round-btn" aria-label="Compartir" onclick="toast('Enlace copiado')">
+        <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+      </button>
+      <button class="round-btn" aria-label="Cast" onclick="toast('Buscando dispositivos…')">
+        <svg viewBox="0 0 24 24"><path d="M1 18v3h3c0-1.66-1.34-3-3-3zm0-4v2c2.76 0 5 2.24 5 5h2c0-3.87-3.13-7-7-7zm0-4v2c4.97 0 9 4.03 9 9h2c0-6.08-4.93-11-11-11zm20-7H3c-1.1 0-2 .9-2 2v3h2V5h18v14h-7v2h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===== Hero ===== -->
+  <section class="hero">
+    <div class="hero-bg" id="heroBg"></div>
+    <div class="hero-inner">
+      <div class="poster reveal d1" id="poster"><img id="posterImg" alt="Poster" /></div>
+      <div class="hero-meta">
+        <div class="badges reveal d2">
+          <span class="badge accent">Simulcast</span>
+          <span class="badge hd">HD 1080p</span>
+          <span class="badge">SUB · DOB</span>
+          <span class="badge">16+</span>
+        </div>
+        <h1 class="title reveal d3" id="animeTitle">Título del Anime</h1>
+        <div class="sub-meta reveal d4" id="subMeta">
+          <span class="rating">
+            <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+            8.7
+          </span>
+          <span class="dot"></span><span id="metaYear">2024</span>
+          <span class="dot"></span><span id="metaType">Serie TV</span>
+          <span class="dot"></span><span id="metaEps">24 Episodios</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Content ===== -->
+  <div class="content">
+
+    <div class="cta-row reveal d4">
+      <button class="btn-play" id="btnPlay">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        Reproducir E1
+      </button>
+      <button class="btn-ghost" id="btnFav" aria-label="Mi lista" title="Mi lista">
+        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      </button>
+      <button class="btn-ghost" id="btnDownload" aria-label="Descargar" title="Descargar">
+        <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+      </button>
+    </div>
+
+    <div class="chips reveal d5" id="genreChips"></div>
+
+    <div class="section reveal d5">
+      <h2 class="section-title">Sinopsis</h2>
+      <p class="synopsis clamp" id="synopsis"></p>
+      <div class="read-more" id="readMore">Leer más ▾</div>
+    </div>
+
+    <div class="section reveal d6">
+      <h2 class="section-title">Episodios</h2>
+      <div class="ep-scroll" id="epScroll"></div>
+    </div>
+
+    <div class="section reveal d6">
+      <h2 class="section-title">Reparto de voces</h2>
+      <div class="cast-scroll" id="castScroll"></div>
+    </div>
+
+    <div class="section reveal d6">
+      <h2 class="section-title">Información</h2>
+      <div class="info-grid" id="infoGrid"></div>
+    </div>
+
+  </div>
+
+  <!-- ===== Player modal ===== -->
+  <div class="player" id="player">
+    <button class="player-close" id="playerClose" aria-label="Cerrar">
+      <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+    </button>
+    <div class="player-box" id="playerBox">
+      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      <span id="playerLabel">Reproduciendo…</span>
+    </div>
+  </div>
+
+  <!-- ===== Toast ===== -->
+  <div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   DATOS DEL ANIME — edita este objeto o conéctalo a tu feed
+   ============================================================ */
+const ANIME = {
+  title: "Jujutsu Kaisen",
+  year: 2024,
+  type: "Serie TV",
+  rating: 8.7,
+  status: "En emisión",
+  studio: "MAPPA",
+  duration: "24 min/ep",
+  audio: "Japonés · Latino",
+  director: "Sunghoo Park",
+  poster: "https://image.tmdb.org/t/p/w500/fHpKWq9ayzSk8nSwqRuaAUemRKh.jpg",
+  backdrop: "https://image.tmdb.org/t/p/original/vIgyYkXkg6NC2whRbYjBD7eb3Er.jpg",
+  genres: ["Acción", "Shounen", "Sobrenatural", "Fantasía", "Terror"],
+  synopsis: "Yuji Itadori es un estudiante de secundaria con una fuerza física extraordinaria que vive una vida tranquila hasta que, para salvar a sus amigos, se traga un dedo maldito perteneciente a Ryomen Sukuna, un legendario y temible rey de las maldiciones. Al convertirse en el recipiente de este poder, Yuji se une a la Escuela Técnica de Jujutsu de Tokio, donde aprenderá a controlar la energía maldita y luchará junto a otros hechiceros para exorcizar a las criaturas que amenazan a la humanidad.",
+  episodes: [
+    { n:1, title:"Ryomen Sukuna", dur:"24m", desc:"Yuji conoce a Megumi y descubre el mundo de las maldiciones.", thumb:"https://image.tmdb.org/t/p/w500/vIgyYkXkg6NC2whRbYjBD7eb3Er.jpg" },
+    { n:2, title:"Para mí mismo", dur:"24m", desc:"Yuji comienza su entrenamiento en la escuela técnica.", thumb:"https://image.tmdb.org/t/p/w500/fHpKWq9ayzSk8nSwqRuaAUemRKh.jpg" },
+    { n:3, title:"La chica de acero", dur:"24m", desc:"Aparece Nobara Kugisaki y realiza su primera misión.", thumb:"https://image.tmdb.org/t/p/w500/vIgyYkXkg6NC2whRbYjBD7eb3Er.jpg" },
+    { n:4, title:"Nacimiento maldito", dur:"24m", desc:"El equipo enfrenta una maldición en un edificio abandonado.", thumb:"https://image.tmdb.org/t/p/w500/fHpKWq9ayzSk8nSwqRuaAUemRKh.jpg" },
+    { n:5, title:"Para mí mismo II", dur:"24m", desc:"Una batalla pone a prueba los límites de Yuji.", thumb:"https://image.tmdb.org/t/p/w500/vIgyYkXkg6NC2whRbYjBD7eb3Er.jpg" }
+  ],
+  cast: [
+    { name:"Yuji Itadori", role:"J. Enoki", img:"https://i.pravatar.cc/150?img=12" },
+    { name:"Megumi F.", role:"Y. Uchida", img:"https://i.pravatar.cc/150?img=33" },
+    { name:"Nobara K.", role:"A. Seto", img:"https://i.pravatar.cc/150?img=47" },
+    { name:"Satoru Gojo", role:"Y. Nakamura", img:"https://i.pravatar.cc/150?img=15" },
+    { name:"Sukuna", role:"J. Suwabe", img:"https://i.pravatar.cc/150?img=8" }
+  ]
+};
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+(function render(){
+  document.title = "NekoWolf — " + ANIME.title;
+  document.getElementById("heroBg").style.backgroundImage = `url('${ANIME.backdrop}')`;
+  document.getElementById("posterImg").src = ANIME.poster;
+  document.getElementById("animeTitle").textContent = ANIME.title;
+  document.getElementById("metaYear").textContent = ANIME.year;
+  document.getElementById("metaType").textContent = ANIME.type;
+  document.getElementById("metaEps").textContent = ANIME.episodes.length + " Episodios";
+  document.querySelector(".rating").childNodes[2].textContent = " " + ANIME.rating;
+  document.getElementById("synopsis").textContent = ANIME.synopsis;
+
+  // Chips de géneros
+  const chips = document.getElementById("genreChips");
+  chips.innerHTML = ANIME.genres.map(g => `<span class="chip">${g}</span>`).join("");
+
+  // Episodios
+  const es = document.getElementById("epScroll");
+  es.innerHTML = ANIME.episodes.map(ep => `
+    <div class="ep-card" data-ep="${ep.n}">
+      <div class="ep-thumb">
+        <img src="${ep.thumb}" alt="EP ${ep.n}" />
+        <span class="ep-num">E${ep.n}</span>
+        <span class="ep-dur">${ep.dur}</span>
+        <div class="play-ov"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+      </div>
+      <div class="ep-title">${ep.n}. ${ep.title}</div>
+      <div class="ep-desc">${ep.desc}</div>
+    </div>`).join("");
+  es.querySelectorAll(".ep-card").forEach(c =>
+    c.addEventListener("click", () => openPlayer("Episodio " + c.dataset.ep))
+  );
+
+  // Reparto
+  document.getElementById("castScroll").innerHTML = ANIME.cast.map(p => `
+    <div class="cast-card">
+      <div class="cast-img"><img src="${p.img}" alt="${p.name}" /></div>
+      <div class="cast-name">${p.name}</div>
+      <div class="cast-role">${p.role}</div>
+    </div>`).join("");
+
+  // Info
+  const info = [
+    ["Estado", ANIME.status],
+    ["Estudio", ANIME.studio],
+    ["Duración", ANIME.duration],
+    ["Audio", ANIME.audio],
+    ["Director", ANIME.director],
+    ["Año", ANIME.year]
+  ];
+  document.getElementById("infoGrid").innerHTML = info.map(([l,v]) => `
+    <div class="info-card"><div class="info-label">${l}</div><div class="info-value">${v}</div></div>`).join("");
+})();
+
+/* ===== Leer más / menos ===== */
+const syn = document.getElementById("synopsis");
+const rm = document.getElementById("readMore");
+rm.addEventListener("click", () => {
+  const clamped = syn.classList.toggle("clamp");
+  rm.textContent = clamped ? "Leer más ▾" : "Leer menos ▴";
+});
+
+/* ===== Favorito ===== */
+document.getElementById("btnFav").addEventListener("click", function(){
+  this.classList.toggle("on");
+  toast(this.classList.contains("on") ? "Añadido a Mi lista" : "Quitado de Mi lista");
+});
+document.getElementById("btnDownload").addEventListener("click", () => toast("Descarga iniciada"));
+
+/* ===== Reproductor ===== */
+const player = document.getElementById("player");
+function openPlayer(label){
+  document.getElementById("playerLabel").textContent = "Reproduciendo: " + label;
+  player.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+document.getElementById("btnPlay").addEventListener("click", () => openPlayer("Episodio 1"));
+document.getElementById("playerClose").addEventListener("click", () => {
+  player.classList.remove("open");
+  document.body.style.overflow = "";
+});
+
+/* ===== Top bar solid al hacer scroll ===== */
+const topbar = document.getElementById("topbar");
+window.addEventListener("scroll", () => {
+  topbar.classList.toggle("solid", window.scrollY > 60);
+}, { passive:true });
+
+/* ===== Toast ===== */
+let toastTimer;
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2000);
+}
+</script>
+</body>
+</html>
