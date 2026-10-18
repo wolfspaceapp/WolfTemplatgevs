@@ -279,10 +279,16 @@
   .native-season{
     position:relative;display:flex;align-items:center;
     background:var(--card);border:1px solid var(--border);border-radius:10px;
-    padding-left:10px;transition:border-color .2s;
+    padding-left:10px;transition:background .25s;
   }
-  .native-season:focus-within{border-color:rgba(244,117,33,.6);}
-  .native-season svg.lead{width:16px;height:16px;color:#fff;pointer-events:none;}
+  /* temporada activa → fondo destacado (el borde NO cambia al pulsar) */
+  .native-season.active-season{
+    background:rgba(244,117,33,.18);
+    border-color:rgba(244,117,33,.45);
+  }
+  .native-season.active-season svg.lead,
+  .native-season.active-season select{color:var(--accent);}
+  .native-season svg.lead{width:17px;height:17px;color:#fff;pointer-events:none;}
   /* El <select> nativo: en Android/WebView abre el diálogo/lista nativo del sistema */
   .native-season select{
     appearance:none;-webkit-appearance:none;-moz-appearance:none;
@@ -551,8 +557,9 @@
         <h2 class="section-title">Episodios</h2>
         <div class="ep-controls">
           <!-- Selector de temporada con <select> NATIVO (lista/diálogo de Android) -->
-          <label class="native-season" for="seasonSelect">
-            <svg class="lead" viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+          <label class="native-season" id="seasonWrap" for="seasonSelect">
+            <!-- icono de "capas/temporadas" -->
+            <svg class="lead" viewBox="0 0 24 24"><path d="M12 3L2 8l10 5 10-5-10-5zm0 7.5L4.21 7 12 3.5 19.79 7 12 10.5zM2 12l10 5 10-5-2.3-1.15L12 14.5 4.3 10.85 2 12zm0 4l10 5 10-5-2.3-1.15L12 18.5 4.3 14.85 2 16z"/></svg>
             <select id="seasonSelect" aria-label="Seleccionar temporada"></select>
             <svg class="caret" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
           </label>
@@ -882,11 +889,13 @@ if (!isMovie && ANIME.seasons && ANIME.seasons.length){
   const sortSelect   = $("sortSelect");
   const epList       = $("epList");
 
-  // Poblamos el <select> nativo → en Android abre la lista/diálogo del sistema
+  // Poblamos el <select> nativo → solo el nombre (sin cantidad de episodios)
   seasonSelect.innerHTML = ANIME.seasons
-    .map((t,i) => `<option value="${i}">${t.name} · ${t.episodes.length} ep</option>`)
+    .map((t,i) => `<option value="${i}">${t.name}</option>`)
     .join("");
   seasonSelect.value = String(currentSeason);
+  // marcar como "activa" el contenedor del selector de temporada
+  $("seasonWrap").classList.add("active-season");
   seasonSelect.addEventListener("change", () => {
     currentSeason = +seasonSelect.value;
     renderEpisodes();
