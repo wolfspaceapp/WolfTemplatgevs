@@ -401,6 +401,34 @@
 
 <script>
 /* ============================================================
+   CONFIGURACION DE TEMA (HOME) — cambia los colores de la interfaz
+   ------------------------------------------------------------
+   Aplica la paleta a toda la pantalla (acento, degradados, chips,
+   navbar, etc.) SIN tocar el negro del fondo.
+   Paleta actual: CyberKai (azul neon + magenta).
+   ============================================================ */
+const THEME = {
+  accent:   "#00F0FF",   // azul neon cibernetico (acento principal)
+  accent2:  "#FF2DFA",   // magenta/violeta neon (secundario/brillos)
+  // Degradado (botones y acentos): azul -> magenta
+  gradFrom: "#00F0FF",
+  gradMid:  "#38B6FF",
+  gradTo:   "#FF2DFA",
+  gradAngle:"135deg"
+  // NOTA: el fondo negro NO se cambia (se mantiene --bg oscuro del CSS).
+};
+(function(){
+  var r=document.documentElement.style;
+  r.setProperty("--accent",THEME.accent);
+  r.setProperty("--accent-2",THEME.accent2);
+  r.setProperty("--grad","linear-gradient("+THEME.gradAngle+","+THEME.gradFrom+" 0%,"+THEME.gradMid+" 48%,"+THEME.gradTo+" 100%)");
+  var m=THEME.accent.replace("#","").match(/^(..)(..)(..)$/);
+  if(m) r.setProperty("--accent-rgb",parseInt(m[1],16)+", "+parseInt(m[2],16)+", "+parseInt(m[3],16));
+  // fondo: lo dejamos tal cual (negro). Si algún día quieres el negro CyberKai:
+  // r.setProperty("--bg","#050508");
+})();
+
+/* ============================================================
    DATOS — reemplaza por tu feed de Blogger o tu backend.
    Cada item: {id,title,poster,backdrop,type,year,rating,genres,eps,nuevo,sub,dub}
    El botón/tarjeta enlaza a detalle.html?id=<id>
@@ -436,7 +464,8 @@ const DATA = [
 const FALL = makePH("NekoWolf");
 function makePH(label){
   const t=(label||"").slice(0,16);
-  const svg="<svg xmlns='http://www.w3.org/2000/svg' width='300' height='450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#26262b'/><stop offset='1' stop-color='#111113'/></linearGradient></defs><rect width='300' height='450' fill='url(#g)'/><circle cx='150' cy='175' r='54' fill='#f47521'/><text x='150' y='198' font-size='64' text-anchor='middle' fill='#fff' font-family='Arial' font-weight='bold'>N</text><text x='150' y='300' font-size='20' text-anchor='middle' fill='#ccc' font-family='Arial'>"+t+"</text></svg>";
+  const AC=(THEME&&THEME.accent)||"#00F0FF";
+  const svg="<svg xmlns='http://www.w3.org/2000/svg' width='300' height='450'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#1a1a22'/><stop offset='1' stop-color='#0a0a10'/></linearGradient></defs><rect width='300' height='450' fill='url(#g)'/><circle cx='150' cy='175' r='54' fill='"+AC+"'/><text x='150' y='198' font-size='64' text-anchor='middle' fill='#050508' font-family='Arial' font-weight='bold'>N</text><text x='150' y='300' font-size='20' text-anchor='middle' fill='#ccc' font-family='Arial'>"+t+"</text></svg>";
   return "data:image/svg+xml;base64,"+btoa(unescape(encodeURIComponent(svg)));
 }
 function img(u){ return u || FALL; }
@@ -653,7 +682,7 @@ document.querySelectorAll(".nav-item").forEach(b=>{
 });
 
 /* ----- Explorar ----- */
-const GENRE_COLORS=["rgba(244,117,33,.82)","rgba(99,102,241,.8)","rgba(236,72,153,.8)","rgba(16,185,129,.8)","rgba(59,130,246,.8)","rgba(168,85,247,.8)","rgba(239,68,68,.8)","rgba(234,179,8,.82)"];
+const GENRE_COLORS=["rgba(0,240,255,.8)","rgba(255,45,250,.78)","rgba(99,102,241,.8)","rgba(16,185,129,.8)","rgba(59,130,246,.8)","rgba(168,85,247,.8)","rgba(236,72,153,.8)","rgba(234,179,8,.82)"];
 function renderExplore(){
   const genres=Array.from(new Set(DATA.flatMap(d=>d.genres)));
   const gc=document.getElementById("genreGrid");
