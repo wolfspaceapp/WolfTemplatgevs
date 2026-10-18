@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#0a0a0a" />
-<title>NekoWolf — Detalle del Anime</title>
+<title>NekoWolf — Detalle</title>
 <style>
   :root{
     --accent:#f47521;
@@ -38,7 +38,7 @@
     50%{box-shadow:0 0 0 14px rgba(244,117,33,0);}
   }
   @keyframes floatPoster{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
-  @keyframes shimmer{0%{background-position:-200% 0;}100%{background-position:200% 0;}}
+  @keyframes popIn{from{opacity:0;transform:scale(.96) translateY(8px);}to{opacity:1;transform:scale(1) translateY(0);}}
 
   .reveal{opacity:0;animation:fadeUp .7s cubic-bezier(.22,.61,.36,1) forwards;}
   .d1{animation-delay:.15s;}.d2{animation-delay:.28s;}.d3{animation-delay:.4s;}
@@ -146,7 +146,8 @@
 
   /* Section */
   .section{margin-bottom:28px;}
-  .section-title{font-size:17px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;}
+  .section-title{font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px;}
   .section-title::before{content:"";width:4px;height:18px;border-radius:3px;background:var(--accent);}
 
   .synopsis{color:#cfcfcf;font-size:15px;line-height:1.7;}
@@ -163,26 +164,65 @@
   .info-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
   .info-value{font-size:15px;font-weight:700;}
 
-  /* Episodes */
-  .ep-scroll{display:flex;gap:14px;overflow-x:auto;padding:2px 2px 10px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
-  .ep-scroll::-webkit-scrollbar{height:0;}
-  .ep-card{flex:0 0 220px;scroll-snap-align:start;cursor:pointer;}
+  /* ====== Serie: controles (temporada + ordenar) ====== */
+  .ep-controls{display:flex;align-items:center;gap:10px;}
+  .season-select{position:relative;}
+  .season-btn,.sort-btn{
+    display:flex;align-items:center;gap:7px;
+    padding:9px 14px;border-radius:11px;font-size:14px;font-weight:700;
+    background:var(--card);border:1px solid var(--border);color:#fff;
+    transition:transform .15s, border-color .2s, background .2s;
+  }
+  .season-btn:active,.sort-btn:active{transform:scale(.95);}
+  .season-btn svg,.sort-btn svg{width:18px;height:18px;}
+  .season-btn .caret{transition:transform .25s;}
+  .season-select.open .caret{transform:rotate(180deg);}
+  .sort-btn{padding:9px 12px;}
+  .sort-btn.desc svg{transform:scaleY(-1);}
+
+  .season-menu{
+    position:absolute;top:calc(100% + 8px);left:0;z-index:20;min-width:200px;
+    background:#17171a;border:1px solid var(--border);border-radius:14px;
+    padding:6px;box-shadow:0 18px 44px rgba(0,0,0,.6);
+    opacity:0;transform:translateY(-8px);pointer-events:none;
+    transition:opacity .2s, transform .2s;
+  }
+  .season-select.open .season-menu{opacity:1;transform:translateY(0);pointer-events:auto;}
+  .season-item{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:11px 12px;border-radius:9px;font-size:14px;font-weight:600;width:100%;text-align:left;
+    transition:background .15s;
+  }
+  .season-item:active{background:rgba(255,255,255,.06);}
+  .season-item.active{color:var(--accent);background:rgba(244,117,33,.12);}
+  .season-item small{color:var(--muted);font-weight:600;}
+
+  /* ====== Lista de episodios (tarjetas) ====== */
+  .ep-list{display:flex;flex-direction:column;gap:12px;}
+  .ep-item{
+    display:flex;gap:13px;padding:10px;border-radius:14px;
+    background:var(--card);border:1px solid var(--border);cursor:pointer;
+    animation:popIn .4s ease forwards;
+    transition:transform .18s, border-color .2s, background .2s;
+  }
+  .ep-item:active{transform:scale(.985);border-color:rgba(244,117,33,.45);background:#1f1f22;}
   .ep-thumb{
-    position:relative;width:100%;height:124px;border-radius:12px;overflow:hidden;
-    background:var(--bg2);border:1px solid var(--border);
+    position:relative;flex:0 0 132px;width:132px;height:78px;border-radius:10px;overflow:hidden;
+    background:var(--bg2);
   }
   .ep-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .4s;}
-  .ep-card:active .ep-thumb img{transform:scale(1.08);}
+  .ep-item:active .ep-thumb img{transform:scale(1.07);}
   .ep-thumb .play-ov{
     position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-    background:rgba(0,0,0,.28);opacity:0;transition:opacity .25s;
+    background:rgba(0,0,0,.25);
   }
-  .ep-card:hover .play-ov{opacity:1;}
-  .ep-thumb .play-ov svg{width:40px;height:40px;fill:#fff;}
-  .ep-num{position:absolute;left:8px;top:8px;background:var(--accent);font-size:11px;font-weight:800;padding:3px 8px;border-radius:7px;}
-  .ep-dur{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.7);font-size:11px;font-weight:700;padding:3px 7px;border-radius:6px;}
-  .ep-title{font-size:13.5px;font-weight:700;margin-top:8px;line-height:1.3;}
-  .ep-desc{font-size:12px;color:var(--muted);margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .ep-thumb .play-ov svg{width:30px;height:30px;fill:#fff;filter:drop-shadow(0 2px 6px rgba(0,0,0,.6));}
+  .ep-dur{position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.75);font-size:10.5px;font-weight:700;padding:2px 6px;border-radius:5px;}
+  .ep-info{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;}
+  .ep-top{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+  .ep-num{font-size:12px;font-weight:800;color:var(--accent);background:rgba(244,117,33,.14);padding:2px 8px;border-radius:6px;}
+  .ep-title{font-size:14.5px;font-weight:700;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .ep-desc{font-size:12.5px;color:var(--muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 
   /* Cast */
   .cast-scroll{display:flex;gap:16px;overflow-x:auto;padding-bottom:6px;}
@@ -250,21 +290,16 @@
     <div class="hero-inner">
       <div class="poster reveal d1" id="poster"><img id="posterImg" alt="Poster" /></div>
       <div class="hero-meta">
-        <div class="badges reveal d2">
-          <span class="badge accent">Simulcast</span>
-          <span class="badge hd">HD 1080p</span>
-          <span class="badge">SUB · DOB</span>
-          <span class="badge">16+</span>
-        </div>
-        <h1 class="title reveal d3" id="animeTitle">Título del Anime</h1>
+        <div class="badges reveal d2" id="badges"></div>
+        <h1 class="title reveal d3" id="animeTitle">Título</h1>
         <div class="sub-meta reveal d4" id="subMeta">
           <span class="rating">
             <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-            8.7
+            <span id="metaRating">0.0</span>
           </span>
           <span class="dot"></span><span id="metaYear">2024</span>
-          <span class="dot"></span><span id="metaType">Serie TV</span>
-          <span class="dot"></span><span id="metaEps">24 Episodios</span>
+          <span class="dot"></span><span id="metaType">Tipo</span>
+          <span class="dot"></span><span id="metaExtra">—</span>
         </div>
       </div>
     </div>
@@ -276,7 +311,7 @@
     <div class="cta-row reveal d4">
       <button class="btn-play" id="btnPlay">
         <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        Reproducir E1
+        <span id="btnPlayLabel">Reproducir</span>
       </button>
       <button class="btn-ghost" id="btnFav" aria-label="Mi lista" title="Mi lista">
         <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
@@ -294,9 +329,25 @@
       <div class="read-more" id="readMore">Leer más ▾</div>
     </div>
 
-    <div class="section reveal d6">
-      <h2 class="section-title">Episodios</h2>
-      <div class="ep-scroll" id="epScroll"></div>
+    <!-- ===== Solo SERIE: episodios con temporadas + ordenar ===== -->
+    <div class="section reveal d6" id="episodesSection" hidden>
+      <div class="section-head">
+        <h2 class="section-title">Episodios</h2>
+        <div class="ep-controls">
+          <div class="season-select" id="seasonSelect">
+            <button class="season-btn" id="seasonBtn">
+              <svg viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+              <span id="seasonLabel">Temporada 1</span>
+              <svg class="caret" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+            </button>
+            <div class="season-menu" id="seasonMenu"></div>
+          </div>
+          <button class="sort-btn" id="sortBtn" title="Ordenar">
+            <svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3zm0-5h12v-2H3zm0-7v2h18V6z"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="ep-list" id="epList"></div>
     </div>
 
     <div class="section reveal d6">
@@ -327,12 +378,17 @@
 
 <script>
 /* ============================================================
-   DATOS DEL ANIME — edita este objeto o conéctalo a tu feed
+   DATOS — Cambia "type" a "pelicula" o "serie"
+   ------------------------------------------------------------
+   type:"pelicula"  → solo muestra el botón Reproducir
+   type:"serie"     → muestra temporadas + ordenar + episodios
    ============================================================ */
+
+/* ---- EJEMPLO SERIE (activo) ---- */
 const ANIME = {
+  type: "serie",                        // "serie" | "pelicula"
   title: "Jujutsu Kaisen",
   year: 2024,
-  type: "Serie TV",
   rating: 8.7,
   status: "En emisión",
   studio: "MAPPA",
@@ -341,14 +397,28 @@ const ANIME = {
   director: "Sunghoo Park",
   poster: "https://image.tmdb.org/t/p/w500/fHpKWq9ayzSk8nSwqRuaAUemRKh.jpg",
   backdrop: "https://image.tmdb.org/t/p/original/vIgyYkXkg6NC2whRbYjBD7eb3Er.jpg",
+  badges: ["Simulcast", "HD 1080p", "SUB · DOB", "16+"],
   genres: ["Acción", "Shounen", "Sobrenatural", "Fantasía", "Terror"],
   synopsis: "Yuji Itadori es un estudiante de secundaria con una fuerza física extraordinaria que vive una vida tranquila hasta que, para salvar a sus amigos, se traga un dedo maldito perteneciente a Ryomen Sukuna, un legendario y temible rey de las maldiciones. Al convertirse en el recipiente de este poder, Yuji se une a la Escuela Técnica de Jujutsu de Tokio, donde aprenderá a controlar la energía maldita y luchará junto a otros hechiceros para exorcizar a las criaturas que amenazan a la humanidad.",
-  episodes: [
-    { n:1, title:"Ryomen Sukuna", dur:"24m", desc:"Yuji conoce a Megumi y descubre el mundo de las maldiciones.", thumb:"https://image.tmdb.org/t/p/w500/vIgyYkXkg6NC2whRbYjBD7eb3Er.jpg" },
-    { n:2, title:"Para mí mismo", dur:"24m", desc:"Yuji comienza su entrenamiento en la escuela técnica.", thumb:"https://image.tmdb.org/t/p/w500/fHpKWq9ayzSk8nSwqRuaAUemRKh.jpg" },
-    { n:3, title:"La chica de acero", dur:"24m", desc:"Aparece Nobara Kugisaki y realiza su primera misión.", thumb:"https://image.tmdb.org/t/p/w500/vIgyYkXkg6NC2whRbYjBD7eb3Er.jpg" },
-    { n:4, title:"Nacimiento maldito", dur:"24m", desc:"El equipo enfrenta una maldición en un edificio abandonado.", thumb:"https://image.tmdb.org/t/p/w500/fHpKWq9ayzSk8nSwqRuaAUemRKh.jpg" },
-    { n:5, title:"Para mí mismo II", dur:"24m", desc:"Una batalla pone a prueba los límites de Yuji.", thumb:"https://image.tmdb.org/t/p/w500/vIgyYkXkg6NC2whRbYjBD7eb3Er.jpg" }
+  // Para SERIE: una o varias temporadas
+  seasons: [
+    {
+      name: "Temporada 1",
+      episodes: [
+        { n:1, title:"Ryomen Sukuna", dur:"24m", desc:"Yuji conoce a Megumi y descubre el mundo de las maldiciones.", thumb:"https://image.tmdb.org/t/p/w500/vIgyYkXkg6NC2whRbYjBD7eb3Er.jpg" },
+        { n:2, title:"Para mí mismo", dur:"24m", desc:"Yuji comienza su entrenamiento en la escuela técnica.", thumb:"https://image.tmdb.org/t/p/w500/fHpKWq9ayzSk8nSwqRuaAUemRKh.jpg" },
+        { n:3, title:"La chica de acero", dur:"24m", desc:"Aparece Nobara Kugisaki y realiza su primera misión.", thumb:"https://image.tmdb.org/t/p/w500/vIgyYkXkg6NC2whRbYjBD7eb3Er.jpg" },
+        { n:4, title:"Nacimiento maldito", dur:"24m", desc:"El equipo enfrenta una maldición en un edificio abandonado.", thumb:"https://image.tmdb.org/t/p/w500/fHpKWq9ayzSk8nSwqRuaAUemRKh.jpg" }
+      ]
+    },
+    {
+      name: "Temporada 2",
+      episodes: [
+        { n:1, title:"El incidente de Shibuya", dur:"24m", desc:"Comienza uno de los arcos más intensos de la serie.", thumb:"https://image.tmdb.org/t/p/w500/vIgyYkXkg6NC2whRbYjBD7eb3Er.jpg" },
+        { n:2, title:"Hidden Inventory", dur:"24m", desc:"Un vistazo al pasado de Gojo y Geto.", thumb:"https://image.tmdb.org/t/p/w500/fHpKWq9ayzSk8nSwqRuaAUemRKh.jpg" },
+        { n:3, title:"Sello", dur:"24m", desc:"La situación se vuelve crítica en Shibuya.", thumb:"https://image.tmdb.org/t/p/w500/vIgyYkXkg6NC2whRbYjBD7eb3Er.jpg" }
+      ]
+    }
   ],
   cast: [
     { name:"Yuji Itadori", role:"J. Enoki", img:"https://i.pravatar.cc/150?img=12" },
@@ -359,43 +429,66 @@ const ANIME = {
   ]
 };
 
+/* ---- EJEMPLO PELÍCULA (copia esto sobre ANIME para probar el modo película) ----
+const ANIME = {
+  type: "pelicula",
+  title: "Jujutsu Kaisen 0",
+  year: 2021,
+  rating: 7.9,
+  status: "Estreno",
+  studio: "MAPPA",
+  duration: "1h 45m",
+  audio: "Japonés · Latino",
+  director: "Sunghoo Park",
+  poster: "https://image.tmdb.org/t/p/w500/fHpKWq9ayzSk8nSwqRuaAUemRKh.jpg",
+  backdrop: "https://image.tmdb.org/t/p/original/vIgyYkXkg6NC2whRbYjBD7eb3Er.jpg",
+  badges: ["Película", "HD 1080p", "SUB · DOB", "16+"],
+  genres: ["Acción", "Sobrenatural", "Fantasía"],
+  synopsis: "Yuta Okkotsu es un adolescente atormentado por Rika, su amiga de la infancia convertida en una maldición...",
+  cast: [ { name:"Yuta", role:"M. Ogata", img:"https://i.pravatar.cc/150?img=5" } ]
+};
+---------------------------------------------------------------------------------- */
+
 /* ============================================================
-   RENDER
+   ESTADO
    ============================================================ */
-(function render(){
+const isMovie = ANIME.type === "pelicula";
+let currentSeason = 0;   // índice de temporada activa (solo serie)
+let sortAsc = true;      // orden de episodios (solo serie)
+
+/* ============================================================
+   RENDER BASE (común a serie y película)
+   ============================================================ */
+(function renderBase(){
   document.title = "NekoWolf — " + ANIME.title;
   document.getElementById("heroBg").style.backgroundImage = `url('${ANIME.backdrop}')`;
   document.getElementById("posterImg").src = ANIME.poster;
   document.getElementById("animeTitle").textContent = ANIME.title;
+  document.getElementById("metaRating").textContent = ANIME.rating;
   document.getElementById("metaYear").textContent = ANIME.year;
-  document.getElementById("metaType").textContent = ANIME.type;
-  document.getElementById("metaEps").textContent = ANIME.episodes.length + " Episodios";
-  document.querySelector(".rating").childNodes[2].textContent = " " + ANIME.rating;
+  document.getElementById("metaType").textContent = isMovie ? "Película" : "Serie TV";
   document.getElementById("synopsis").textContent = ANIME.synopsis;
 
-  // Chips de géneros
-  const chips = document.getElementById("genreChips");
-  chips.innerHTML = ANIME.genres.map(g => `<span class="chip">${g}</span>`).join("");
+  // Meta extra: duración (película) o nº de episodios (serie)
+  document.getElementById("metaExtra").textContent =
+    isMovie ? ANIME.duration : (totalEpisodes() + " Episodios");
 
-  // Episodios
-  const es = document.getElementById("epScroll");
-  es.innerHTML = ANIME.episodes.map(ep => `
-    <div class="ep-card" data-ep="${ep.n}">
-      <div class="ep-thumb">
-        <img src="${ep.thumb}" alt="EP ${ep.n}" />
-        <span class="ep-num">E${ep.n}</span>
-        <span class="ep-dur">${ep.dur}</span>
-        <div class="play-ov"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-      </div>
-      <div class="ep-title">${ep.n}. ${ep.title}</div>
-      <div class="ep-desc">${ep.desc}</div>
-    </div>`).join("");
-  es.querySelectorAll(".ep-card").forEach(c =>
-    c.addEventListener("click", () => openPlayer("Episodio " + c.dataset.ep))
-  );
+  // Badges
+  document.getElementById("badges").innerHTML = (ANIME.badges || []).map((b,i) => {
+    const cls = i === 0 ? "badge accent" : (/HD|1080|720|4K/i.test(b) ? "badge hd" : "badge");
+    return `<span class="${cls}">${b}</span>`;
+  }).join("");
+
+  // Géneros
+  document.getElementById("genreChips").innerHTML =
+    (ANIME.genres || []).map(g => `<span class="chip">${g}</span>`).join("");
+
+  // Botón reproducir
+  document.getElementById("btnPlayLabel").textContent =
+    isMovie ? "Reproducir película" : "Reproducir E1";
 
   // Reparto
-  document.getElementById("castScroll").innerHTML = ANIME.cast.map(p => `
+  document.getElementById("castScroll").innerHTML = (ANIME.cast || []).map(p => `
     <div class="cast-card">
       <div class="cast-img"><img src="${p.img}" alt="${p.name}" /></div>
       <div class="cast-name">${p.name}</div>
@@ -410,10 +503,101 @@ const ANIME = {
     ["Audio", ANIME.audio],
     ["Director", ANIME.director],
     ["Año", ANIME.year]
-  ];
+  ].filter(([,v]) => v != null && v !== "");
   document.getElementById("infoGrid").innerHTML = info.map(([l,v]) => `
     <div class="info-card"><div class="info-label">${l}</div><div class="info-value">${v}</div></div>`).join("");
 })();
+
+function totalEpisodes(){
+  return (ANIME.seasons || []).reduce((s, t) => s + (t.episodes?.length || 0), 0);
+}
+
+/* ============================================================
+   MODO SERIE — temporadas, ordenar y lista de episodios
+   ============================================================ */
+if (!isMovie && ANIME.seasons && ANIME.seasons.length){
+  const section = document.getElementById("episodesSection");
+  section.hidden = false;
+
+  const seasonSelect = document.getElementById("seasonSelect");
+  const seasonBtn    = document.getElementById("seasonBtn");
+  const seasonMenu   = document.getElementById("seasonMenu");
+  const seasonLabel  = document.getElementById("seasonLabel");
+  const sortBtn      = document.getElementById("sortBtn");
+  const epList       = document.getElementById("epList");
+
+  // Menú de temporadas (se oculta si solo hay 1)
+  if (ANIME.seasons.length > 1){
+    seasonMenu.innerHTML = ANIME.seasons.map((t,i) => `
+      <button class="season-item ${i===currentSeason?'active':''}" data-i="${i}">
+        <span>${t.name}</span><small>${t.episodes.length} ep</small>
+      </button>`).join("");
+
+    seasonBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      seasonSelect.classList.toggle("open");
+    });
+    seasonMenu.querySelectorAll(".season-item").forEach(item => {
+      item.addEventListener("click", () => {
+        currentSeason = +item.dataset.i;
+        seasonMenu.querySelectorAll(".season-item").forEach(x => x.classList.remove("active"));
+        item.classList.add("active");
+        seasonLabel.textContent = ANIME.seasons[currentSeason].name;
+        seasonSelect.classList.remove("open");
+        renderEpisodes();
+      });
+    });
+    document.addEventListener("click", () => seasonSelect.classList.remove("open"));
+  } else {
+    // Una sola temporada: el botón no despliega menú
+    seasonBtn.style.pointerEvents = "none";
+    seasonBtn.querySelector(".caret").style.display = "none";
+  }
+  seasonLabel.textContent = ANIME.seasons[currentSeason].name;
+
+  // Botón ordenar
+  sortBtn.addEventListener("click", () => {
+    sortAsc = !sortAsc;
+    sortBtn.classList.toggle("desc", !sortAsc);
+    sortBtn.title = sortAsc ? "Más antiguos primero" : "Más recientes primero";
+    renderEpisodes();
+    toast(sortAsc ? "Orden: ascendente" : "Orden: descendente");
+  });
+
+  function renderEpisodes(){
+    const eps = [...ANIME.seasons[currentSeason].episodes]
+      .sort((a,b) => sortAsc ? a.n - b.n : b.n - a.n);
+    epList.innerHTML = eps.map((ep,i) => `
+      <div class="ep-item" data-ep="${ep.n}" style="animation-delay:${i*45}ms">
+        <div class="ep-thumb">
+          <img src="${ep.thumb}" alt="EP ${ep.n}" />
+          <span class="ep-dur">${ep.dur}</span>
+          <div class="play-ov"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+        </div>
+        <div class="ep-info">
+          <div class="ep-top">
+            <span class="ep-num">E${ep.n}</span>
+            <span class="ep-title">${ep.title}</span>
+          </div>
+          <div class="ep-desc">${ep.desc || ""}</div>
+        </div>
+      </div>`).join("");
+    epList.querySelectorAll(".ep-item").forEach(c =>
+      c.addEventListener("click", () =>
+        openPlayer(`${ANIME.seasons[currentSeason].name} · Episodio ${c.dataset.ep}`))
+    );
+  }
+  renderEpisodes();
+
+  // El botón "Reproducir E1" lanza el primer episodio de la temporada actual
+  document.getElementById("btnPlay").addEventListener("click", () => {
+    const first = [...ANIME.seasons[currentSeason].episodes].sort((a,b)=>a.n-b.n)[0];
+    openPlayer(`${ANIME.seasons[currentSeason].name} · Episodio ${first ? first.n : 1}`);
+  });
+} else {
+  /* ===== MODO PELÍCULA — solo reproducir ===== */
+  document.getElementById("btnPlay").addEventListener("click", () => openPlayer(ANIME.title));
+}
 
 /* ===== Leer más / menos ===== */
 const syn = document.getElementById("synopsis");
@@ -423,7 +607,7 @@ rm.addEventListener("click", () => {
   rm.textContent = clamped ? "Leer más ▾" : "Leer menos ▴";
 });
 
-/* ===== Favorito ===== */
+/* ===== Favorito / Descargar ===== */
 document.getElementById("btnFav").addEventListener("click", function(){
   this.classList.toggle("on");
   toast(this.classList.contains("on") ? "Añadido a Mi lista" : "Quitado de Mi lista");
@@ -437,7 +621,6 @@ function openPlayer(label){
   player.classList.add("open");
   document.body.style.overflow = "hidden";
 }
-document.getElementById("btnPlay").addEventListener("click", () => openPlayer("Episodio 1"));
 document.getElementById("playerClose").addEventListener("click", () => {
   player.classList.remove("open");
   document.body.style.overflow = "";
