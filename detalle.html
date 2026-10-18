@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0a0a" />
+<title>NekoWolf — Detalle</title>
+<style>
+  :root{
+    --accent:#f47521;
+    --accent-2:#ff9a52;
+    --accent-rgb:244, 117, 33;   /* RGB del acento (lo sobreescribe THEME en JS) */
+    --grad:linear-gradient(135deg,#ffa24d 0%,#f47521 48%,#e8630e 100%); /* degradado (THEME) */
+    --bg:#0a0a0a;
+    --bg2:#141414;
+    --card:#1a1a1a;
+    --text:#ffffff;
+    --muted:#9b9b9b;
+    --border:rgba(255,255,255,.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  /* reserva el hueco de la barra de scroll para que el contenido (y el botón
+     favorito del topbar) NO se desplace al cambiar de tab */
+  html{scrollbar-gutter:stable;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    overflow-x:hidden;
+    overflow-y:scroll;   /* barra siempre presente → sin saltos horizontales */
+  }
+  img{display:block;max-width:100%;}
+  button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer;}
+  svg{fill:currentColor;}
+  a{color:inherit;text-decoration:none;}
+
+  /* ====== Keyframes ====== */
+  @keyframes fadeUp{from{opacity:0;transform:translateY(26px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+  @keyframes pulseGlow{
+    0%,100%{box-shadow:0 0 0 0 rgba(var(--accent-rgb),.55);}
+    50%{box-shadow:0 0 0 14px rgba(var(--accent-rgb),0);}
+  }
+  @keyframes floatPoster{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+  @keyframes popIn{from{opacity:0;transform:scale(.96) translateY(8px);}to{opacity:1;transform:scale(1) translateY(0);}}
+  /* deslizamiento direccional de paneles al hacer swipe entre tabs */
+  @keyframes panelInRight{from{opacity:0;transform:translateX(28px);}to{opacity:1;transform:translateX(0);}}
+  @keyframes panelInLeft{from{opacity:0;transform:translateX(-28px);}to{opacity:1;transform:translateX(0);}}
+  /* --- Ken Burns: paneo + zoom continuo en bucle para la imagen de fondo --- */
+  @keyframes kenBurns{
+    0%{transform:scale(1.15) translate3d(0,0,0);}
+    50%{transform:scale(1.28) translate3d(-3%,-2.5%,0);}
+    100%{transform:scale(1.15) translate3d(0,0,0);}
+  }
+  /* --- Brillo/gradiente animado que recorre el backdrop --- */
+  @keyframes sheen{
+    0%{transform:translateX(-120%) rotate(8deg);}
+    100%{transform:translateX(220%) rotate(8deg);}
+  }
+  .reveal{opacity:0;animation:fadeUp .7s cubic-bezier(.22,.61,.36,1) forwards;}
+  .d1{animation-delay:.15s;}.d2{animation-delay:.28s;}.d3{animation-delay:.4s;}
+  .d4{animation-delay:.52s;}.d5{animation-delay:.64s;}.d6{animation-delay:.76s;}
+
+  @media (prefers-reduced-motion: reduce){
+    /* sin movimiento, pero NADA debe quedar invisible */
+    .hero-bg,.poster,.reveal,.ep-item{animation:none !important;}
+    .reveal,.ep-item{opacity:1 !important;}
+  }
+
+  /* ====== Top bar ====== */
+  .topbar{
+    position:fixed;top:0;left:0;right:0;z-index:40;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:calc(env(safe-area-inset-top) + 9px) 12px 9px;
+    background:linear-gradient(180deg,rgba(10,10,10,.85),rgba(10,10,10,0));
+    transition:background .35s ease, backdrop-filter .35s ease;
+  }
+  .topbar.solid{
+    background:rgba(10,10,10,.92);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  .round-btn{
+    width:36px;height:36px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(20,20,20,.55);backdrop-filter:blur(6px);
+    color:#fff;transition:transform .2s, background .2s;
+  }
+  .round-btn:active{transform:scale(.9);background:rgba(var(--accent-rgb),.35);}
+  .round-btn svg{width:20px;height:20px;}
+  .top-actions{display:flex;gap:8px;}
+
+  /* ====== Hero ====== */
+  .hero{position:relative;width:100%;min-height:46vh;overflow:hidden;}
+  /* wrapper para parallax (lo movemos con JS) */
+  .hero-bg-wrap{position:absolute;inset:0;overflow:hidden;will-change:transform;}
+  .hero-bg{
+    position:absolute;inset:-6% ;   /* overscan para que el paneo no muestre bordes */
+    background-size:cover;background-position:center;
+    transform-origin:center;
+    animation:kenBurns 26s ease-in-out infinite;
+    will-change:transform;
+  }
+  .hero-bg::after{
+    content:"";position:absolute;inset:0;
+    background:
+      linear-gradient(180deg,rgba(10,10,10,.35) 0%,rgba(10,10,10,0) 30%,rgba(10,10,10,.75) 72%,var(--bg) 100%),
+      linear-gradient(90deg,rgba(10,10,10,.55),rgba(10,10,10,0) 60%);
+  }
+  /* destello que recorre el fondo */
+  .hero-sheen{
+    position:absolute;top:-30%;left:0;width:45%;height:160%;z-index:1;pointer-events:none;
+    background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.08) 50%,rgba(255,255,255,0) 100%);
+    filter:blur(6px);
+    animation:sheen 9s ease-in-out infinite;
+    animation-delay:1.5s;
+  }
+  /* Botón favorito en la barra superior */
+  .fav-btn svg{width:22px;height:22px;transition:transform .25s;}
+  .fav-btn.on{color:#ff4d5e;background:rgba(255,77,94,.18);}
+  .fav-btn.on svg{animation:favPop .45s ease;}
+  @keyframes favPop{0%{transform:scale(1);}35%{transform:scale(1.4);}70%{transform:scale(.9);}100%{transform:scale(1);}}
+
+  .hero-inner{
+    position:relative;z-index:2;
+    display:flex;align-items:flex-end;gap:14px;
+    padding:0 16px 18px;min-height:46vh;
+  }
+  .poster{
+    flex:0 0 112px;width:112px;height:166px;border-radius:13px;overflow:hidden;
+    background:var(--bg2);
+    box-shadow:0 14px 34px rgba(0,0,0,.75), 0 0 0 1px rgba(0,0,0,.4);
+    border:2px solid rgba(255,255,255,.16);
+    margin-bottom:-6px;              /* sobresale un poco: destaca sobre el fondo */
+    animation:floatPoster 6s ease-in-out infinite;
+  }
+  .poster img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;background:var(--bg2);}
+  .hero-meta{flex:1;min-width:0;padding-bottom:2px;overflow:hidden;}
+  .badges{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
+  .badge{
+    font-size:9.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;
+    padding:3px 7px;border-radius:999px;background:rgba(255,255,255,.1);
+    border:1px solid var(--border);
+  }
+  .badge.accent{background:var(--accent);color:#fff;border-color:transparent;}
+  .badge.hd{color:var(--accent-2);border-color:rgba(var(--accent-rgb),.5);}
+  h1.title{
+    font-size:20px;line-height:1.15;font-weight:800;margin-bottom:6px;
+    text-shadow:0 2px 12px rgba(0,0,0,.6);
+  }
+  .sub-meta{display:flex;align-items:center;flex-wrap:wrap;gap:6px 9px;color:var(--muted);font-size:12px;font-weight:600;}
+  .sub-meta .dot{width:3px;height:3px;border-radius:50%;background:var(--muted);}
+  .rating{display:inline-flex;align-items:center;gap:3px;color:#ffd04a;}
+  .rating svg{width:13px;height:13px;}
+
+  /* ====== Content ====== */
+  .content{
+    position:relative;z-index:3;margin-top:-4px;
+    padding:4px 16px 48px;max-width:720px;
+    overflow-x:hidden;   /* la animación de paneles (translateX) no debe crear scroll */
+  }
+
+  /* CTA buttons */
+  .cta-row{display:flex;gap:10px;margin:4px 0 16px;}
+  .btn-play{
+    position:relative;overflow:hidden;
+    flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
+    padding:14px 18px;border-radius:13px;font-size:14.5px;font-weight:800;
+    letter-spacing:.2px;color:#fff;
+    /* degradado configurable desde THEME (--grad) */
+    background:var(--grad);
+    border:1px solid rgba(255,255,255,.22);
+    box-shadow:
+      0 8px 22px rgba(var(--accent-rgb), .5),
+      0 3px 8px rgba(0,0,0,.3),
+      inset 0 1px 0 rgba(255,255,255,.3),
+      inset 0 -2px 6px rgba(0,0,0,.28);
+    text-shadow:0 1px 2px rgba(0,0,0,.45);
+    transition:transform .18s, box-shadow .25s;
+  }
+  /* brillo superior "glossy" premium */
+  .btn-play::before{
+    content:"";position:absolute;left:0;right:0;top:0;height:50%;
+    background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0));
+    pointer-events:none;
+  }
+  /* destello blanco que recorre el botón */
+  .btn-play::after{
+    content:"";position:absolute;top:0;bottom:0;left:-60%;width:38%;
+    background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.6),rgba(255,255,255,0));
+    transform:skewX(-20deg);
+    animation:btnShine 4.5s ease-in-out infinite;
+  }
+  .btn-play span,.btn-play svg{position:relative;z-index:1;}
+  .btn-play svg{width:19px;height:19px;}
+  .btn-play:active{transform:scale(.96);box-shadow:0 4px 12px rgba(var(--accent-rgb),.45),inset 0 1px 0 rgba(255,255,255,.25);}
+  @keyframes btnShine{
+    0%{left:-60%;}
+    55%{left:130%;}
+    100%{left:130%;}
+  }
+  .btn-ghost{
+    width:46px;height:46px;flex:0 0 auto;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--card);border:1px solid var(--border);
+    transition:transform .18s, background .2s, color .2s;
+  }
+  .btn-ghost:active{transform:scale(.9);}
+  .btn-ghost.on{color:var(--accent);background:rgba(var(--accent-rgb),.14);border-color:rgba(var(--accent-rgb),.4);}
+  .btn-ghost svg{width:21px;height:21px;}
+
+  /* Genre chips (slider horizontal dentro del hero) */
+  .chips{
+    display:flex;gap:6px;margin-top:11px;padding-bottom:2px;
+    overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
+    scroll-snap-type:x proximity;
+    -webkit-mask-image:linear-gradient(90deg,#000 88%,transparent 100%);
+            mask-image:linear-gradient(90deg,#000 88%,transparent 100%);
+  }
+  /* espacio al final del slider para que el último no quede pegado al borde */
+  .chips::after{content:"";flex:0 0 4px;}
+  .chips::-webkit-scrollbar{height:0;}
+  .chip{
+    flex:0 0 auto;scroll-snap-align:start;
+    font-size:11.5px;font-weight:600;line-height:1;padding:6px 12px;border-radius:999px;white-space:nowrap;
+    background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);
+    color:#f0f0f0;backdrop-filter:blur(4px);
+    transition:transform .15s, background .2s;
+  }
+  .chip:active{transform:scale(.94);background:rgba(var(--accent-rgb),.3);}
+
+  /* ====== TABS (línea inferior en la activa) ====== */
+  .tabs{
+    position:sticky;top:calc(env(safe-area-inset-top) + 48px);z-index:30;
+    display:flex;margin:2px -16px 0;padding:0 16px;
+    background:var(--bg);
+    border-bottom:1px solid var(--border);
+  }
+  .tab{
+    flex:1 1 0;position:relative;padding:11px 6px 10px;text-align:center;
+    font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap;
+    background:none;border:none;
+    transition:color .25s;
+  }
+  .tab::after{
+    content:"";position:absolute;left:10px;right:10px;bottom:0;height:2.5px;
+    border-radius:3px 3px 0 0;background:var(--accent);
+    transform:scaleX(0);transform-origin:center;opacity:0;
+    transition:transform .3s cubic-bezier(.22,.61,.36,1), opacity .25s;
+  }
+  .tab:active{color:#fff;}
+  .tab.active{color:#fff;}
+  .tab.active::after{transform:scaleX(1);opacity:1;}
+
+  .tab-panel{padding-top:16px;overflow-x:hidden;animation:fadeIn .35s ease;}
+  .tab-panel[hidden]{display:none;}
+
+  /* Section */
+  .section{margin-bottom:22px;}
+  .tab-panel > .section:last-child{margin-bottom:0;}
+  /* Separación de la sección Episodios (va tras los paneles) */
+  #episodesSection{margin-top:26px;}
+  .section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px;}
+  .section-title{font-size:15px;font-weight:800;display:flex;align-items:center;gap:7px;margin-bottom:14px;}
+  .section-head .section-title{margin-bottom:0;}
+  .section-title::before{content:"";width:3.5px;height:15px;border-radius:3px;background:var(--accent);}
+
+  .synopsis{color:#cfcfcf;font-size:13.5px;line-height:1.6;}
+  .synopsis.clamp{display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;}
+  .read-more{margin-top:7px;color:var(--accent);font-weight:700;font-size:13px;}
+
+  /* Info grid */
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+  .info-card{
+    background:var(--card);border:1px solid var(--border);border-radius:12px;
+    padding:11px 12px;transition:transform .2s, border-color .2s;
+  }
+  .info-card:active{transform:translateY(-2px);border-color:rgba(var(--accent-rgb),.4);}
+  .info-label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+  .info-value{font-size:13.5px;font-weight:700;}
+
+  /* ====== Serie: controles (temporada <select> nativo + ordenar) ====== */
+  .ep-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+  #episodesSection .section-head{flex-wrap:wrap;}
+  .native-season{
+    position:relative;display:flex;align-items:center;
+    background:var(--card);border:1px solid var(--border);border-radius:10px;
+    padding-left:10px;transition:background .25s;
+  }
+  /* temporada activa → fondo destacado (el borde NO cambia al pulsar) */
+  .native-season.active-season{
+    background:rgba(var(--accent-rgb),.18);
+    border-color:rgba(var(--accent-rgb),.45);
+  }
+  .native-season.active-season svg.lead,
+  .native-season.active-season select{color:var(--accent);}
+  .native-season svg.lead{width:17px;height:17px;color:#fff;pointer-events:none;}
+  /* El <select> nativo: en Android/WebView abre el diálogo/lista nativo del sistema */
+  .native-season select{
+    appearance:none;-webkit-appearance:none;-moz-appearance:none;
+    background:transparent;color:#fff;font-size:13px;font-weight:700;
+    border:none;outline:none;padding:8px 28px 8px 7px;cursor:pointer;
+    max-width:140px;text-overflow:ellipsis;
+  }
+  .native-season select option{color:#111;}
+  .native-season svg.caret{
+    position:absolute;right:9px;width:16px;height:16px;color:#fff;pointer-events:none;
+  }
+  /* Botón compacto de ordenar (solo icono); el <select> va encima
+     transparente para que al tocarlo abra la ventana nativa de Android */
+  .sort-pill{
+    position:relative;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;
+    width:40px;height:40px;border-radius:10px;
+    background:var(--card);border:1px solid var(--border);color:#fff;
+    transition:transform .15s, border-color .2s;
+  }
+  .sort-pill:active{transform:scale(.93);}
+  .sort-pill .sort-ic{width:18px;height:18px;pointer-events:none;}
+  .sort-pill select{
+    position:absolute;inset:0;width:100%;height:100%;
+    opacity:0;border:none;background:transparent;cursor:pointer;
+    appearance:none;-webkit-appearance:none;-moz-appearance:none;
+  }
+  .sort-pill select option{color:#111;}
+
+  /* ====== Lista de episodios (tarjetas) ====== */
+  .ep-list{display:flex;flex-direction:column;gap:9px;}
+  @keyframes epIn{
+    from{opacity:0;transform:translateY(14px) scale(.985);}
+    to{opacity:1;transform:translateY(0) scale(1);}
+  }
+  .ep-item{
+    display:flex;gap:11px;padding:8px;border-radius:12px;
+    background:var(--card);border:1px solid var(--border);cursor:pointer;
+    opacity:0;animation:epIn .42s cubic-bezier(.22,.61,.36,1) both;
+    transition:transform .18s, border-color .2s, background .2s;
+  }
+  .ep-item:active{transform:scale(.985);border-color:rgba(var(--accent-rgb),.45);background:#1f1f22;}
+  .ep-thumb{
+    position:relative;flex:0 0 112px;width:112px;height:66px;border-radius:9px;overflow:hidden;
+    background:var(--bg2);
+  }
+  .ep-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .4s;}
+  .ep-item:active .ep-thumb img{transform:scale(1.07);}
+  .ep-thumb .play-ov{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    background:rgba(0,0,0,.25);
+  }
+  .ep-thumb .play-ov svg{width:26px;height:26px;fill:#fff;filter:drop-shadow(0 2px 6px rgba(0,0,0,.6));}
+  .ep-dur{position:absolute;right:5px;bottom:5px;background:rgba(0,0,0,.75);font-size:9.5px;font-weight:700;padding:2px 5px;border-radius:5px;}
+  .ep-info{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;}
+  .ep-top{display:flex;align-items:center;gap:7px;margin-bottom:3px;}
+  .ep-num{font-size:11px;font-weight:800;color:var(--accent);background:rgba(var(--accent-rgb),.14);padding:1px 7px;border-radius:6px;}
+  .ep-title{font-size:13px;font-weight:700;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .ep-desc{font-size:11.5px;color:var(--muted);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+
+  /* Fila inferior de la card: switch visto / no visto */
+  .ep-watch{display:flex;align-items:center;gap:7px;margin-top:7px;}
+  .ep-switch{
+    position:relative;flex:0 0 auto;width:36px;height:20px;border-radius:999px;
+    background:#3a3a3e;border:1px solid var(--border);transition:background .25s;
+  }
+  .ep-switch::after{
+    content:"";position:absolute;top:1.5px;left:1.5px;width:15px;height:15px;border-radius:50%;
+    background:#fff;transition:transform .25s cubic-bezier(.22,.61,.36,1);
+    box-shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+  .ep-switch.on{background:var(--accent);border-color:transparent;}
+  .ep-switch.on::after{transform:translateX(16px);}
+  .ep-watch-label{font-size:11px;font-weight:700;color:var(--muted);transition:color .2s;}
+  .ep-watch-label.on{color:var(--accent);}
+
+  /* Estado "visto": card atenuada + miniatura marcada */
+  .ep-item.watched{opacity:.62;}
+  .ep-item.watched .ep-thumb::before{
+    content:"";position:absolute;inset:0;z-index:1;background:rgba(var(--accent-rgb),.18);
+  }
+  .ep-check{
+    position:absolute;left:5px;top:5px;z-index:2;width:18px;height:18px;border-radius:50%;
+    background:var(--accent);display:none;align-items:center;justify-content:center;
+  }
+  .ep-check svg{width:12px;height:12px;fill:#fff;}
+  .ep-item.watched .ep-check{display:flex;}
+
+  /* Cast (slider horizontal) — respeta el padding lateral, no toca el borde */
+  .cast-grid{
+    display:flex;gap:14px;padding:2px 2px 4px;
+    overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;
+  }
+  .cast-grid::after{content:"";flex:0 0 2px;}
+  .cast-grid::-webkit-scrollbar{height:0;}
+  .cast-card{flex:0 0 64px;scroll-snap-align:start;text-align:center;}
+  .cast-img{width:64px;height:64px;border-radius:50%;overflow:hidden;border:2px solid var(--border);margin:0 auto 7px;}
+  .cast-img img{width:100%;height:100%;object-fit:cover;}
+  .cast-name{font-size:11px;font-weight:700;line-height:1.2;}
+  .cast-role{font-size:10px;color:var(--muted);}
+
+  /* ====== REPRODUCTOR PROFESIONAL ====== */
+  .player{
+    position:fixed;inset:0;z-index:100;background:#000;
+    opacity:0;pointer-events:none;transition:opacity .3s;
+    overflow:hidden;
+  }
+  .player.open{opacity:1;pointer-events:auto;}
+  /* escena de video */
+  .player-video{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 50% 40%, #1a1a1d, #000 70%);
+  }
+  .player-video video,
+  .player-video iframe{
+    position:absolute;inset:0;width:100%;height:100%;border:0;background:#000;
+    display:none;
+  }
+  .player-video.mode-video video{display:block;}
+  .player-video.mode-iframe iframe{display:block;}
+  /* con iframe, el overlay de controles no puede capturar sus clics internos */
+  .player.mode-iframe .player-ui{pointer-events:none;}
+  .player.mode-iframe .player-ui .pl-top,
+  .player.mode-iframe .player-ui .pl-top *{pointer-events:auto;}
+  .player-video .big-play{
+    width:84px;height:84px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(var(--accent-rgb),.92);box-shadow:0 8px 30px rgba(0,0,0,.6);
+    transition:transform .2s;
+  }
+  .player-video .big-play:active{transform:scale(.9);}
+  .player-video .big-play svg{width:40px;height:40px;fill:#fff;}
+  .player-video.playing .big-play{display:none;}
+  .player-spinner{
+    position:absolute;width:52px;height:52px;border-radius:50%;
+    border:3px solid rgba(255,255,255,.18);border-top-color:var(--accent);
+    animation:spin .8s linear infinite;display:none;
+  }
+  .player.buffering .player-spinner{display:block;}
+  .player.buffering .big-play{display:none;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* overlay de controles (aparece/desaparece) */
+  .player-ui{
+    position:absolute;inset:0;z-index:2;
+    display:flex;flex-direction:column;justify-content:space-between;
+    background:linear-gradient(180deg,rgba(0,0,0,.6) 0%,rgba(0,0,0,0) 22%,rgba(0,0,0,0) 62%,rgba(0,0,0,.75) 100%);
+    opacity:1;transition:opacity .3s;
+  }
+  .player.hide-ui .player-ui{opacity:0;pointer-events:none;}
+
+  /* barra superior del reproductor */
+  .pl-top{
+    display:flex;align-items:center;gap:12px;
+    padding:calc(env(safe-area-inset-top) + 12px) 16px 10px;
+  }
+  .pl-top .pl-back{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);color:#fff;flex:0 0 auto;}
+  .pl-top .pl-back svg{width:24px;height:24px;}
+  .pl-titles{flex:1;min-width:0;}
+  .pl-titles b{display:block;font-size:15px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .pl-titles small{display:block;font-size:12px;color:#bbb;margin-top:1px;}
+  .pl-top .pl-setting{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);color:#fff;flex:0 0 auto;}
+  .pl-top .pl-setting svg{width:22px;height:22px;}
+
+  /* centro: retroceder / play / avanzar 10s */
+  .pl-center{display:flex;align-items:center;justify-content:center;gap:40px;}
+  .pl-c-btn{color:#fff;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative;}
+  .pl-c-btn svg{width:34px;height:34px;}
+  .pl-c-btn.main svg{width:58px;height:58px;}
+  .pl-c-btn small{position:absolute;font-size:8.5px;font-weight:800;top:12px;}
+  .pl-c-btn:active{transform:scale(.9);}
+
+  /* botón grande omitir intro */
+  .skip-intro{
+    position:absolute;right:16px;bottom:88px;z-index:3;
+    display:none;align-items:center;gap:7px;
+    padding:10px 16px;border-radius:10px;font-size:13.5px;font-weight:800;
+    background:rgba(255,255,255,.92);color:#111;
+    box-shadow:0 6px 20px rgba(0,0,0,.5);
+    animation:skipIn .3s ease;
+  }
+  .skip-intro.show{display:inline-flex;}
+  .skip-intro svg{width:18px;height:18px;fill:#111;}
+  @keyframes skipIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+  /* barra inferior: progreso + tiempos */
+  .pl-bottom{padding:0 16px calc(env(safe-area-inset-bottom) + 16px);}
+  .pl-time-row{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:700;color:#eee;}
+  .pl-seek{
+    flex:1;height:5px;border-radius:999px;background:rgba(255,255,255,.25);
+    position:relative;cursor:pointer;
+  }
+  .pl-seek-buffer{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:rgba(255,255,255,.35);width:0;}
+  .pl-seek-fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:var(--accent);width:0;}
+  .pl-seek-knob{position:absolute;top:50%;width:13px;height:13px;border-radius:50%;background:var(--accent);transform:translate(-50%,-50%);left:0;box-shadow:0 0 0 4px rgba(var(--accent-rgb),.25);}
+  .pl-actions{display:flex;align-items:center;justify-content:space-between;margin-top:12px;}
+  .pl-act{display:flex;align-items:center;gap:6px;color:#eee;font-size:12.5px;font-weight:700;}
+  .pl-act svg{width:20px;height:20px;}
+  .pl-act:active{transform:scale(.94);}
+  .pl-act.next{color:var(--accent);}
+
+  /* ====== Bottom sheet "Mi lista" ====== */
+  .sheet-backdrop{
+    position:fixed;inset:0;z-index:110;background:rgba(0,0,0,.6);
+    display:flex;align-items:flex-end;justify-content:center;
+    opacity:0;pointer-events:none;transition:opacity .3s;
+  }
+  .sheet-backdrop.open{opacity:1;pointer-events:auto;}
+  .sheet{
+    width:100%;max-width:520px;
+    background:#1b1b1f;border:1px solid var(--border);border-bottom:none;
+    border-radius:20px 20px 0 0;padding:10px 18px calc(env(safe-area-inset-bottom) + 20px);
+    transform:translateY(100%);transition:transform .32s cubic-bezier(.22,.61,.36,1);
+    box-shadow:0 -12px 40px rgba(0,0,0,.6);
+  }
+  .sheet-backdrop.open .sheet{transform:translateY(0);}
+  .sheet-grip{width:40px;height:4px;border-radius:999px;background:#444;margin:4px auto 14px;}
+  .sheet-head{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .sheet-title{font-size:16px;font-weight:800;}
+  .sheet-x{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.08);color:#fff;}
+  .sheet-x svg{width:20px;height:20px;}
+  .sheet-sub{font-size:12.5px;color:var(--muted);margin:2px 0 14px;}
+  .sheet-options{display:flex;flex-direction:column;gap:8px;}
+  .list-opt{
+    display:flex;align-items:center;gap:13px;width:100%;text-align:left;
+    padding:13px 14px;border-radius:13px;
+    background:var(--card);border:1px solid var(--border);color:#fff;
+    transition:transform .15s, background .2s, border-color .2s;
+  }
+  .list-opt:active{transform:scale(.98);}
+  .list-opt .ic{
+    flex:0 0 auto;width:34px;height:34px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(255,255,255,.07);color:var(--accent);
+  }
+  .list-opt .ic svg{width:19px;height:19px;}
+  .list-opt > *{pointer-events:none;}   /* los clics van al botón, no a los hijos */
+  .list-opt .txt{flex:1;min-width:0;}
+  .list-opt .txt b{display:block;font-size:14px;font-weight:700;}
+  .list-opt .txt small{display:block;font-size:11.5px;color:var(--muted);margin-top:1px;}
+  .list-opt .tick{width:20px;height:20px;flex:0 0 auto;color:var(--accent);opacity:0;transition:opacity .2s;}
+  .list-opt .tick svg{width:20px;height:20px;}
+  .list-opt.selected{background:rgba(var(--accent-rgb),.12);border-color:rgba(var(--accent-rgb),.5);}
+  .list-opt.selected .tick{opacity:1;}
+  .sheet-remove{
+    display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+    margin-top:14px;padding:12px;border-radius:12px;font-size:14px;font-weight:700;
+    background:rgba(229,57,53,.12);border:1px solid rgba(229,57,53,.4);color:#ff6b66;
+    transition:transform .15s;
+  }
+  .sheet-remove:active{transform:scale(.98);}
+  .sheet-remove svg{width:18px;height:18px;pointer-events:none;}
+  /* hidden debe ocultar de verdad (display:flex lo anula si no) */
+  .sheet-remove[hidden]{display:none !important;}
+
+  /* Botón "cambiar idioma" dentro del sheet de reproducir */
+  .sheet-back{
+    display:flex;align-items:center;gap:7px;margin-bottom:12px;
+    padding:8px 11px;border-radius:9px;font-size:12.5px;font-weight:700;
+    background:rgba(255,255,255,.06);border:1px solid var(--border);color:#ddd;
+    transition:transform .15s;
+  }
+  .sheet-back:active{transform:scale(.97);}
+  .sheet-back svg{width:16px;height:16px;pointer-events:none;}
+  .sheet-back[hidden]{display:none !important;}
+  /* fila con badge de tipo de servidor */
+  .list-opt .srv-tag{font-size:10px;font-weight:700;color:var(--accent);background:rgba(var(--accent-rgb),.14);padding:2px 7px;border-radius:6px;flex:0 0 auto;}
+
+  /* Toast */
+  .toast{
+    position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 24px);
+    transform:translateX(-50%) translateY(20px);
+    background:#fff;color:#111;font-weight:700;font-size:14px;
+    padding:12px 20px;border-radius:999px;z-index:120;
+    opacity:0;transition:opacity .3s, transform .3s;box-shadow:0 8px 30px rgba(0,0,0,.4);
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media(min-width:680px){
+    .poster{flex-basis:130px;width:130px;height:192px;}
+    h1.title{font-size:26px;}
+    .hero{min-height:46vh;}
+    .hero-inner{min-height:46vh;}
+  }
+</style>
+</head>
+<body>
+
+  <!-- ===== Top bar ===== -->
+  <header class="topbar" id="topbar">
+    <button class="round-btn" aria-label="Volver" onclick="history.back()">
+      <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z"/></svg>
+    </button>
+    <!-- Botón favorito (corazón) en la barra superior -->
+    <button class="round-btn fav-btn" id="btnHeroFav" aria-label="Añadir a favoritos" aria-pressed="false">
+      <svg id="heroFavIcon" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35zM12 18.5l.1-.09C16.81 14.08 20 11.19 20 8.5 20 6.5 18.5 5 16.5 5c-1.54 0-3.04.99-3.57 2.36h-1.87C10.54 5.99 9.04 5 7.5 5 5.5 5 4 6.5 4 8.5c0 2.69 3.19 5.58 7.9 9.91l.1.09z"/></svg>
+    </button>
+  </header>
+
+  <!-- ===== Hero ===== -->
+  <section class="hero">
+    <div class="hero-bg-wrap" id="heroWrap">
+      <div class="hero-bg" id="heroBg"></div>
+      <div class="hero-sheen"></div>
+    </div>
+    <div class="hero-inner">
+      <div class="poster reveal d1" id="poster"><img id="posterImg" alt="Poster" /></div>
+      <div class="hero-meta">
+        <div class="badges reveal d2" id="badges"></div>
+        <h1 class="title reveal d3" id="animeTitle">Título</h1>
+        <div class="sub-meta reveal d4" id="subMeta">
+          <span class="rating">
+            <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+            <span id="metaRating">0.0</span>
+          </span>
+          <span class="dot"></span><span id="metaYear">2024</span>
+          <span class="dot"></span><span id="metaType">Tipo</span>
+          <span class="dot"></span><span id="metaExtra">—</span>
+        </div>
+        <div class="chips reveal d5" id="genreChips"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Content ===== -->
+  <div class="content" id="content">
+
+    <div class="cta-row reveal d4">
+      <button class="btn-play" id="btnPlay">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <span id="btnPlayLabel">Reproducir</span>
+      </button>
+      <button class="btn-ghost" id="btnFav" aria-label="Mi lista" title="Mi lista">
+        <!-- icono de "añadir a lista" (+ con líneas) -->
+        <svg id="btnFavIcon" viewBox="0 0 24 24"><path d="M14 10H3v2h11v-2zm0-4H3v2h11V6zM3 16h7v-2H3v2zm13-6v4h-3v2h3v4h2v-4h3v-2h-3v-4h-2z"/></svg>
+      </button>
+    </div>
+
+    <!-- ===== TABS ===== -->
+    <nav class="tabs reveal d5" id="tabs"></nav>
+
+    <!-- ===== Panel: Sinopsis ===== -->
+    <section class="tab-panel" id="panel-sinopsis">
+      <div class="section">
+        <p class="synopsis clamp" id="synopsis"></p>
+        <div class="read-more" id="readMore">Leer más ▾</div>
+      </div>
+    </section>
+
+    <!-- ===== Panel: Reparto ===== -->
+    <section class="tab-panel" id="panel-reparto" hidden>
+      <div class="section">
+        <div class="cast-grid" id="castGrid"></div>
+      </div>
+    </section>
+
+    <!-- ===== Panel: Info ===== -->
+    <section class="tab-panel" id="panel-info" hidden>
+      <div class="section">
+        <div class="info-grid" id="infoGrid"></div>
+      </div>
+    </section>
+
+    <!-- ===== Episodios (NO es tab) — va abajo de todo, solo en serie ===== -->
+    <section class="section" id="episodesSection" hidden>
+      <div class="section-head">
+        <h2 class="section-title">Episodios</h2>
+        <div class="ep-controls">
+          <!-- Selector de temporada con <select> NATIVO (lista/diálogo de Android) -->
+          <label class="native-season" id="seasonWrap" for="seasonSelect">
+            <!-- icono de "capas/temporadas" -->
+            <svg class="lead" viewBox="0 0 24 24"><path d="M12 3L2 8l10 5 10-5-10-5zm0 7.5L4.21 7 12 3.5 19.79 7 12 10.5zM2 12l10 5 10-5-2.3-1.15L12 14.5 4.3 10.85 2 12zm0 4l10 5 10-5-2.3-1.15L12 18.5 4.3 14.85 2 16z"/></svg>
+            <select id="seasonSelect" aria-label="Seleccionar temporada"></select>
+            <svg class="caret" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+          </label>
+          <!-- Ordenar: botón compacto (solo icono) que abre la ventana nativa -->
+          <label class="sort-pill" for="sortSelect" title="Ordenar">
+            <svg class="sort-ic" viewBox="0 0 24 24"><path d="M3 18h6v-2H3zm0-5h12v-2H3zm0-7v2h18V6z"/></svg>
+            <select id="sortSelect" aria-label="Ordenar episodios">
+              <option value="asc">Primero los antiguos</option>
+              <option value="desc">Primero los recientes</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="ep-list" id="epList"></div>
+    </section>
+
+  </div>
+
+  <!-- ===== REPRODUCTOR PROFESIONAL ===== -->
+  <div class="player" id="player">
+    <!-- escena de video -->
+    <div class="player-video" id="playerVideo">
+      <!-- video HTML5 real (.mp4/.webm/.m3u8) -->
+      <video id="plVideoEl" playsinline webkit-playsinline preload="metadata"></video>
+      <!-- iframe para servidores embebidos (YouTube, Drive, etc.) -->
+      <iframe id="plIframeEl" allow="autoplay; encrypted-media; fullscreen" allowfullscreen referrerpolicy="no-referrer"></iframe>
+      <button class="big-play" id="plBigPlay" aria-label="Reproducir">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <div class="player-spinner"></div>
+    </div>
+
+    <!-- botón omitir intro (solo serie, durante la intro) -->
+    <button class="skip-intro" id="skipIntro">
+      <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+      Omitir intro
+    </button>
+
+    <!-- overlay de controles -->
+    <div class="player-ui" id="playerUi">
+      <div class="pl-top">
+        <button class="pl-back" id="playerClose" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z"/></svg>
+        </button>
+        <div class="pl-titles">
+          <b id="plTitle">Título</b>
+          <small id="plSubtitle">—</small>
+        </div>
+        <button class="pl-setting" id="plSettings" aria-label="Opciones">
+          <svg viewBox="0 0 24 24"><path d="M19.14 12.94a7.49 7.49 0 000-1.88l2.03-1.58a.5.5 0 00.12-.64l-1.92-3.32a.5.5 0 00-.61-.22l-2.39.96a7.3 7.3 0 00-1.62-.94l-.36-2.54a.5.5 0 00-.5-.42h-3.84a.5.5 0 00-.5.42l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.5.5 0 00-.61.22L2.69 8.84a.5.5 0 00.12.64l2.03 1.58a7.49 7.49 0 000 1.88l-2.03 1.58a.5.5 0 00-.12.64l1.92 3.32c.14.24.42.33.68.22l2.39-.96c.49.38 1.03.7 1.62.94l.36 2.54c.05.24.26.42.5.42h3.84c.24 0 .45-.18.5-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.26.11.54.02.68-.22l1.92-3.32a.5.5 0 00-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1112 8.5a3.5 3.5 0 010 7z"/></svg>
+        </button>
+      </div>
+
+      <div class="pl-center">
+        <button class="pl-c-btn" id="plRew" aria-label="Retroceder 10s">
+          <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7a6 6 0 11-6 6H4a8 8 0 108-8z"/></svg>
+          <small>10</small>
+        </button>
+        <button class="pl-c-btn main" id="plPlayPause" aria-label="Play/Pausa">
+          <svg id="plPlayIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <button class="pl-c-btn" id="plFwd" aria-label="Avanzar 10s">
+          <svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7a6 6 0 106 6h2a8 8 0 11-8-8z"/></svg>
+          <small>10</small>
+        </button>
+      </div>
+
+      <div class="pl-bottom">
+        <div class="pl-time-row">
+          <span id="plCur">0:00</span>
+          <div class="pl-seek" id="plSeek">
+            <div class="pl-seek-buffer" id="plBuffer"></div>
+            <div class="pl-seek-fill" id="plFill"></div>
+            <div class="pl-seek-knob" id="plKnob"></div>
+          </div>
+          <span id="plDur">24:00</span>
+        </div>
+        <div class="pl-actions">
+          <button class="pl-act" id="plLang">
+            <svg viewBox="0 0 24 24"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04z"/></svg>
+            <span id="plLangTxt">Idioma</span>
+          </button>
+          <button class="pl-act" id="plFull">
+            <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+            <span>Pantalla</span>
+          </button>
+          <button class="pl-act next" id="plNext">
+            <span id="plNextTxt">Siguiente</span>
+            <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Modal: Mi lista (bottom sheet) ===== -->
+  <div class="sheet-backdrop" id="listSheet">
+    <div class="sheet" id="listSheetBox" role="dialog" aria-label="Añadir a Mi lista">
+      <div class="sheet-grip"></div>
+      <div class="sheet-head">
+        <h3 class="sheet-title">Añadir a Mi lista</h3>
+        <button class="sheet-x" id="listSheetClose" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </div>
+      <p class="sheet-sub">Elige el estado de este anime</p>
+      <div class="sheet-options" id="listOptions"></div>
+      <button class="sheet-remove" id="listRemove" hidden>
+        <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+        Quitar de Mi lista
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== Modal: Reproducir (idioma → servidores) ===== -->
+  <div class="sheet-backdrop" id="playSheet">
+    <div class="sheet" id="playSheetBox" role="dialog" aria-label="Opciones de reproducción">
+      <div class="sheet-grip"></div>
+      <div class="sheet-head">
+        <h3 class="sheet-title" id="playSheetTitle">Reproducir</h3>
+        <button class="sheet-x" id="playSheetClose" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </div>
+      <!-- Paso atrás (de servidores → idiomas) -->
+      <button class="sheet-back" id="playSheetBack" hidden>
+        <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z"/></svg>
+        Cambiar idioma
+      </button>
+      <p class="sheet-sub" id="playSheetSub">Elige el idioma</p>
+      <div class="sheet-options" id="playOptions"></div>
+    </div>
+  </div>
+
+  <!-- ===== Toast ===== -->
+  <div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   🎨 CONFIGURACIÓN DE TEMA — cambia los colores de toda la interfaz
+   ------------------------------------------------------------
+   Edita SOLO estos valores para personalizar el color de acento
+   (el "naranja") y el degradado de botones/elementos. Se aplican
+   automáticamente a toda la pantalla (botón reproducir, tabs,
+   switches, selección, favorito, etc.).
+   ============================================================ */
+const THEME = {
+  accent:    "#f47521",   // color principal (el "naranja")
+  accent2:   "#ff9a52",   // variante clara del acento (brillos/bordes)
+
+  // Degradado (botón reproducir y acentos). 3 paradas: claro → medio → oscuro
+  gradFrom:  "#ffa24d",   // inicio del degradado
+  gradMid:   "#f47521",   // centro del degradado
+  gradTo:    "#e8630e",   // final del degradado
+  gradAngle: "135deg",    // ángulo del degradado
+
+  // (opcional) fondos de la app
+  bg:        "#0a0a0a",
+  bg2:       "#141414",
+  card:      "#1a1a1a"
+};
+
+/* Aplica el tema a las variables CSS :root (toda la interfaz lo usa) */
+(function applyTheme(){
+  const r = document.documentElement.style;
+  r.setProperty("--accent",   THEME.accent);
+  r.setProperty("--accent-2", THEME.accent2);
+  r.setProperty("--bg",       THEME.bg);
+  r.setProperty("--bg2",      THEME.bg2);
+  r.setProperty("--card",     THEME.card);
+  // degradado reutilizable
+  r.setProperty("--grad", `linear-gradient(${THEME.gradAngle}, ${THEME.gradFrom} 0%, ${THEME.gradMid} 48%, ${THEME.gradTo} 100%)`);
+  // versiones con alpha del acento (para fondos/sombras suaves)
+  const rgb = hexToRgb(THEME.accent);
+  if (rgb){
+    r.setProperty("--accent-rgb", `${rgb.r}, ${rgb.g}, ${rgb.b}`);
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEME.bg);
+  }
+  function hexToRgb(hex){
+    const m = hex.replace("#","").match(/^([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i);
+    return m ? { r:parseInt(m[1],16), g:parseInt(m[2],16), b:parseInt(m[3],16) } : null;
+  }
+})();
+
+/* ============================================================
+   DATOS — Cambia "type" a "pelicula" o "serie"
+   ------------------------------------------------------------
+   Tabs (ambos modos): Sinopsis · Reparto · Información
+   type:"pelicula"  → solo botón Reproducir
+   type:"serie"     → añade la sección "Episodios" DEBAJO de las tabs
+                      (temporadas con <select> nativo + ordenar)
+   ============================================================ */
+
+/* ---- EJEMPLO SERIE (activo) ---- */
+const ANIME = {
+  type: "serie",                        // "serie" | "pelicula"
+  title: "Jujutsu Kaisen",
+  year: 2024,
+  rating: 8.7,
+  status: "En emisión",
+  studio: "MAPPA",
+  duration: "24 min/ep",
+  audio: "Japonés · Latino",
+  director: "Sunghoo Park",
+  // "EMBED" = usa un póster/fondo dibujado dentro del HTML (siempre se ve, sin internet).
+  // Para tu imagen real, cambia "EMBED" por la URL, p.ej.:
+  //   poster: "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx113415-bbBWj4pEFseh.jpg",
+  poster: "EMBED",
+  backdrop: "EMBED",
+  badges: ["Simulcast", "HD 1080p", "SUB · DOB", "16+"],
+  genres: ["Acción", "Shounen", "Sobrenatural", "Fantasía", "Terror"],
+  synopsis: "Yuji Itadori es un estudiante de secundaria con una fuerza física extraordinaria que vive una vida tranquila hasta que, para salvar a sus amigos, se traga un dedo maldito perteneciente a Ryomen Sukuna, un legendario y temible rey de las maldiciones. Al convertirse en el recipiente de este poder, Yuji se une a la Escuela Técnica de Jujutsu de Tokio, donde aprenderá a controlar la energía maldita y luchará junto a otros hechiceros para exorcizar a las criaturas que amenazan a la humanidad.",
+  seasons: [
+    {
+      name: "Temporada 1",
+      episodes: [
+        { n:1, title:"Ryomen Sukuna", dur:"24m", desc:"Yuji conoce a Megumi y descubre el mundo de las maldiciones.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg",
+          // duración en segundos e intervalo de intro (para "Omitir intro")
+          duration: 1440, intro: { start: 40, end: 130 },
+          // Fuentes por idioma → servidores (así se verá el flujo idioma → servidor → reproductor)
+          sources: {
+            "Latino":     [ {name:"Directo MP4", url:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}, {name:"YouTube", url:"https://www.youtube.com/watch?v=aqz-KE-bpKQ"} ],
+            "Subtitulado":[ {name:"YouTube", url:"https://www.youtube.com/watch?v=aqz-KE-bpKQ"}, {name:"Directo MP4", url:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"} ],
+            "Castellano": [ {name:"Directo MP4", url:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"} ]
+          }
+        },
+        { n:2, title:"Para mí mismo", dur:"24m", desc:"Yuji comienza su entrenamiento en la escuela técnica.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg",
+          duration: 1440, intro: { start: 20, end: 90 },
+          sources: {
+            "Latino":     [ {name:"Directo MP4", url:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"}, {name:"YouTube", url:"https://www.youtube.com/watch?v=aqz-KE-bpKQ"} ],
+            "Subtitulado":[ {name:"YouTube", url:"https://www.youtube.com/watch?v=aqz-KE-bpKQ"} ]
+          }
+        },
+        { n:3, title:"La chica de acero", dur:"24m", desc:"Aparece Nobara Kugisaki y realiza su primera misión.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg" },
+        { n:4, title:"Nacimiento maldito", dur:"24m", desc:"El equipo enfrenta una maldición en un edificio abandonado.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg" }
+      ]
+    },
+    {
+      name: "Temporada 2",
+      episodes: [
+        { n:1, title:"El incidente de Shibuya", dur:"24m", desc:"Comienza uno de los arcos más intensos de la serie.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg" },
+        { n:2, title:"Hidden Inventory", dur:"24m", desc:"Un vistazo al pasado de Gojo y Geto.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg" },
+        { n:3, title:"Sello", dur:"24m", desc:"La situación se vuelve crítica en Shibuya.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg" }
+      ]
+    }
+  ],
+  cast: [
+    { name:"Yuji Itadori", role:"J. Enoki", img:"https://i.pravatar.cc/150?img=12" },
+    { name:"Megumi F.", role:"Y. Uchida", img:"https://i.pravatar.cc/150?img=33" },
+    { name:"Nobara K.", role:"A. Seto", img:"https://i.pravatar.cc/150?img=47" },
+    { name:"Satoru Gojo", role:"Y. Nakamura", img:"https://i.pravatar.cc/150?img=15" },
+    { name:"Sukuna", role:"J. Suwabe", img:"https://i.pravatar.cc/150?img=8" }
+  ]
+};
+
+/* ---- EJEMPLO PELÍCULA (copia esto sobre ANIME para probar el modo película) ----
+const ANIME = {
+  type: "pelicula",
+  title: "Jujutsu Kaisen 0",
+  year: 2021,
+  rating: 7.9,
+  status: "Estreno",
+  studio: "MAPPA",
+  duration: "1h 45m",
+  audio: "Japonés · Latino",
+  director: "Sunghoo Park",
+  poster: "https://image.tmdb.org/t/p/w500/fHpKWq9ayzSk8nSwqRuaAUemRKh.jpg",
+  backdrop: "https://image.tmdb.org/t/p/original/vIgyYkXkg6NC2whRbYjBD7eb3Er.jpg",
+  badges: ["Película", "HD 1080p", "SUB · DOB", "16+"],
+  genres: ["Acción", "Sobrenatural", "Fantasía"],
+  synopsis: "Yuta Okkotsu es un adolescente atormentado por Rika, su amiga de la infancia convertida en una maldición...",
+  // En PELÍCULA las fuentes son GENERALES del anime (idioma → servidores)
+  sources: {
+    "Latino":     [ {name:"YourUpload", url:"#"}, {name:"Streamtape", url:"#"} ],
+    "Subtitulado":[ {name:"YouTube", url:"#"}, {name:"Mega", url:"#"} ]
+  },
+  cast: [ { name:"Yuta", role:"M. Ogata", img:"https://i.pravatar.cc/150?img=5" } ]
+};
+---------------------------------------------------------------------------------- */
+
+/* ============================================================
+   ESTADO
+   ============================================================ */
+const isMovie = ANIME.type === "pelicula";
+let currentSeason = 0;
+let sortAsc = true;
+
+/* Fuentes por defecto para episodios que no definan "sources" propio.
+   Estructura: { Idioma: [ {name, url}, ... ] } */
+const DEFAULT_SOURCES = ANIME.sources || {
+  "Latino":      [ {name:"YourUpload", url:"#"}, {name:"Streamtape", url:"#"}, {name:"Mega", url:"#"} ],
+  "Subtitulado": [ {name:"YouTube", url:"#"}, {name:"Okru", url:"#"}, {name:"Mega", url:"#"} ]
+};
+
+const $ = (id) => document.getElementById(id);
+
+/* Póster/placeholder SVG embebido (data URI) — NO depende de internet,
+   así SIEMPRE se ve un póster aunque no cargue la imagen remota.
+   Genera una portada tipo anime con degradado naranja + título. */
+function makePlaceholder(label){
+  const raw = (label || "Anime").replace(/[<>&]/g,"").trim();
+  // Partir el título en 2 líneas si es largo
+  const words = raw.split(/\s+/);
+  let l1 = "", l2 = "";
+  for (const w of words){ if ((l1+" "+w).trim().length <= 12) l1 = (l1+" "+w).trim(); else l2 = (l2+" "+w).trim(); }
+  l2 = l2.slice(0,14);
+  const svg =
+  `<svg xmlns='http://www.w3.org/2000/svg' width='300' height='450'>
+     <defs>
+       <linearGradient id='bg' x1='0' y1='0' x2='1' y2='1'>
+         <stop offset='0' stop-color='#2a2118'/><stop offset='1' stop-color='#120d08'/>
+       </linearGradient>
+       <linearGradient id='o' x1='0' y1='0' x2='1' y2='1'>
+         <stop offset='0' stop-color='#ffa24d'/><stop offset='1' stop-color='#e85d04'/>
+       </linearGradient>
+       <radialGradient id='glow' cx='50%' cy='38%' r='55%'>
+         <stop offset='0' stop-color='#f47521' stop-opacity='.5'/><stop offset='1' stop-color='#f47521' stop-opacity='0'/>
+       </radialGradient>
+     </defs>
+     <rect width='300' height='450' fill='url(#bg)'/>
+     <rect width='300' height='450' fill='url(#glow)'/>
+     <circle cx='150' cy='168' r='64' fill='url(#o)'/>
+     <text x='150' y='196' font-size='78' text-anchor='middle' fill='#fff' font-family='Arial' font-weight='bold'>N</text>
+     <text x='150' y='300' font-size='24' text-anchor='middle' fill='#fff' font-family='Arial' font-weight='bold'>${l1}</text>
+     <text x='150' y='330' font-size='24' text-anchor='middle' fill='#fff' font-family='Arial' font-weight='bold'>${l2}</text>
+     <rect x='110' y='352' width='80' height='4' rx='2' fill='#f47521'/>
+   </svg>`;
+  // base64 evita problemas de escape con '#' en los url(#id) de los gradientes
+  return "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg)));
+}
+const PLACEHOLDER = makePlaceholder("");
+
+/* ============================================================
+   RENDER BASE
+   ============================================================ */
+(function renderBase(){
+  document.title = "NekoWolf — " + ANIME.title;
+
+  // Póster: usa SVG embebido si no hay URL o si se indica "EMBED";
+  // si hay URL pero falla al cargar, cae al embebido (con el título).
+  const posterImg = $("posterImg");
+  const posterFallback = makePlaceholder(ANIME.title);
+  const useEmbedPoster = !ANIME.poster || ANIME.poster === "EMBED";
+  posterImg.onerror = () => { posterImg.onerror = null; posterImg.src = posterFallback; };
+  posterImg.src = useEmbedPoster ? posterFallback : ANIME.poster;
+
+  // Backdrop: igual lógica; si falla, usa el póster embebido
+  const useEmbedBackdrop = !ANIME.backdrop || ANIME.backdrop === "EMBED";
+  if (useEmbedBackdrop){
+    $("heroBg").style.backgroundImage = `url('${posterFallback}')`;
+  }
+  if (!useEmbedBackdrop){
+    const bd = new Image();
+    bd.onload  = () => { $("heroBg").style.backgroundImage = `url('${ANIME.backdrop}')`; };
+    bd.onerror = () => { $("heroBg").style.backgroundImage = `url('${posterFallback}')`; };
+    bd.src = ANIME.backdrop;
+  }
+  $("animeTitle").textContent = ANIME.title;
+  $("metaRating").textContent = ANIME.rating;
+  $("metaYear").textContent = ANIME.year;
+  $("metaType").textContent = isMovie ? "Película" : "Serie TV";
+  $("synopsis").textContent = ANIME.synopsis;
+  $("metaExtra").textContent = isMovie ? ANIME.duration : (totalEpisodes() + " Episodios");
+
+  $("badges").innerHTML = (ANIME.badges || []).map((b,i) => {
+    const cls = i === 0 ? "badge accent" : (/HD|1080|720|4K/i.test(b) ? "badge hd" : "badge");
+    return `<span class="${cls}">${b}</span>`;
+  }).join("");
+
+  $("genreChips").innerHTML =
+    (ANIME.genres || []).map(g => `<span class="chip">${g}</span>`).join("");
+
+  $("btnPlayLabel").textContent = isMovie ? "Reproducir película" : "Reproducir E1";
+
+  $("castGrid").innerHTML = (ANIME.cast || []).map(p => `
+    <div class="cast-card">
+      <div class="cast-img"><img src="${p.img}" alt="${p.name}" onerror="this.onerror=null;this.src='${PLACEHOLDER}';" /></div>
+      <div class="cast-name">${p.name}</div>
+      <div class="cast-role">${p.role}</div>
+    </div>`).join("");
+
+  const info = [
+    ["Estado", ANIME.status],
+    ["Estudio", ANIME.studio],
+    ["Duración", ANIME.duration],
+    ["Audio", ANIME.audio],
+    ["Director", ANIME.director],
+    ["Año", ANIME.year]
+  ].filter(([,v]) => v != null && v !== "");
+  $("infoGrid").innerHTML = info.map(([l,v]) => `
+    <div class="info-card"><div class="info-label">${l}</div><div class="info-value">${v}</div></div>`).join("");
+})();
+
+function totalEpisodes(){
+  return (ANIME.seasons || []).reduce((s, t) => s + (t.episodes?.length || 0), 0);
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+(function buildTabs(){
+  // Episodios ya NO es tab (va como sección aparte, debajo de todo)
+  const tabsDef = [["sinopsis","Sinopsis"],["reparto","Reparto"],["info","Información"]];
+  const ids = tabsDef.map(t => t[0]);
+  let idx = 0;
+
+  $("tabs").innerHTML = tabsDef
+    .map((t,i) => `<button class="tab ${i===0?'active':''}" data-tab="${t[0]}">${t[1]}</button>`)
+    .join("");
+
+  function show(i, dir){
+    if (i < 0 || i >= ids.length) return;
+    idx = i;
+    ids.forEach((p,j) => {
+      const el = $("panel-"+p);
+      if(!el) return;
+      el.hidden = (j !== i);
+      if (j === i && dir){
+        // animación direccional al deslizar
+        el.style.animation = "none";
+        void el.offsetWidth; // reflow
+        el.style.animation = (dir > 0 ? "panelInRight" : "panelInLeft") + " .28s ease";
+      }
+    });
+    $("tabs").querySelectorAll(".tab").forEach((b,j) =>
+      b.classList.toggle("active", j === i));
+  }
+
+  $("tabs").querySelectorAll(".tab").forEach((b,i) =>
+    b.addEventListener("click", () => show(i, i > idx ? 1 : (i < idx ? -1 : 0))));
+
+  /* ===== Gestos (swipe) para cambiar de tab ===== */
+  // Zona sensible: paneles de tabs, PERO no sobre sliders horizontales
+  // (reparto, géneros…) para no robarles su propio scroll.
+  let sx = 0, sy = 0, tracking = false;
+  function inTabArea(target){
+    if (!target || !target.closest) return false;
+    if (!target.closest(".tab-panel")) return false;
+    // si el gesto empieza sobre un carrusel horizontal, lo dejamos a él
+    if (target.closest(".cast-grid, .chips, .ep-scroll")) return false;
+    return true;
+  }
+  function onStart(x, y, target){
+    if (!inTabArea(target)) { tracking = false; return; }
+    sx = x; sy = y; tracking = true;
+  }
+  function onEnd(x, y){
+    if (!tracking) return;
+    tracking = false;
+    const dx = x - sx, dy = y - sy;
+    if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.6){
+      if (dx < 0) show(Math.min(idx + 1, ids.length - 1), 1);   // izquierda → siguiente
+      else        show(Math.max(idx - 1, 0), -1);               // derecha → anterior
+    }
+  }
+  document.addEventListener("touchstart", e => onStart(e.touches[0].clientX, e.touches[0].clientY, e.target), {passive:true});
+  document.addEventListener("touchend",   e => onEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY), {passive:true});
+  // soporte ratón (para probar en escritorio)
+  document.addEventListener("mousedown", e => onStart(e.clientX, e.clientY, e.target));
+  document.addEventListener("mouseup",   e => onEnd(e.clientX, e.clientY));
+
+  show(0);
+})();
+
+/* ============================================================
+   Estado "visto" de episodios (persistente en localStorage)
+   clave: "T{temporada}E{episodio}"
+   ============================================================ */
+const WATCH_KEY = "nekowolf_watched_" + (ANIME.title || "anime");
+let watched = {};
+try { watched = JSON.parse(localStorage.getItem(WATCH_KEY) || "{}"); } catch(e){ watched = {}; }
+function epKey(s, n){ return "T" + s + "E" + n; }
+function isWatched(s, n){ return !!watched[epKey(s, n)]; }
+function setWatched(s, n, val){
+  const k = epKey(s, n);
+  if (val) watched[k] = 1; else delete watched[k];
+  try { localStorage.setItem(WATCH_KEY, JSON.stringify(watched)); } catch(e){}
+}
+
+/* ============================================================
+   FLUJO DE REPRODUCCIÓN (genérico) — idioma → servidor → reproductor
+   Reutilizable por SERIE (por episodio) y PELÍCULA (fuentes generales).
+   ============================================================ */
+const playSheet   = $("playSheet");
+const playOptions = $("playOptions");
+const playSub     = $("playSheetSub");
+const playTitle   = $("playSheetTitle");
+const playBack    = $("playSheetBack");
+
+function closePlaySheet(){ playSheet.classList.remove("open"); lockScroll(false); }
+
+/* Abre el flujo. 
+   sources = { Idioma: [ {name,url}, ... ] }
+   title   = texto del encabezado
+   onPick(lang, srv) = callback al elegir servidor */
+function openPlayFlow(sources, title, onPick){
+  const langs = Object.keys(sources || {});
+  playTitle.textContent = title;
+
+  function showLanguages(){
+    playBack.hidden = true;
+    playSub.textContent = "Elige el idioma";
+    playOptions.innerHTML = langs.map(lang => `
+      <button class="list-opt" data-lang="${lang}">
+        <span class="ic"><svg viewBox="0 0 24 24"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg></span>
+        <span class="txt"><b>${lang}</b><small>${sources[lang].length} servidor(es)</small></span>
+        <span class="tick"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5v10z"/></svg></span>
+      </button>`).join("");
+    playOptions.querySelectorAll(".list-opt").forEach(b =>
+      b.addEventListener("click", () => showServers(b.dataset.lang)));
+  }
+  function showServers(lang){
+    playBack.hidden = false;
+    playSub.textContent = `Servidores · ${lang}`;
+    const servers = sources[lang] || [];
+    playOptions.innerHTML = servers.map((srv,i) => `
+      <button class="list-opt" data-srv="${i}">
+        <span class="ic"><svg viewBox="0 0 24 24"><path d="M4 1h16a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1V2a1 1 0 011-1zm0 13h16a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6a1 1 0 011-1zM7 5h2v2H7V5zm0 13h2v2H7v-2z"/></svg></span>
+        <span class="txt"><b>${srv.name}</b><small>Servidor ${i+1}</small></span>
+        <span class="srv-tag">HD</span>
+      </button>`).join("");
+    playBack.onclick = showLanguages;
+    playOptions.querySelectorAll(".list-opt").forEach(b =>
+      b.addEventListener("click", () => onPick(lang, servers[+b.dataset.srv])));
+  }
+
+  showLanguages();
+  playSheet.classList.add("open");
+  lockScroll(true);
+}
+$("playSheetClose").addEventListener("click", closePlaySheet);
+playSheet.addEventListener("click", (e) => { if (e.target === playSheet) closePlaySheet(); });
+$("playSheetBox").addEventListener("click", (e) => e.stopPropagation());
+
+/* ===== PELÍCULA: fuentes generales del anime ===== */
+function openMovieFlow(){
+  const sources = ANIME.sources || DEFAULT_SOURCES;
+  openPlayFlow(sources, ANIME.title, (lang, srv) => {
+    closePlaySheet();
+    openPlayer({
+      title: ANIME.title,
+      subtitle: `Película · ${lang} · ${srv.name}`,
+      url: srv.url,
+      duration: 6300,          // fallback si el medio no reporta duración
+      intro: null,             // películas no tienen "omitir intro"
+      lang,
+      hasNext: false,
+      onNext: null
+    });
+  });
+}
+
+/* ============================================================
+   MODO SERIE — temporadas (select nativo), ordenar, episodios
+   ============================================================ */
+if (!isMovie && ANIME.seasons && ANIME.seasons.length){
+  $("episodesSection").hidden = false;   // mostrar la sección (abajo de todo)
+  const seasonSelect = $("seasonSelect");
+  const sortSelect   = $("sortSelect");
+  const epList       = $("epList");
+
+  /* ===== Continuar viendo (persistente) — vive en el botón Reproducir ===== */
+  const RESUME_KEY = "nekowolf_resume_" + (ANIME.title || "anime");
+  let resume = null;  // { s, n }
+  try { resume = JSON.parse(localStorage.getItem(RESUME_KEY) || "null"); } catch(e){ resume = null; }
+  function saveResume(s, n){
+    resume = { s, n };
+    try { localStorage.setItem(RESUME_KEY, JSON.stringify(resume)); } catch(e){}
+    updatePlayButton();
+  }
+  function epByNum(s, n){ return (ANIME.seasons[s]?.episodes || []).find(e => e.n === n); }
+  // Estilo Netflix: el botón muestra "Reanudar T·E" si hay progreso, si no "Reproducir"
+  function updatePlayButton(){
+    if (resume && epByNum(resume.s, resume.n)){
+      const sNum = resume.s + 1;
+      $("btnPlayLabel").textContent = `Reanudar T${sNum}:E${resume.n}`;
+    } else {
+      $("btnPlayLabel").textContent = "Reproducir";
+    }
+  }
+  updatePlayButton();
+
+  // Poblamos el <select> nativo → solo el nombre (sin cantidad de episodios)
+  seasonSelect.innerHTML = ANIME.seasons
+    .map((t,i) => `<option value="${i}">${t.name}</option>`)
+    .join("");
+  seasonSelect.value = String(currentSeason);
+  // marcar como "activa" el contenedor del selector de temporada
+  $("seasonWrap").classList.add("active-season");
+  seasonSelect.addEventListener("change", () => {
+    currentSeason = +seasonSelect.value;
+    renderEpisodes();
+  });
+
+  // Ordenar con ventana nativa (igual que temporadas)
+  sortSelect.value = sortAsc ? "asc" : "desc";
+  sortSelect.addEventListener("change", () => {
+    sortAsc = sortSelect.value === "asc";
+    renderEpisodes();
+    toast(sortAsc ? "Orden: primero los antiguos" : "Orden: primero los recientes");
+  });
+
+  function renderEpisodes(){
+    const eps = [...ANIME.seasons[currentSeason].episodes]
+      .sort((a,b) => sortAsc ? a.n - b.n : b.n - a.n);
+    epList.innerHTML = eps.map((ep,i) => {
+      const seen = isWatched(currentSeason, ep.n);
+      return `
+      <div class="ep-item ${seen?'watched':''}" data-ep="${ep.n}" style="animation-delay:${i*45}ms">
+        <div class="ep-thumb">
+          <img src="${ep.thumb}" alt="EP ${ep.n}" onerror="this.onerror=null;this.src='${PLACEHOLDER}';" />
+          <span class="ep-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
+          <span class="ep-dur">${ep.dur}</span>
+          <div class="play-ov"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+        </div>
+        <div class="ep-info">
+          <div class="ep-top">
+            <span class="ep-num">E${ep.n}</span>
+            <span class="ep-title">${ep.title}</span>
+          </div>
+          <div class="ep-desc">${ep.desc || ""}</div>
+          <div class="ep-watch" data-watch>
+            <span class="ep-switch ${seen?'on':''}" role="switch" aria-checked="${seen}"></span>
+            <span class="ep-watch-label ${seen?'on':''}">${seen ? "Visto" : "No visto"}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join("");
+
+    epList.querySelectorAll(".ep-item").forEach(card => {
+      const n = +card.dataset.ep;
+      const watchRow = card.querySelector("[data-watch]");
+      const sw = card.querySelector(".ep-switch");
+      const lbl = card.querySelector(".ep-watch-label");
+
+      // Toggle visto / no visto (no abre el reproductor)
+      watchRow.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const nowSeen = !isWatched(currentSeason, n);
+        setWatched(currentSeason, n, nowSeen);
+        sw.classList.toggle("on", nowSeen);
+        sw.setAttribute("aria-checked", String(nowSeen));
+        lbl.classList.toggle("on", nowSeen);
+        lbl.textContent = nowSeen ? "Visto" : "No visto";
+        card.classList.toggle("watched", nowSeen);
+        toast(nowSeen ? `E${n} marcado como visto` : `E${n} marcado como no visto`);
+      });
+
+      // Resto de la card → flujo idioma → servidor → reproductor
+      card.addEventListener("click", () => openEpisodeFlow(currentSeason, n));
+    });
+  }
+  renderEpisodes();
+
+  /* ============================================================
+     FLUJO DE REPRODUCCIÓN por episodio
+     - openEpisodeFlow: abre el menú idioma → servidor (elección manual)
+     - playEpisodeDirect: reproduce directo manteniendo el idioma elegido
+       (para el autoplay del siguiente episodio)
+     ============================================================ */
+  function epSources(s, n){
+    const ep = epByNum(s, n);
+    return (ep && ep.sources) ? ep.sources : DEFAULT_SOURCES;
+  }
+
+  // Lanza el reproductor para (s,n) con un idioma y servidor concretos
+  function launchEpisode(s, n, lang, srv){
+    const ep = epByNum(s, n);
+    setWatched(s, n, true);
+    saveResume(s, n);
+    renderEpisodes();
+    const hasNext = ANIME.seasons[s].episodes.some(e => e.n === n + 1);
+    openPlayer({
+      title: ep ? ep.title : ("Episodio " + n),
+      subtitle: `${ANIME.seasons[s].name} · E${n} · ${lang} · ${srv.name}`,
+      url: srv.url,
+      duration: (ep && ep.duration) || 1440,
+      intro: (ep && ep.intro) || null,
+      lang,
+      hasNext,
+      // autoplay del siguiente MANTENIENDO el idioma elegido
+      onNext: hasNext ? () => playEpisodeDirect(s, n + 1, lang) : null
+    });
+  }
+
+  // Reproduce directo: usa el idioma preferido si existe en el episodio,
+  // si no, cae automáticamente al primer idioma disponible.
+  function playEpisodeDirect(s, n, preferredLang){
+    const sources = epSources(s, n);
+    const langs = Object.keys(sources);
+    if (!langs.length){ toast("Sin servidores para este episodio"); return; }
+    let lang = (preferredLang && sources[preferredLang] && sources[preferredLang].length)
+                 ? preferredLang
+                 : langs.find(l => sources[l] && sources[l].length) || langs[0];
+    const srv = sources[lang][0];   // primer servidor disponible de ese idioma
+    if (preferredLang && lang !== preferredLang){
+      toast(`"${preferredLang}" no disponible · reproduciendo en ${lang}`);
+    } else {
+      toast(`Siguiente episodio · ${lang}`);
+    }
+    closePlaySheet();
+    launchEpisode(s, n, lang, srv);
+  }
+
+  // Menú manual (elegir idioma → servidor)
+  function openEpisodeFlow(s, n){
+    openPlayFlow(epSources(s, n), `${ANIME.seasons[s].name} · E${n}`, (lang, srv) => {
+      closePlaySheet();
+      launchEpisode(s, n, lang, srv);
+    });
+  }
+
+  // Botón Reproducir estilo Netflix: reanuda el último episodio si hay progreso,
+  // si no, empieza por el primero de la temporada.
+  $("btnPlay").addEventListener("click", () => {
+    if (resume && epByNum(resume.s, resume.n)){
+      openEpisodeFlow(resume.s, resume.n);
+    } else {
+      const first = [...ANIME.seasons[currentSeason].episodes].sort((a,b)=>a.n-b.n)[0];
+      openEpisodeFlow(currentSeason, first ? first.n : 1);
+    }
+  });
+} else {
+  /* ===== PELÍCULA — fuentes generales del anime (idioma → servidor) ===== */
+  $("btnPlay").addEventListener("click", () => openMovieFlow());
+}
+
+/* ===== Leer más / menos ===== */
+const syn = $("synopsis");
+$("readMore").addEventListener("click", function(){
+  const clamped = syn.classList.toggle("clamp");
+  this.textContent = clamped ? "Leer más ▾" : "Leer menos ▴";
+});
+
+/* ============================================================
+   MI LISTA — modal con estados del anime (persistente)
+   ============================================================ */
+const LIST_KEY = "nekowolf_list_" + (ANIME.title || "anime");
+let myStatus = null;
+try { myStatus = localStorage.getItem(LIST_KEY) || null; } catch(e){ myStatus = null; }
+
+// Opciones de estado (puedes añadir/quitar aquí)
+const LIST_OPTIONS = [
+  { id:"viendo",     label:"Viendo",       sub:"Lo estás viendo ahora",  icon:"M8 5v14l11-7z" },
+  { id:"completado", label:"Completado",   sub:"Ya lo terminaste",       icon:"M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" },
+  { id:"pendiente",  label:"Planeo ver",   sub:"Para ver más tarde",     icon:"M12 2a10 10 0 100 20 10 10 0 000-20zm1 11h-2V7h2z M13 15h-2v2h2z" },
+  { id:"espera",     label:"En espera",    sub:"Pausado por ahora",      icon:"M6 5h4v14H6zm8 0h4v14h-4z" },
+  { id:"abandonado", label:"Abandonado",   sub:"Dejaste de verlo",       icon:"M12 2a10 10 0 100 20 10 10 0 000-20zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z" }
+];
+
+const btnFav     = $("btnFav");
+const listSheet  = $("listSheet");
+const listBox    = $("listSheetBox");
+const listOptions= $("listOptions");
+const listRemove = $("listRemove");
+
+function statusLabel(id){ const o = LIST_OPTIONS.find(x=>x.id===id); return o ? o.label : null; }
+
+function renderListOptions(){
+  listOptions.innerHTML = LIST_OPTIONS.map(o => `
+    <button class="list-opt ${myStatus===o.id?'selected':''}" data-id="${o.id}">
+      <span class="ic"><svg viewBox="0 0 24 24"><path d="${o.icon}"/></svg></span>
+      <span class="txt"><b>${o.label}</b><small>${o.sub}</small></span>
+      <span class="tick"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
+    </button>`).join("");
+  listRemove.hidden = !myStatus;
+
+  listOptions.querySelectorAll(".list-opt").forEach(btn =>
+    btn.addEventListener("click", () => {
+      myStatus = btn.dataset.id;
+      try { localStorage.setItem(LIST_KEY, myStatus); } catch(e){}
+      updateFavUI();
+      renderListOptions();
+      toast("Guardado en Mi lista: " + statusLabel(myStatus));
+      setTimeout(closeListSheet, 250);
+    }));
+}
+
+function updateFavUI(){
+  btnFav.classList.toggle("on", !!myStatus);
+  btnFav.title = myStatus ? ("Mi lista · " + statusLabel(myStatus)) : "Mi lista";
+}
+
+function openListSheet(){
+  renderListOptions();
+  listSheet.classList.add("open");
+  lockScroll(true);
+}
+function closeListSheet(){
+  listSheet.classList.remove("open");
+  lockScroll(false);
+}
+
+/* Bloquea/restaura el scroll del fondo cuando hay un modal abierto */
+let _scrollY = 0;
+function lockScroll(lock){
+  if (lock){
+    _scrollY = window.scrollY;
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${_scrollY}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    document.body.style.width = "100%";
+    document.body.style.overflow = "hidden";
+  } else {
+    document.body.style.position = "";
+    document.body.style.top = "";
+    document.body.style.left = "";
+    document.body.style.right = "";
+    document.body.style.width = "";
+    document.body.style.overflow = "";
+    window.scrollTo(0, _scrollY);
+  }
+}
+
+btnFav.addEventListener("click", openListSheet);
+$("listSheetClose").addEventListener("click", closeListSheet);
+listSheet.addEventListener("click", (e) => { if (e.target === listSheet) closeListSheet(); });
+listBox.addEventListener("click", (e) => e.stopPropagation());
+listRemove.addEventListener("click", () => {
+  myStatus = null;
+  try { localStorage.removeItem(LIST_KEY); } catch(e){}
+  updateFavUI();
+  renderListOptions();
+  toast("Quitado de Mi lista");
+  setTimeout(closeListSheet, 200);
+});
+updateFavUI();
+
+/* ============================================================
+   FAVORITO (corazón sobre el fondo) — persistente
+   ============================================================ */
+const FAV_KEY = "nekowolf_fav_" + (ANIME.title || "anime");
+const btnHeroFav = $("btnHeroFav");
+const heroFavIcon = $("heroFavIcon");
+// Corazón contorno (no favorito) vs relleno (favorito)
+const HEART_OUTLINE = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35zM12 18.5l.1-.09C16.81 14.08 20 11.19 20 8.5 20 6.5 18.5 5 16.5 5c-1.54 0-3.04.99-3.57 2.36h-1.87C10.54 5.99 9.04 5 7.5 5 5.5 5 4 6.5 4 8.5c0 2.69 3.19 5.58 7.9 9.91l.1.09z";
+const HEART_FILLED = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z";
+let isFav = false;
+try { isFav = localStorage.getItem(FAV_KEY) === "1"; } catch(e){ isFav = false; }
+function renderFav(){
+  btnHeroFav.classList.toggle("on", isFav);
+  btnHeroFav.setAttribute("aria-pressed", String(isFav));
+  heroFavIcon.innerHTML = `<path d="${isFav ? HEART_FILLED : HEART_OUTLINE}"/>`;
+}
+renderFav();
+btnHeroFav.addEventListener("click", () => {
+  isFav = !isFav;
+  try { isFav ? localStorage.setItem(FAV_KEY,"1") : localStorage.removeItem(FAV_KEY); } catch(e){}
+  renderFav();
+  toast(isFav ? "Añadido a Favoritos" : "Quitado de Favoritos");
+});
+
+/* ============================================================
+   REPRODUCTOR PROFESIONAL — FUNCIONAL
+   - <video> HTML5 para .mp4/.webm/.m3u8/.ogg
+   - <iframe> para servidores embebibles (YouTube, Drive, Vimeo, Okru…)
+   Los controles personalizados actúan sobre el <video>. Con iframe se
+   delega su control interno (barra propia) y nuestros controles de tiempo
+   quedan informativos.
+   ============================================================ */
+const player      = $("player");
+const playerVideo = $("playerVideo");
+const videoEl     = $("plVideoEl");
+const iframeEl    = $("plIframeEl");
+const plPlayIcon  = $("plPlayIcon");
+const plCur       = $("plCur");
+const plDur       = $("plDur");
+const plFill      = $("plFill");
+const plBuffer    = $("plBuffer");
+const plKnob      = $("plKnob");
+const plSeek      = $("plSeek");
+const skipIntro   = $("skipIntro");
+
+const ICON_PLAY  = "M8 5v14l11-7z";
+const ICON_PAUSE = "M6 5h4v14H6zm8 0h4v14h-4z";
+
+let plMode = "video";     // "video" | "iframe"
+let plIntro = null, plOnNext = null, plHideTimer = null;
+
+function fmtTime(s){
+  s = Math.max(0, Math.floor(s || 0));
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+  const mm = (h>0) ? String(m).padStart(2,"0") : m;
+  return (h>0 ? h+":" : "") + mm + ":" + String(sec).padStart(2,"0");
+}
+
+/* --- Detección de tipo de fuente --- */
+function isDirectVideo(url){ return /\.(mp4|webm|ogg|m3u8|mov)(\?|$)/i.test(url); }
+function toEmbed(url){
+  // YouTube
+  let m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{6,})/);
+  if (m) return "https://www.youtube.com/embed/" + m[1] + "?autoplay=1&rel=0&playsinline=1";
+  // Google Drive
+  m = url.match(/drive\.google\.com\/file\/d\/([\w-]+)/);
+  if (m) return "https://drive.google.com/file/d/" + m[1] + "/preview";
+  // Vimeo
+  m = url.match(/vimeo\.com\/(\d+)/);
+  if (m) return "https://player.vimeo.com/video/" + m[1] + "?autoplay=1";
+  // OK.ru
+  m = url.match(/ok\.ru\/video\/(\d+)/);
+  if (m) return "https://ok.ru/videoembed/" + m[1];
+  // por defecto, intentar incrustar tal cual
+  return url;
+}
+
+/* --- Render de la barra de progreso (modo video) --- */
+function plRender(){
+  const dur = videoEl.duration || 0;
+  const cur = videoEl.currentTime || 0;
+  const pct = dur ? (cur/dur)*100 : 0;
+  plFill.style.width = pct + "%";
+  plKnob.style.left  = pct + "%";
+  // buffer real
+  try {
+    if (videoEl.buffered.length){
+      const end = videoEl.buffered.end(videoEl.buffered.length-1);
+      plBuffer.style.width = (dur ? (end/dur)*100 : 0) + "%";
+    }
+  } catch(e){}
+  plCur.textContent = fmtTime(cur);
+  plDur.textContent = fmtTime(dur);
+  // omitir intro
+  if (plIntro && cur >= plIntro.start && cur < plIntro.end) skipIntro.classList.add("show");
+  else skipIntro.classList.remove("show");
+}
+
+function setPlayIcon(playing){ plPlayIcon.setAttribute("d", playing ? ICON_PAUSE : ICON_PLAY); }
+
+function showUi(){ player.classList.remove("hide-ui"); scheduleHideUi(); }
+function scheduleHideUi(){
+  clearTimeout(plHideTimer);
+  plHideTimer = setTimeout(() => { if (!videoEl.paused && plMode==="video") player.classList.add("hide-ui"); }, 3200);
+}
+
+function openPlayer(data){
+  if (typeof data === "string") data = { title:"Reproduciendo", subtitle:data };
+  plIntro  = data.intro || null;
+  plOnNext = data.onNext || null;
+  $("plTitle").textContent = data.title || "Reproduciendo";
+  $("plSubtitle").textContent = data.subtitle || "";
+  $("plLangTxt").textContent = data.lang || "Idioma";
+  $("plNext").style.display = data.hasNext ? "flex" : "none";
+
+  const url = data.url && data.url !== "#" ? data.url : "";
+  player.classList.add("open");
+  player.classList.remove("hide-ui","mode-iframe");
+  lockScroll(true);
+
+  // Limpia medios previos
+  videoEl.removeAttribute("src"); videoEl.load?.();
+  iframeEl.src = "";
+
+  if (url && isDirectVideo(url)){
+    // ---- VIDEO HTML5 ----
+    plMode = "video";
+    playerVideo.classList.add("mode-video");
+    playerVideo.classList.remove("mode-iframe");
+    player.classList.remove("mode-iframe");
+    player.classList.add("buffering");
+    videoEl.src = url;
+    videoEl.play().catch(()=>{ player.classList.remove("buffering"); });
+  } else if (url){
+    // ---- IFRAME EMBEBIDO ----
+    plMode = "iframe";
+    playerVideo.classList.remove("mode-video");
+    playerVideo.classList.add("mode-iframe");
+    player.classList.add("mode-iframe");
+    player.classList.remove("buffering");
+    iframeEl.src = toEmbed(url);
+    plCur.textContent = "—"; plDur.textContent = "—";
+    plFill.style.width = "0"; plKnob.style.left = "0";
+  } else {
+    // sin URL válida: demo con un mp4 de muestra
+    plMode = "video";
+    playerVideo.classList.add("mode-video");
+    player.classList.remove("mode-iframe");
+    player.classList.add("buffering");
+    videoEl.src = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+    videoEl.play().catch(()=>{ player.classList.remove("buffering"); });
+    toast("Servidor demo (sin URL real)");
+  }
+}
+
+function closePlayer(){
+  try { videoEl.pause(); } catch(e){}
+  videoEl.removeAttribute("src"); videoEl.load?.();
+  iframeEl.src = "";
+  clearTimeout(plHideTimer);
+  if (document.fullscreenElement) document.exitFullscreen?.();
+  player.classList.remove("open","hide-ui","buffering","mode-iframe");
+  lockScroll(false);
+}
+
+/* --- Eventos del <video> real --- */
+videoEl.addEventListener("loadedmetadata", () => { player.classList.remove("buffering"); plRender(); });
+videoEl.addEventListener("waiting", () => player.classList.add("buffering"));
+videoEl.addEventListener("playing", () => { player.classList.remove("buffering"); setPlayIcon(true); playerVideo.classList.add("playing"); scheduleHideUi(); });
+videoEl.addEventListener("play",   () => { setPlayIcon(true); playerVideo.classList.add("playing"); });
+videoEl.addEventListener("pause",  () => { setPlayIcon(false); playerVideo.classList.remove("playing"); showUi(); });
+videoEl.addEventListener("timeupdate", plRender);
+videoEl.addEventListener("ended", () => {
+  setPlayIcon(false);
+  if (plOnNext){ toast("Reproduciendo siguiente…"); setTimeout(plOnNext, 700); }
+});
+videoEl.addEventListener("error", () => {
+  player.classList.remove("buffering");
+  toast("No se pudo cargar este servidor");
+});
+
+/* --- Controles --- */
+function togglePlay(){
+  if (plMode !== "video") return;        // con iframe manda su propio control
+  if (videoEl.paused) videoEl.play().catch(()=>{}); else videoEl.pause();
+  showUi();
+}
+$("playerClose").addEventListener("click", closePlayer);
+$("plPlayPause").addEventListener("click", togglePlay);
+$("plBigPlay").addEventListener("click", () => { if (plMode==="video"){ videoEl.play().catch(()=>{}); } showUi(); });
+$("plRew").addEventListener("click", () => { if(plMode==="video"){ videoEl.currentTime = Math.max(0, videoEl.currentTime-10); plRender(); } showUi(); });
+$("plFwd").addEventListener("click", () => { if(plMode==="video"){ videoEl.currentTime = Math.min(videoEl.duration||0, videoEl.currentTime+10); plRender(); } showUi(); });
+$("plNext").addEventListener("click", () => { if (plOnNext) plOnNext(); });
+$("plLang").addEventListener("click", () => toast("Cambia el idioma desde el episodio"));
+$("plSettings").addEventListener("click", () => {
+  // ciclo de velocidad de reproducción (solo video)
+  if (plMode!=="video") return;
+  const speeds = [1, 1.25, 1.5, 2, 0.75];
+  const i = speeds.indexOf(videoEl.playbackRate);
+  videoEl.playbackRate = speeds[(i+1) % speeds.length];
+  toast("Velocidad: " + videoEl.playbackRate + "x");
+});
+$("plFull").addEventListener("click", () => {
+  if (!document.fullscreenElement){ (player.requestFullscreen||player.webkitRequestFullscreen||function(){}).call(player); }
+  else { (document.exitFullscreen||document.webkitExitFullscreen||function(){}).call(document); }
+});
+skipIntro.addEventListener("click", () => {
+  if (plIntro && plMode==="video"){ videoEl.currentTime = plIntro.end; plRender(); showUi(); toast("Intro omitida"); }
+});
+
+/* --- Buscar en la barra (modo video) --- */
+function seekTo(clientX){
+  if (plMode!=="video" || !videoEl.duration) return;
+  const r = plSeek.getBoundingClientRect();
+  const ratio = Math.min(1, Math.max(0, (clientX - r.left)/r.width));
+  videoEl.currentTime = ratio * videoEl.duration;
+  plRender();
+}
+let seeking = false;
+plSeek.addEventListener("click", (e) => { seekTo(e.clientX); showUi(); });
+plSeek.addEventListener("touchstart", (e) => { seeking = true; seekTo(e.touches[0].clientX); }, {passive:true});
+plSeek.addEventListener("touchmove", (e) => { if(seeking) seekTo(e.touches[0].clientX); }, {passive:true});
+plSeek.addEventListener("touchend", () => { seeking = false; showUi(); });
+
+/* Tocar la escena alterna controles (solo modo video) */
+playerVideo.addEventListener("click", (e) => {
+  if (e.target === iframeEl) return;
+  if (plMode!=="video") return;
+  if (player.classList.contains("hide-ui")) showUi();
+  else if (!videoEl.paused) player.classList.add("hide-ui");
+});
+
+/* ===== Scroll: topbar sólida + PARALLAX del fondo ===== */
+const topbar = $("topbar");
+const heroWrap = $("heroWrap");
+window.addEventListener("scroll", () => {
+  const y = window.scrollY;
+  topbar.classList.toggle("solid", y > 60);
+  // Parallax: el fondo se mueve más lento que el scroll
+  heroWrap.style.transform = `translate3d(0, ${y * 0.35}px, 0)`;
+}, { passive:true });
+
+/* ===== Toast ===== */
+let toastTimer;
+function toast(msg){
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2000);
+}
+
+/* ===== Failsafe: si alguna animación .reveal no dispara (ciertos WebView),
+   forzamos visibilidad para que el póster y la info NUNCA queden invisibles. */
+setTimeout(() => {
+  document.querySelectorAll(".reveal").forEach(el => { el.style.opacity = "1"; });
+}, 1200);
+</script>
+</body>
+</html>
