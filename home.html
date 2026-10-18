@@ -35,7 +35,9 @@
     padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;
     background:linear-gradient(180deg,rgba(10,10,10,.95),rgba(10,10,10,0));transition:background .35s;}
   .topbar.solid{background:rgba(10,10,10,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);}
-  .brand{display:flex;align-items:center;gap:9px;flex:1;}
+  .brand{display:flex;align-items:center;gap:9px;flex:1;min-width:0;}
+  .brand-logo{height:34px;width:auto;object-fit:contain;display:block;
+    filter:drop-shadow(0 0 8px rgba(var(--accent-rgb),.45));}
   .brand .logo{width:30px;height:30px;border-radius:9px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;color:#fff;}
   .brand b{font-size:17px;font-weight:800;letter-spacing:.3px;}
   .brand b span{color:var(--accent);}
@@ -317,8 +319,8 @@
   <!-- ===== Top bar ===== -->
   <header class="topbar" id="topbar">
     <div class="brand">
-      <div class="logo">N</div>
-      <b>Neko<span>Wolf</span></b>
+      <img class="brand-logo" src="https://i.ibb.co/G4L08hQ5/56854-removebg-preview.png" alt="CyberKai"
+           onerror="this.onerror=null;this.outerHTML='&lt;div class=\'logo\'&gt;C&lt;/div&gt;&lt;b&gt;Cyber&lt;span&gt;Kai&lt;/span&gt;&lt;/b&gt;'" />
     </div>
     <button class="icon-btn" id="btnSearch" aria-label="Buscar">
       <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 10-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1114 9.5 4.49 4.49 0 019.5 14z"/></svg>
