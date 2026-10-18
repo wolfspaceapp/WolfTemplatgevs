@@ -447,8 +447,29 @@ var THEME = {
   if(m) r.setProperty("--accent-rgb",parseInt(m[1],16)+", "+parseInt(m[2],16)+", "+parseInt(m[3],16));
 })();
 
-/* Solo ejecutamos el detalle si existe la estructura (página de entrada) */
-if (document.getElementById("nw-source")) buildDetailFromPost();
+/* Arranque robusto: espera al DOM y captura errores para no dejar la página en blanco */
+function nwBoot(){
+  var src = document.getElementById("nw-source");
+  if(!src) return; // no es página de entrada
+  try {
+    buildDetailFromPost();
+  } catch(err){
+    // Diagnóstico visible en vez de pantalla en blanco
+    var box = document.createElement("div");
+    box.style.cssText = "position:fixed;left:0;right:0;bottom:0;z-index:999;background:#201a14;color:#ffd7b0;font:13px/1.5 monospace;padding:14px 16px;border-top:2px solid #f47521;max-height:50vh;overflow:auto;";
+    var t=(document.getElementById("nw-title")||{}).textContent||"";
+    var b=(document.getElementById("nw-body")||{}).innerHTML||"";
+    box.innerHTML = "<b style='color:#ff9a52'>NekoWolf: no se pudo construir el detalle.</b><br/>"+
+      "Error: "+(err&&err.message?err.message:err)+"<br/>"+
+      "Título leído: "+(t?("\u2713 "+t):"\u2717 vacío")+"<br/>"+
+      "Cuerpo del post: "+(b?("\u2713 "+b.length+" caracteres"):"\u2717 vacío")+"<br/>"+
+      "Comparte este mensaje para depurar.";
+    document.body.appendChild(box);
+    if(window.console) console.error("NekoWolf error:", err);
+  }
+}
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", nwBoot);
+else nwBoot();
 
 function buildDetailFromPost(){
   var $=function(id){return document.getElementById(id);};
