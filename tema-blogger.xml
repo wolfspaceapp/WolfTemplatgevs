@@ -424,14 +424,10 @@
         </div>
       </b:if>
 
-    </b:includable>
-  </b:widget>
-</b:section>
-
-<script type='text/javascript'>
+      <script type='text/javascript'>
 //<![CDATA[
 /* ============================================================
-   🎨 CONFIGURACIÓN DE TEMA — cambia los colores de toda la interfaz
+   CONFIGURACION DE TEMA - cambia los colores de toda la interfaz
    ============================================================ */
 var THEME = {
   accent:"#f47521", accent2:"#ff9a52",
@@ -814,7 +810,11 @@ function NWDetail(ANIME, $){
   window.toast=function(msg){var t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove("show");},2000);};
 }
 //]]>
-</script>
+      </script>
+
+    </b:includable>
+  </b:widget>
+</b:section>
 
 </body>
 </html>
