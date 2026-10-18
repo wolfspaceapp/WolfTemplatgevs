@@ -161,38 +161,15 @@
     flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
     padding:14px 18px;border-radius:13px;font-size:14.5px;font-weight:800;
     letter-spacing:.2px;color:#fff;
-    /* NARANJA PREMIUM OSCURO: degradado naranja quemado con profundidad */
-    background:linear-gradient(135deg,#e06a16 0%,#c9550a 48%,#a63f04 100%);
-    border:1px solid rgba(255,150,80,.4);
-    box-shadow:
-      0 8px 22px rgba(140,55,0,.6),
-      0 3px 8px rgba(90,35,0,.4),
-      inset 0 1px 0 rgba(255,210,170,.3),
-      inset 0 -2px 6px rgba(80,28,0,.5);
-    text-shadow:0 1px 2px rgba(70,24,0,.6);
-    transition:transform .18s, box-shadow .25s;
-  }
-  /* brillo superior "glossy" premium */
-  .btn-play::before{
-    content:"";position:absolute;left:0;right:0;top:0;height:50%;
-    background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0));
-    pointer-events:none;
-  }
-  /* destello blanco que recorre el botón */
-  .btn-play::after{
-    content:"";position:absolute;top:0;bottom:0;left:-60%;width:38%;
-    background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.6),rgba(255,255,255,0));
-    transform:skewX(-20deg);
-    animation:btnShine 4.5s ease-in-out infinite;
+    /* Plano y limpio: degradado naranja suave, sin glossy ni destello */
+    background:linear-gradient(135deg,#f47521,#e8630e);
+    border:none;
+    box-shadow:0 4px 14px rgba(232,99,14,.35);
+    transition:transform .18s, filter .2s;
   }
   .btn-play span,.btn-play svg{position:relative;z-index:1;}
   .btn-play svg{width:19px;height:19px;}
-  .btn-play:active{transform:scale(.96);box-shadow:0 4px 12px rgba(140,55,0,.5),inset 0 1px 0 rgba(255,210,170,.25);}
-  @keyframes btnShine{
-    0%{left:-60%;}
-    55%{left:130%;}
-    100%{left:130%;}
-  }
+  .btn-play:active{transform:scale(.97);filter:brightness(.94);}
   .btn-ghost{
     width:46px;height:46px;flex:0 0 auto;border-radius:12px;
     display:flex;align-items:center;justify-content:center;
