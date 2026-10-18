@@ -28,6 +28,7 @@
   @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
   @keyframes slowZoom{from{transform:scale(1.12);}to{transform:scale(1);}}
   @keyframes pulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(var(--accent-rgb),.5);}50%{box-shadow:0 0 0 12px rgba(var(--accent-rgb),0);}}
+  @keyframes spin{to{transform:rotate(360deg);}}
   .reveal{opacity:0;animation:fadeUp .6s cubic-bezier(.22,.61,.36,1) forwards;}
 
   /* ===== Top bar ===== */
@@ -477,36 +478,9 @@ const BLOG = {
 };
 
 /* ============================================================
-   DATOS DEMO — se usan si no hay BLOG.URL configurado.
-   Cada item: {id,title,poster,backdrop,type,year,rating,genres,eps,nuevo,sub,dub}
+   DATOS — se llenan 100% desde el feed de Blogger (ver BLOG.URL).
    ============================================================ */
-const P = "https://s4.anilist.co/file/anilistcdn/media/anime/";
-let DATA = [
-  { id:"jjk",   title:"Jujutsu Kaisen",     type:"serie",    year:2024, rating:8.7, nuevo:true,  sub:true, dub:true,
-    genres:["Acción","Shounen","Sobrenatural"], eps:24,
-    poster:P+"cover/large/bx113415-bbBWj4pEFseh.jpg", backdrop:P+"banner/113415-jQBSkxWAAk83.jpg" },
-  { id:"aot",   title:"Attack on Titan",    type:"serie",    year:2023, rating:9.1, sub:true, dub:true,
-    genres:["Acción","Drama","Fantasía"], eps:87,
-    poster:P+"cover/large/bx16498-C6FPmWm59CyP.jpg", backdrop:P+"banner/16498-8jZxKww6tKvF.jpg" },
-  { id:"dmc",   title:"Demon Slayer",       type:"serie",    year:2024, rating:8.6, nuevo:true, sub:true,
-    genres:["Acción","Sobrenatural"], eps:55,
-    poster:P+"cover/large/bx101922-PEn1CTc93blC.jpg", backdrop:P+"banner/101922-YfZhKBUDDS6L.jpg" },
-  { id:"csm",   title:"Chainsaw Man",       type:"serie",    year:2022, rating:8.5, sub:true, dub:true,
-    genres:["Acción","Terror"], eps:12,
-    poster:P+"cover/large/bx127230-FlochcFsyoF4.png", backdrop:P+"banner/127230-l8d1S6cZv4Jr.jpg" },
-  { id:"spy",   title:"Spy x Family",       type:"serie",    year:2023, rating:8.4, dub:true,
-    genres:["Comedia","Acción"], eps:37,
-    poster:P+"cover/large/bx140960-vN39AmhdVvxr.png", backdrop:"" },
-  { id:"jjk0",  title:"Jujutsu Kaisen 0",   type:"pelicula", year:2021, rating:7.9, sub:true, dub:true,
-    genres:["Acción","Fantasía"],
-    poster:P+"cover/large/bx131573-nPdqIUYjTsqe.jpg", backdrop:P+"banner/131573-Fmck3zMqJlwy.jpg" },
-  { id:"onp",   title:"One Piece",          type:"serie",    year:2024, rating:8.9, nuevo:true, sub:true, dub:true,
-    genres:["Aventura","Acción"], eps:1100,
-    poster:P+"cover/large/bx21-tXMrtlMAcKwb.jpg", backdrop:P+"banner/21-wf37VakJmZqs.jpg" },
-  { id:"frn",   title:"Frieren",            type:"serie",    year:2024, rating:9.0, nuevo:true, sub:true,
-    genres:["Aventura","Drama","Fantasía"], eps:28,
-    poster:P+"cover/large/bx154587-gHSraOSt0JQl.jpg", backdrop:P+"banner/154587-dfkJ2Am9Um2T.jpg" }
-];
+let DATA = [];   // vacío hasta que carga el feed
 
 const FALL = makePH("NekoWolf");
 function makePH(label){
@@ -516,7 +490,6 @@ function makePH(label){
   return "data:image/svg+xml;base64,"+btoa(unescape(encodeURIComponent(svg)));
 }
 function img(u){ return u || FALL; }
-function go(item){ location.href = "detalle.html?id=" + encodeURIComponent(item.id); }
 
 /* Filas de la home (por géneros/propiedades) */
 const ROWS = [
@@ -933,27 +906,40 @@ function postToItem(entry){
   };
 }
 
-/* En Blogger: go() navega al post real; sin feed, a detalle.html?id= */
-function goFeed(item){
-  if(item && item.url){ location.href=item.url; }
-  else { location.href="detalle.html?id="+encodeURIComponent(item.id); }
+/* go(): abre el post real del blog */
+function go(item){ if(item && item.url) location.href=item.url; }
+
+function renderAll(){ heroItems = DATA.slice(0,5); renderHero(); renderRows(); }
+
+/* Mensaje a pantalla completa (carga / vacío / error) */
+function stateMsg(ic,title,sub){
+  document.getElementById("app").innerHTML =
+    '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;text-align:center;padding:40px 24px;color:var(--muted)">'
+    +'<div style="font-size:50px;margin-bottom:14px">'+ic+'</div>'
+    +'<div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:6px">'+title+'</div>'
+    +'<div style="font-size:13px;max-width:320px">'+sub+'</div></div>';
 }
 
-function renderAll(){ renderHero(); renderRows(); }
-
 function init(){
-  var usingFeed = BLOG.URL && !/^$|ejemplo|tublog/.test(BLOG.URL);
-  if(!usingFeed){ renderAll(); return; }   // sin feed → datos DEMO
+  var ok = BLOG.URL && !/ejemplo|tublog/.test(BLOG.URL);
+  if(!ok){
+    stateMsg("⚙️","Configura tu blog",
+      "Edita <b>BLOG.URL</b> en el &lt;script&gt; de este HTML con el dominio de tu Blogger (ej. https://tublog.blogspot.com). Cada entrada = un anime.");
+    return;
+  }
+  stateMsg("<span style='display:inline-block;width:40px;height:40px;border:3px solid rgba(255,255,255,.18);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite'></span>","Cargando…","Obteniendo animes desde tu blog.");
   fetchFeed().then(function(data){
     var entries=(data&&data.feed&&data.feed.entry)||[];
-    var items=entries.map(postToItem).filter(function(x){return x.title;});
-    if(items.length){
-      DATA = items;
-      go = goFeed;                 // los clics abren el post real del blog
-      heroItems = DATA.slice(0,5);
+    DATA = entries.map(postToItem).filter(function(x){return x.title;});
+    if(!DATA.length){
+      stateMsg("📭","Sin entradas","Tu blog no tiene publicaciones aún, o no coinciden con los géneros configurados.");
+      return;
     }
     renderAll();
-  }).catch(function(){ renderAll(); });   // si falla el feed, usa DEMO
+  }).catch(function(err){
+    stateMsg("⚠️","No se pudo cargar el feed",
+      (err&&err.message?err.message:"Error")+". Revisa que <b>BLOG.URL</b> sea correcto y el blog sea público.");
+  });
 }
 
 /* ----- Init ----- */
