@@ -915,14 +915,18 @@ function go(item){
 
 function renderAll(){ heroItems = DATA.slice(0,5); renderHero(); renderRows(); }
 
-/* Mensaje a pantalla completa (carga / vacío / error) */
+/* Overlay de estado (carga / vacío / error) — NO toca el contenido de #app */
 function stateMsg(ic,title,sub){
-  document.getElementById("app").innerHTML =
-    '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;text-align:center;padding:40px 24px;color:var(--muted)">'
-    +'<div style="font-size:50px;margin-bottom:14px">'+ic+'</div>'
-    +'<div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:6px">'+title+'</div>'
-    +'<div style="font-size:13px;max-width:320px">'+sub+'</div></div>';
+  hideState();
+  var o=document.createElement("div");
+  o.id="nw-state";
+  o.style.cssText="position:fixed;inset:0;z-index:70;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:40px 24px;color:var(--muted)";
+  o.innerHTML='<div style="font-size:50px">'+ic+'</div>'
+    +'<div style="font-size:18px;font-weight:800;color:#fff">'+title+'</div>'
+    +'<div style="font-size:13px;max-width:320px">'+sub+'</div>';
+  document.body.appendChild(o);
 }
+function hideState(){ var o=document.getElementById("nw-state"); if(o) o.remove(); }
 
 function init(){
   var ok = BLOG.URL && !/ejemplo|tublog/.test(BLOG.URL);
@@ -939,7 +943,9 @@ function init(){
       stateMsg("📭","Sin entradas","Tu blog no tiene publicaciones aún, o no coinciden con los géneros configurados.");
       return;
     }
-    renderAll();
+    hideState();     // quita el loader y deja ver el contenido renderizado
+    try{ renderAll(); }
+    catch(e){ console.error(e); stateMsg("⚠️","Error al mostrar","Los datos llegaron pero no se pudieron renderizar: "+(e&&e.message||e)); }
   }).catch(function(err){
     stateMsg("⚠️","No se pudo cargar el feed",
       (err&&err.message?err.message:"Error")+". Revisa que <b>BLOG.URL</b> sea correcto y el blog sea público.");
