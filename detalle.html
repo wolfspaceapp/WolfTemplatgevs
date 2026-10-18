@@ -168,6 +168,8 @@
     overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
     scroll-snap-type:x proximity;
   }
+  /* espacio al final del slider para que el último no quede pegado al borde */
+  .chips::after{content:"";flex:0 0 8px;}
   .chips::-webkit-scrollbar{height:0;}
   .chip{
     flex:0 0 auto;scroll-snap-align:start;
@@ -208,8 +210,9 @@
   .tab-panel > .section:last-child{margin-bottom:0;}
   /* Separación de la sección Episodios (va tras los paneles) */
   #episodesSection{margin-top:26px;}
-  .section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
-  .section-title{font-size:15px;font-weight:800;display:flex;align-items:center;gap:7px;}
+  .section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px;}
+  .section-title{font-size:15px;font-weight:800;display:flex;align-items:center;gap:7px;margin-bottom:14px;}
+  .section-head .section-title{margin-bottom:0;}
   .section-title::before{content:"";width:3.5px;height:15px;border-radius:3px;background:var(--accent);}
 
   .synopsis{color:#cfcfcf;font-size:13.5px;line-height:1.6;}
@@ -283,11 +286,40 @@
   .ep-title{font-size:13px;font-weight:700;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .ep-desc{font-size:11.5px;color:var(--muted);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 
+  /* Fila inferior de la card: switch visto / no visto */
+  .ep-watch{display:flex;align-items:center;gap:7px;margin-top:7px;}
+  .ep-switch{
+    position:relative;flex:0 0 auto;width:36px;height:20px;border-radius:999px;
+    background:#3a3a3e;border:1px solid var(--border);transition:background .25s;
+  }
+  .ep-switch::after{
+    content:"";position:absolute;top:1.5px;left:1.5px;width:15px;height:15px;border-radius:50%;
+    background:#fff;transition:transform .25s cubic-bezier(.22,.61,.36,1);
+    box-shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+  .ep-switch.on{background:var(--accent);border-color:transparent;}
+  .ep-switch.on::after{transform:translateX(16px);}
+  .ep-watch-label{font-size:11px;font-weight:700;color:var(--muted);transition:color .2s;}
+  .ep-watch-label.on{color:var(--accent);}
+
+  /* Estado "visto": card atenuada + miniatura marcada */
+  .ep-item.watched{opacity:.62;}
+  .ep-item.watched .ep-thumb::before{
+    content:"";position:absolute;inset:0;z-index:1;background:rgba(244,117,33,.18);
+  }
+  .ep-check{
+    position:absolute;left:5px;top:5px;z-index:2;width:18px;height:18px;border-radius:50%;
+    background:var(--accent);display:none;align-items:center;justify-content:center;
+  }
+  .ep-check svg{width:12px;height:12px;fill:#fff;}
+  .ep-item.watched .ep-check{display:flex;}
+
   /* Cast (slider horizontal) */
   .cast-grid{
     display:flex;gap:14px;margin:0 -16px;padding:0 16px 4px;
     overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;
   }
+  .cast-grid::after{content:"";flex:0 0 8px;}
   .cast-grid::-webkit-scrollbar{height:0;}
   .cast-card{flex:0 0 64px;scroll-snap-align:start;text-align:center;}
   .cast-img{width:64px;height:64px;border-radius:50%;overflow:hidden;border:2px solid var(--border);margin:0 auto 7px;}
@@ -593,6 +625,21 @@ function totalEpisodes(){
 })();
 
 /* ============================================================
+   Estado "visto" de episodios (persistente en localStorage)
+   clave: "T{temporada}E{episodio}"
+   ============================================================ */
+const WATCH_KEY = "nekowolf_watched_" + (ANIME.title || "anime");
+let watched = {};
+try { watched = JSON.parse(localStorage.getItem(WATCH_KEY) || "{}"); } catch(e){ watched = {}; }
+function epKey(s, n){ return "T" + s + "E" + n; }
+function isWatched(s, n){ return !!watched[epKey(s, n)]; }
+function setWatched(s, n, val){
+  const k = epKey(s, n);
+  if (val) watched[k] = 1; else delete watched[k];
+  try { localStorage.setItem(WATCH_KEY, JSON.stringify(watched)); } catch(e){}
+}
+
+/* ============================================================
    MODO SERIE — temporadas (select nativo), ordenar, episodios
    ============================================================ */
 if (!isMovie && ANIME.seasons && ANIME.seasons.length){
@@ -622,10 +669,13 @@ if (!isMovie && ANIME.seasons && ANIME.seasons.length){
   function renderEpisodes(){
     const eps = [...ANIME.seasons[currentSeason].episodes]
       .sort((a,b) => sortAsc ? a.n - b.n : b.n - a.n);
-    epList.innerHTML = eps.map((ep,i) => `
-      <div class="ep-item" data-ep="${ep.n}" style="animation-delay:${i*45}ms">
+    epList.innerHTML = eps.map((ep,i) => {
+      const seen = isWatched(currentSeason, ep.n);
+      return `
+      <div class="ep-item ${seen?'watched':''}" data-ep="${ep.n}" style="animation-delay:${i*45}ms">
         <div class="ep-thumb">
           <img src="${ep.thumb}" alt="EP ${ep.n}" />
+          <span class="ep-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
           <span class="ep-dur">${ep.dur}</span>
           <div class="play-ov"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
         </div>
@@ -635,11 +685,37 @@ if (!isMovie && ANIME.seasons && ANIME.seasons.length){
             <span class="ep-title">${ep.title}</span>
           </div>
           <div class="ep-desc">${ep.desc || ""}</div>
+          <div class="ep-watch" data-watch>
+            <span class="ep-switch ${seen?'on':''}" role="switch" aria-checked="${seen}"></span>
+            <span class="ep-watch-label ${seen?'on':''}">${seen ? "Visto" : "No visto"}</span>
+          </div>
         </div>
-      </div>`).join("");
-    epList.querySelectorAll(".ep-item").forEach(c =>
-      c.addEventListener("click", () =>
-        openPlayer(`${ANIME.seasons[currentSeason].name} · Episodio ${c.dataset.ep}`)));
+      </div>`;
+    }).join("");
+
+    epList.querySelectorAll(".ep-item").forEach(card => {
+      const n = +card.dataset.ep;
+      const watchRow = card.querySelector("[data-watch]");
+      const sw = card.querySelector(".ep-switch");
+      const lbl = card.querySelector(".ep-watch-label");
+
+      // Toggle visto / no visto (no abre el reproductor)
+      watchRow.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const nowSeen = !isWatched(currentSeason, n);
+        setWatched(currentSeason, n, nowSeen);
+        sw.classList.toggle("on", nowSeen);
+        sw.setAttribute("aria-checked", String(nowSeen));
+        lbl.classList.toggle("on", nowSeen);
+        lbl.textContent = nowSeen ? "Visto" : "No visto";
+        card.classList.toggle("watched", nowSeen);
+        toast(nowSeen ? `E${n} marcado como visto` : `E${n} marcado como no visto`);
+      });
+
+      // Resto de la card → reproducir
+      card.addEventListener("click", () =>
+        openPlayer(`${ANIME.seasons[currentSeason].name} · Episodio ${n}`));
+    });
   }
   renderEpisodes();
 
