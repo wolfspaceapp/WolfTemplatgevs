@@ -178,21 +178,28 @@
   #view-list .view-title{padding-top:calc(env(safe-area-inset-top) + 20px);font-size:24px;}
 
   /* Explorar: barra de búsqueda destacada */
-  .explore-search{display:flex;align-items:center;gap:10px;width:calc(100% - 32px);margin:12px 16px 4px;
-    padding:13px 15px;border-radius:14px;background:var(--card);border:1px solid var(--border);color:var(--muted);
-    font-size:14px;font-weight:600;transition:border-color .2s,transform .15s;}
+  /* Explorar: header propio */
+  .ex-header{padding:calc(env(safe-area-inset-top) + 18px) 16px 6px;}
+  .ex-title{font-size:26px;font-weight:900;letter-spacing:-.5px;margin-bottom:12px;}
+  .explore-search{display:flex;align-items:center;gap:10px;width:100%;
+    padding:14px 16px;border-radius:15px;background:var(--card);border:1px solid var(--border);color:var(--muted);
+    font-size:14px;font-weight:600;transition:border-color .2s,transform .15s,box-shadow .2s;}
   .explore-search:active{transform:scale(.99);}
   .explore-search svg{width:20px;height:20px;fill:var(--accent);flex:0 0 auto;}
-  .explore-sub{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;padding:18px 16px 10px;}
+  .explore-sub{font-size:12.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;padding:20px 16px 11px;}
 
-  /* Explorar: cuadrícula de géneros con imagen */
+  /* Explorar: cuadrícula de géneros con imagen + tinte de color */
   .genre-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;padding:0 16px;}
-  .genre-cell{position:relative;height:88px;border-radius:16px;overflow:hidden;cursor:pointer;
-    display:flex;align-items:flex-end;padding:12px;transition:transform .18s;}
+  .genre-cell{position:relative;height:92px;border-radius:16px;overflow:hidden;cursor:pointer;
+    display:flex;align-items:center;padding:0 14px;transition:transform .18s;box-shadow:0 8px 18px -10px rgba(0,0,0,.7);}
   .genre-cell:active{transform:scale(.95);}
-  .genre-cell .gimg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.45;}
-  .genre-cell .gname{position:relative;z-index:1;font-size:14px;font-weight:800;text-shadow:0 2px 8px rgba(0,0,0,.8);}
-  .genre-cell::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.4),transparent);}
+  .genre-cell .gimg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.5;transform:scale(1);transition:transform .4s;}
+  .genre-cell:active .gimg{transform:scale(1.08);}
+  /* overlay con tinte de color único por celda (set vía --c) */
+  .genre-cell::after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,var(--c,rgba(var(--accent-rgb),.85)) 0%,rgba(10,10,12,.6) 75%);}
+  .genre-cell .gname{position:relative;z-index:1;font-size:15px;font-weight:800;text-shadow:0 2px 10px rgba(0,0,0,.7);}
+  .genre-cell .garrow{position:absolute;right:12px;bottom:12px;z-index:1;width:18px;height:18px;opacity:.8;}
+  .genre-cell .garrow svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2.5;}
 
   /* Mi lista: tabs + cuadrícula */
   .list-tabs{display:flex;gap:8px;padding:0 16px;overflow-x:auto;}
@@ -330,12 +337,14 @@
     </div>
     <!-- Vista: Explorar -->
     <div class="view hidden" id="view-explore">
-      <h2 class="view-title">Explorar</h2>
-      <button class="explore-search" id="exploreSearch">
-        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 10-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1114 9.5 4.49 4.49 0 019.5 14z"/></svg>
-        <span>Buscar animes, géneros…</span>
-      </button>
-      <h3 class="explore-sub">Géneros</h3>
+      <div class="ex-header">
+        <h2 class="ex-title">Explorar</h2>
+        <button class="explore-search" id="exploreSearch">
+          <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 10-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1114 9.5 4.49 4.49 0 019.5 14z"/></svg>
+          <span>Buscar animes, géneros…</span>
+        </button>
+      </div>
+      <h3 class="explore-sub">Explora por género</h3>
       <div class="genre-grid" id="genreGrid"></div>
       <div class="rows" id="exploreRows"></div>
     </div>
@@ -629,8 +638,8 @@ const RENDERED={home:true};
 function switchView(v){
   document.querySelectorAll(".view").forEach(el=>el.classList.toggle("hidden", el.id!=="view-"+v));
   document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active", b.dataset.view===v));
-  // ocultar el header global en Mi lista y Cuenta (tienen su propia cabecera)
-  document.getElementById("topbar").classList.toggle("hidden", v==="list"||v==="account");
+  // el header global solo en Inicio (las demás tienen su propia cabecera)
+  document.getElementById("topbar").classList.toggle("hidden", v!=="home");
   document.getElementById("app").scrollTop=0;
   if(v==="list") renderList();          // siempre refresca (favoritos pueden cambiar)
   else if(!RENDERED[v]){
@@ -644,12 +653,18 @@ document.querySelectorAll(".nav-item").forEach(b=>{
 });
 
 /* ----- Explorar ----- */
+const GENRE_COLORS=["rgba(244,117,33,.82)","rgba(99,102,241,.8)","rgba(236,72,153,.8)","rgba(16,185,129,.8)","rgba(59,130,246,.8)","rgba(168,85,247,.8)","rgba(239,68,68,.8)","rgba(234,179,8,.82)"];
 function renderExplore(){
   const genres=Array.from(new Set(DATA.flatMap(d=>d.genres)));
   const gc=document.getElementById("genreGrid");
-  gc.innerHTML=genres.map(g=>{
+  gc.innerHTML=genres.map((g,i)=>{
     const sample=DATA.find(d=>d.genres.includes(g));
-    return `<div class="genre-cell" data-g="${esc(g)}"><div class="gimg" style="background-image:url('${img(sample&&sample.backdrop)}')"></div><span class="gname">${esc(g)}</span></div>`;
+    const c=GENRE_COLORS[i%GENRE_COLORS.length];
+    return `<div class="genre-cell" data-g="${esc(g)}" style="--c:${c}">
+      <div class="gimg" style="background-image:url('${img(sample&&sample.backdrop)}')"></div>
+      <span class="gname">${esc(g)}</span>
+      <span class="garrow"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>
+    </div>`;
   }).join("");
   gc.querySelectorAll(".genre-cell").forEach(el=>el.addEventListener("click",()=>{
     const g=el.dataset.g; openAll(g, DATA.filter(d=>d.genres.includes(g)));
@@ -729,7 +744,7 @@ function showList(tab){
 
 /* ----- Cuenta ----- */
 function renderAccount(){
-  const favs=getFavs().length;
+  const favs=DATA.filter(d=>isFav(d)||statusOf(d)).length;
   const v=document.getElementById("view-account");
   const ICO={
     user:'<path d="M12 12a4 4 0 100-8 4 4 0 000 8z"/><path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6"/>',
