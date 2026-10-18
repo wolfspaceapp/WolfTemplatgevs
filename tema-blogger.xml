@@ -261,169 +261,6 @@
 
   @media(min-width:680px){.poster{flex-basis:130px;width:130px;height:192px;}h1.title{font-size:26px;}.hero,.hero-inner{min-height:46vh;}}
 ]]></b:skin>
-</head>
-
-<body>
-
-<b:section class='nw-main' id='nw-main' showaddelement='no'>
-  <b:widget id='Blog1' locked='true' title='Blog Posts' type='Blog' version='2'>
-    <b:includable id='main'>
-
-      <!-- Solo en la PÁGINA DE ENTRADA (post) renderizamos el detalle -->
-      <b:if cond='data:blog.pageType == &quot;item&quot;'>
-        <b:loop values='data:posts' var='post'>
-
-          <!-- Datos crudos del post ocultos: el JS los lee y construye el detalle -->
-          <div id='nw-source' style='display:none'>
-            <span id='nw-title'><data:post.title/></span>
-            <div id='nw-body'><data:post.body/></div>
-            <span id='nw-date'><data:post.date/></span>
-            <div id='nw-labels'>
-              <b:loop values='data:post.labels' var='label'><span class='nw-label'><data:label.name/></span></b:loop>
-            </div>
-          </div>
-
-          <!-- ===== Barra superior ===== -->
-          <header class='topbar' id='topbar'>
-            <a class='round-btn' expr:href='data:blog.homepageUrl' aria-label='Inicio'>
-              <svg viewBox='0 0 24 24'><path d='M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z'/></svg>
-            </a>
-            <button class='round-btn fav-btn' id='btnHeroFav' aria-label='Favorito'>
-              <svg id='heroFavIcon' viewBox='0 0 24 24'><path d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35zM12 18.5l.1-.09C16.81 14.08 20 11.19 20 8.5 20 6.5 18.5 5 16.5 5c-1.54 0-3.04.99-3.57 2.36h-1.87C10.54 5.99 9.04 5 7.5 5 5.5 5 4 6.5 4 8.5c0 2.69 3.19 5.58 7.9 9.91l.1.09z'/></svg>
-            </button>
-          </header>
-
-          <!-- ===== Hero ===== -->
-          <section class='hero'>
-            <div class='hero-bg-wrap' id='heroWrap'><div class='hero-bg' id='heroBg'/></div>
-            <div class='hero-inner'>
-              <div class='poster reveal d1'><img alt='Poster' id='posterImg'/></div>
-              <div class='hero-meta'>
-                <div class='badges reveal d2' id='badges'/>
-                <h1 class='title reveal d3' id='animeTitle'>...</h1>
-                <div class='sub-meta reveal d4'>
-                  <span class='rating'><svg viewBox='0 0 24 24'><path d='M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z'/></svg><span id='metaRating'>0.0</span></span>
-                  <span class='dot'/><span id='metaYear'>—</span>
-                  <span class='dot'/><span id='metaType'>—</span>
-                  <span class='dot'/><span id='metaExtra'>—</span>
-                </div>
-                <div class='chips reveal d5' id='genreChips'/>
-              </div>
-            </div>
-          </section>
-
-          <!-- ===== Contenido ===== -->
-          <div class='content' id='content'>
-            <div class='cta-row reveal d4'>
-              <button class='btn-play' id='btnPlay'><svg viewBox='0 0 24 24'><path d='M8 5v14l11-7z'/></svg><span id='btnPlayLabel'>Reproducir</span></button>
-              <button class='btn-ghost' id='btnFav' aria-label='Mi lista'><svg viewBox='0 0 24 24'><path d='M14 10H3v2h11v-2zm0-4H3v2h11V6zM3 16h7v-2H3v2zm13-6v4h-3v2h3v4h2v-4h3v-2h-3v-4h-2z'/></svg></button>
-            </div>
-
-            <nav class='tabs reveal d5' id='tabs'/>
-
-            <section class='tab-panel' id='panel-sinopsis'>
-              <div class='section'><p class='synopsis clamp' id='synopsis'/><div class='read-more' id='readMore'>Leer más</div></div>
-            </section>
-            <section class='tab-panel' hidden='hidden' id='panel-reparto'>
-              <div class='section'><div class='cast-grid' id='castGrid'/></div>
-            </section>
-            <section class='tab-panel' hidden='hidden' id='panel-info'>
-              <div class='section'><div class='info-grid' id='infoGrid'/></div>
-            </section>
-
-            <section class='section' hidden='hidden' id='episodesSection'>
-              <div class='section-head'>
-                <h2 class='section-title'>Episodios</h2>
-                <div class='ep-controls'>
-                  <label class='native-season' id='seasonWrap' for='seasonSelect'>
-                    <svg class='lead' viewBox='0 0 24 24'><path d='M12 3L2 8l10 5 10-5-10-5zm0 7.5L4.21 7 12 3.5 19.79 7 12 10.5zM2 12l10 5 10-5-2.3-1.15L12 14.5 4.3 10.85 2 12zm0 4l10 5 10-5-2.3-1.15L12 18.5 4.3 14.85 2 16z'/></svg>
-                    <select id='seasonSelect' aria-label='Temporada'/>
-                    <svg class='caret' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5z'/></svg>
-                  </label>
-                  <label class='sort-pill' for='sortSelect'>
-                    <svg class='sort-ic' viewBox='0 0 24 24'><path d='M3 18h6v-2H3zm0-5h12v-2H3zm0-7v2h18V6z'/></svg>
-                    <select id='sortSelect' aria-label='Ordenar'><option value='asc'>Primero los antiguos</option><option value='desc'>Primero los recientes</option></select>
-                  </label>
-                </div>
-              </div>
-              <div class='ep-list' id='epList'/>
-            </section>
-          </div>
-
-          <!-- ===== Reproductor ===== -->
-          <div class='player' id='player'>
-            <div class='player-video' id='playerVideo'>
-              <video id='plVideoEl' playsinline='playsinline' preload='metadata'/>
-              <iframe id='plIframeEl' allow='autoplay; encrypted-media; fullscreen' allowfullscreen='allowfullscreen'/>
-              <button class='big-play' id='plBigPlay' aria-label='Reproducir'><svg viewBox='0 0 24 24'><path d='M8 5v14l11-7z'/></svg></button>
-              <div class='player-spinner'/>
-            </div>
-            <button class='skip-intro' id='skipIntro'><svg viewBox='0 0 24 24'><path d='M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z'/></svg>Omitir intro</button>
-            <div class='player-ui' id='playerUi'>
-              <div class='pl-top'>
-                <button class='pl-back' id='playerClose' aria-label='Cerrar'><svg viewBox='0 0 24 24'><path d='M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z'/></svg></button>
-                <div class='pl-titles'><b id='plTitle'>...</b><small id='plSubtitle'>—</small></div>
-                <button class='pl-setting' id='plSettings' aria-label='Opciones'><svg viewBox='0 0 24 24'><path d='M19.14 12.94a7.49 7.49 0 000-1.88l2.03-1.58a.5.5 0 00.12-.64l-1.92-3.32a.5.5 0 00-.61-.22l-2.39.96a7.3 7.3 0 00-1.62-.94l-.36-2.54a.5.5 0 00-.5-.42h-3.84a.5.5 0 00-.5.42l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.5.5 0 00-.61.22L2.69 8.84a.5.5 0 00.12.64l2.03 1.58a7.49 7.49 0 000 1.88l-2.03 1.58a.5.5 0 00-.12.64l1.92 3.32c.14.24.42.33.68.22l2.39-.96c.49.38 1.03.7 1.62.94l.36 2.54c.05.24.26.42.5.42h3.84c.24 0 .45-.18.5-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.26.11.54.02.68-.22l1.92-3.32a.5.5 0 00-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1112 8.5a3.5 3.5 0 010 7z'/></svg></button>
-              </div>
-              <div class='pl-center'>
-                <button class='pl-c-btn' id='plRew'><svg viewBox='0 0 24 24'><path d='M12 5V1L7 6l5 5V7a6 6 0 11-6 6H4a8 8 0 108-8z'/></svg><small>10</small></button>
-                <button class='pl-c-btn main' id='plPlayPause'><svg id='plPlayIcon' viewBox='0 0 24 24'><path d='M8 5v14l11-7z'/></svg></button>
-                <button class='pl-c-btn' id='plFwd'><svg viewBox='0 0 24 24'><path d='M12 5V1l5 5-5 5V7a6 6 0 106 6h2a8 8 0 11-8-8z'/></svg><small>10</small></button>
-              </div>
-              <div class='pl-bottom'>
-                <div class='pl-time-row'>
-                  <span id='plCur'>0:00</span>
-                  <div class='pl-seek' id='plSeek'><div class='pl-seek-buffer' id='plBuffer'/><div class='pl-seek-fill' id='plFill'/><div class='pl-seek-knob' id='plKnob'/></div>
-                  <span id='plDur'>0:00</span>
-                </div>
-                <div class='pl-actions'>
-                  <button class='pl-act' id='plLang'><svg viewBox='0 0 24 24'><path d='M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04z'/></svg><span id='plLangTxt'>Idioma</span></button>
-                  <button class='pl-act' id='plFull'><svg viewBox='0 0 24 24'><path d='M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z'/></svg><span>Pantalla</span></button>
-                  <button class='pl-act next' id='plNext'><span id='plNextTxt'>Siguiente</span><svg viewBox='0 0 24 24'><path d='M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z'/></svg></button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- ===== Sheet: Mi lista ===== -->
-          <div class='sheet-backdrop' id='listSheet'>
-            <div class='sheet' id='listSheetBox'>
-              <div class='sheet-grip'/>
-              <div class='sheet-head'><h3 class='sheet-title'>Añadir a Mi lista</h3><button class='sheet-x' id='listSheetClose'><svg viewBox='0 0 24 24'><path d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/></svg></button></div>
-              <p class='sheet-sub'>Elige el estado de este anime</p>
-              <div class='sheet-options' id='listOptions'/>
-              <button class='sheet-remove' hidden='hidden' id='listRemove'><svg viewBox='0 0 24 24'><path d='M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z'/></svg>Quitar de Mi lista</button>
-            </div>
-          </div>
-
-          <!-- ===== Sheet: Reproducir (idioma -> servidor) ===== -->
-          <div class='sheet-backdrop' id='playSheet'>
-            <div class='sheet' id='playSheetBox'>
-              <div class='sheet-grip'/>
-              <div class='sheet-head'><h3 class='sheet-title' id='playSheetTitle'>Reproducir</h3><button class='sheet-x' id='playSheetClose'><svg viewBox='0 0 24 24'><path d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/></svg></button></div>
-              <button class='sheet-back' hidden='hidden' id='playSheetBack'><svg viewBox='0 0 24 24'><path d='M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z'/></svg>Cambiar idioma</button>
-              <p class='sheet-sub' id='playSheetSub'>Elige el idioma</p>
-              <div class='sheet-options' id='playOptions'/>
-            </div>
-          </div>
-
-          <div class='toast' id='toast'/>
-
-        </b:loop>
-      </b:if>
-
-      <!-- Fuera de una entrada: lista simple de enlaces a los posts -->
-      <b:if cond='data:blog.pageType != &quot;item&quot;'>
-        <div style='padding:80px 16px 40px;max-width:720px;margin:0 auto;'>
-          <h1 style='color:var(--accent);font-size:24px;margin-bottom:16px;'><data:blog.title/></h1>
-          <b:loop values='data:posts' var='post'>
-            <a expr:href='data:post.url' style='display:block;padding:14px 16px;margin-bottom:10px;background:var(--card);border:1px solid var(--border);border-radius:12px;color:#fff;font-weight:700;'>
-              <data:post.title/>
-            </a>
-          </b:loop>
-        </div>
-      </b:if>
-
       <script type='text/javascript'>
 //<![CDATA[
 /* ============================================================
@@ -824,6 +661,169 @@ function NWDetail(ANIME, _$){
 }
 //]]>
       </script>
+</head>
+
+<body>
+
+<b:section class='nw-main' id='nw-main' showaddelement='no'>
+  <b:widget id='Blog1' locked='true' title='Blog Posts' type='Blog' version='2'>
+    <b:includable id='main'>
+
+      <!-- Solo en la PÁGINA DE ENTRADA (post) renderizamos el detalle -->
+      <b:if cond='data:blog.pageType == &quot;item&quot;'>
+        <b:loop values='data:posts' var='post'>
+
+          <!-- Datos crudos del post ocultos: el JS los lee y construye el detalle -->
+          <div id='nw-source' style='display:none'>
+            <span id='nw-title'><data:post.title/></span>
+            <div id='nw-body'><data:post.body/></div>
+            <span id='nw-date'><data:post.date/></span>
+            <div id='nw-labels'>
+              <b:loop values='data:post.labels' var='label'><span class='nw-label'><data:label.name/></span></b:loop>
+            </div>
+          </div>
+
+          <!-- ===== Barra superior ===== -->
+          <header class='topbar' id='topbar'>
+            <a class='round-btn' expr:href='data:blog.homepageUrl' aria-label='Inicio'>
+              <svg viewBox='0 0 24 24'><path d='M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z'/></svg>
+            </a>
+            <button class='round-btn fav-btn' id='btnHeroFav' aria-label='Favorito'>
+              <svg id='heroFavIcon' viewBox='0 0 24 24'><path d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35zM12 18.5l.1-.09C16.81 14.08 20 11.19 20 8.5 20 6.5 18.5 5 16.5 5c-1.54 0-3.04.99-3.57 2.36h-1.87C10.54 5.99 9.04 5 7.5 5 5.5 5 4 6.5 4 8.5c0 2.69 3.19 5.58 7.9 9.91l.1.09z'/></svg>
+            </button>
+          </header>
+
+          <!-- ===== Hero ===== -->
+          <section class='hero'>
+            <div class='hero-bg-wrap' id='heroWrap'><div class='hero-bg' id='heroBg'/></div>
+            <div class='hero-inner'>
+              <div class='poster reveal d1'><img alt='Poster' id='posterImg'/></div>
+              <div class='hero-meta'>
+                <div class='badges reveal d2' id='badges'/>
+                <h1 class='title reveal d3' id='animeTitle'>...</h1>
+                <div class='sub-meta reveal d4'>
+                  <span class='rating'><svg viewBox='0 0 24 24'><path d='M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z'/></svg><span id='metaRating'>0.0</span></span>
+                  <span class='dot'/><span id='metaYear'>—</span>
+                  <span class='dot'/><span id='metaType'>—</span>
+                  <span class='dot'/><span id='metaExtra'>—</span>
+                </div>
+                <div class='chips reveal d5' id='genreChips'/>
+              </div>
+            </div>
+          </section>
+
+          <!-- ===== Contenido ===== -->
+          <div class='content' id='content'>
+            <div class='cta-row reveal d4'>
+              <button class='btn-play' id='btnPlay'><svg viewBox='0 0 24 24'><path d='M8 5v14l11-7z'/></svg><span id='btnPlayLabel'>Reproducir</span></button>
+              <button class='btn-ghost' id='btnFav' aria-label='Mi lista'><svg viewBox='0 0 24 24'><path d='M14 10H3v2h11v-2zm0-4H3v2h11V6zM3 16h7v-2H3v2zm13-6v4h-3v2h3v4h2v-4h3v-2h-3v-4h-2z'/></svg></button>
+            </div>
+
+            <nav class='tabs reveal d5' id='tabs'/>
+
+            <section class='tab-panel' id='panel-sinopsis'>
+              <div class='section'><p class='synopsis clamp' id='synopsis'/><div class='read-more' id='readMore'>Leer más</div></div>
+            </section>
+            <section class='tab-panel' hidden='hidden' id='panel-reparto'>
+              <div class='section'><div class='cast-grid' id='castGrid'/></div>
+            </section>
+            <section class='tab-panel' hidden='hidden' id='panel-info'>
+              <div class='section'><div class='info-grid' id='infoGrid'/></div>
+            </section>
+
+            <section class='section' hidden='hidden' id='episodesSection'>
+              <div class='section-head'>
+                <h2 class='section-title'>Episodios</h2>
+                <div class='ep-controls'>
+                  <label class='native-season' id='seasonWrap' for='seasonSelect'>
+                    <svg class='lead' viewBox='0 0 24 24'><path d='M12 3L2 8l10 5 10-5-10-5zm0 7.5L4.21 7 12 3.5 19.79 7 12 10.5zM2 12l10 5 10-5-2.3-1.15L12 14.5 4.3 10.85 2 12zm0 4l10 5 10-5-2.3-1.15L12 18.5 4.3 14.85 2 16z'/></svg>
+                    <select id='seasonSelect' aria-label='Temporada'/>
+                    <svg class='caret' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5z'/></svg>
+                  </label>
+                  <label class='sort-pill' for='sortSelect'>
+                    <svg class='sort-ic' viewBox='0 0 24 24'><path d='M3 18h6v-2H3zm0-5h12v-2H3zm0-7v2h18V6z'/></svg>
+                    <select id='sortSelect' aria-label='Ordenar'><option value='asc'>Primero los antiguos</option><option value='desc'>Primero los recientes</option></select>
+                  </label>
+                </div>
+              </div>
+              <div class='ep-list' id='epList'/>
+            </section>
+          </div>
+
+          <!-- ===== Reproductor ===== -->
+          <div class='player' id='player'>
+            <div class='player-video' id='playerVideo'>
+              <video id='plVideoEl' playsinline='playsinline' preload='metadata'/>
+              <iframe id='plIframeEl' allow='autoplay; encrypted-media; fullscreen' allowfullscreen='allowfullscreen'/>
+              <button class='big-play' id='plBigPlay' aria-label='Reproducir'><svg viewBox='0 0 24 24'><path d='M8 5v14l11-7z'/></svg></button>
+              <div class='player-spinner'/>
+            </div>
+            <button class='skip-intro' id='skipIntro'><svg viewBox='0 0 24 24'><path d='M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z'/></svg>Omitir intro</button>
+            <div class='player-ui' id='playerUi'>
+              <div class='pl-top'>
+                <button class='pl-back' id='playerClose' aria-label='Cerrar'><svg viewBox='0 0 24 24'><path d='M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z'/></svg></button>
+                <div class='pl-titles'><b id='plTitle'>...</b><small id='plSubtitle'>—</small></div>
+                <button class='pl-setting' id='plSettings' aria-label='Opciones'><svg viewBox='0 0 24 24'><path d='M19.14 12.94a7.49 7.49 0 000-1.88l2.03-1.58a.5.5 0 00.12-.64l-1.92-3.32a.5.5 0 00-.61-.22l-2.39.96a7.3 7.3 0 00-1.62-.94l-.36-2.54a.5.5 0 00-.5-.42h-3.84a.5.5 0 00-.5.42l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.5.5 0 00-.61.22L2.69 8.84a.5.5 0 00.12.64l2.03 1.58a7.49 7.49 0 000 1.88l-2.03 1.58a.5.5 0 00-.12.64l1.92 3.32c.14.24.42.33.68.22l2.39-.96c.49.38 1.03.7 1.62.94l.36 2.54c.05.24.26.42.5.42h3.84c.24 0 .45-.18.5-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.26.11.54.02.68-.22l1.92-3.32a.5.5 0 00-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1112 8.5a3.5 3.5 0 010 7z'/></svg></button>
+              </div>
+              <div class='pl-center'>
+                <button class='pl-c-btn' id='plRew'><svg viewBox='0 0 24 24'><path d='M12 5V1L7 6l5 5V7a6 6 0 11-6 6H4a8 8 0 108-8z'/></svg><small>10</small></button>
+                <button class='pl-c-btn main' id='plPlayPause'><svg id='plPlayIcon' viewBox='0 0 24 24'><path d='M8 5v14l11-7z'/></svg></button>
+                <button class='pl-c-btn' id='plFwd'><svg viewBox='0 0 24 24'><path d='M12 5V1l5 5-5 5V7a6 6 0 106 6h2a8 8 0 11-8-8z'/></svg><small>10</small></button>
+              </div>
+              <div class='pl-bottom'>
+                <div class='pl-time-row'>
+                  <span id='plCur'>0:00</span>
+                  <div class='pl-seek' id='plSeek'><div class='pl-seek-buffer' id='plBuffer'/><div class='pl-seek-fill' id='plFill'/><div class='pl-seek-knob' id='plKnob'/></div>
+                  <span id='plDur'>0:00</span>
+                </div>
+                <div class='pl-actions'>
+                  <button class='pl-act' id='plLang'><svg viewBox='0 0 24 24'><path d='M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04z'/></svg><span id='plLangTxt'>Idioma</span></button>
+                  <button class='pl-act' id='plFull'><svg viewBox='0 0 24 24'><path d='M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z'/></svg><span>Pantalla</span></button>
+                  <button class='pl-act next' id='plNext'><span id='plNextTxt'>Siguiente</span><svg viewBox='0 0 24 24'><path d='M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z'/></svg></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== Sheet: Mi lista ===== -->
+          <div class='sheet-backdrop' id='listSheet'>
+            <div class='sheet' id='listSheetBox'>
+              <div class='sheet-grip'/>
+              <div class='sheet-head'><h3 class='sheet-title'>Añadir a Mi lista</h3><button class='sheet-x' id='listSheetClose'><svg viewBox='0 0 24 24'><path d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/></svg></button></div>
+              <p class='sheet-sub'>Elige el estado de este anime</p>
+              <div class='sheet-options' id='listOptions'/>
+              <button class='sheet-remove' hidden='hidden' id='listRemove'><svg viewBox='0 0 24 24'><path d='M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z'/></svg>Quitar de Mi lista</button>
+            </div>
+          </div>
+
+          <!-- ===== Sheet: Reproducir (idioma -> servidor) ===== -->
+          <div class='sheet-backdrop' id='playSheet'>
+            <div class='sheet' id='playSheetBox'>
+              <div class='sheet-grip'/>
+              <div class='sheet-head'><h3 class='sheet-title' id='playSheetTitle'>Reproducir</h3><button class='sheet-x' id='playSheetClose'><svg viewBox='0 0 24 24'><path d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/></svg></button></div>
+              <button class='sheet-back' hidden='hidden' id='playSheetBack'><svg viewBox='0 0 24 24'><path d='M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z'/></svg>Cambiar idioma</button>
+              <p class='sheet-sub' id='playSheetSub'>Elige el idioma</p>
+              <div class='sheet-options' id='playOptions'/>
+            </div>
+          </div>
+
+          <div class='toast' id='toast'/>
+
+        </b:loop>
+      </b:if>
+
+      <!-- Fuera de una entrada: lista simple de enlaces a los posts -->
+      <b:if cond='data:blog.pageType != &quot;item&quot;'>
+        <div style='padding:80px 16px 40px;max-width:720px;margin:0 auto;'>
+          <h1 style='color:var(--accent);font-size:24px;margin-bottom:16px;'><data:blog.title/></h1>
+          <b:loop values='data:posts' var='post'>
+            <a expr:href='data:post.url' style='display:block;padding:14px 16px;margin-bottom:10px;background:var(--card);border:1px solid var(--border);border-radius:12px;color:#fff;font-weight:700;'>
+              <data:post.title/>
+            </a>
+          </b:loop>
+        </div>
+      </b:if>
+
 
     </b:includable>
   </b:widget>
