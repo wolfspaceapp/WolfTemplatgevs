@@ -50,52 +50,52 @@
   .rows{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 20px) !important;}
 
   /* ===== Hero destacado (compacto) ===== */
-  .hero{position:relative;height:60vh;min-height:380px;max-height:520px;}
-  .hero-slide{position:absolute;inset:0;opacity:0;transition:opacity .9s ease;pointer-events:none;}
+  .hero{position:relative;height:62vh;min-height:400px;max-height:540px;overflow:hidden;}
+  .hero-slide{position:absolute;inset:0;opacity:0;transition:opacity .7s ease;pointer-events:none;}
   .hero-slide.on{opacity:1;pointer-events:auto;}
-  .hero-bg{position:absolute;inset:0;background-size:cover;background-position:center top;}
+  .hero-bg{position:absolute;inset:0;background-size:cover;background-position:center 20%;}
+  /* overlay más limpio y cinematográfico */
   .hero-bg::after{content:"";position:absolute;inset:0;
     background:
-      radial-gradient(130% 80% at 80% 15%, rgba(var(--accent-rgb),.16), transparent 55%),
-      linear-gradient(180deg,rgba(10,10,10,.5) 0%,rgba(10,10,10,0) 30%,rgba(10,10,10,.55) 60%,rgba(10,10,10,.94) 86%,var(--bg) 100%);}
-  .hero-content{position:absolute;left:0;right:0;bottom:12px;padding:0 16px;z-index:2;}
+      linear-gradient(0deg,var(--bg) 2%,rgba(10,10,10,.7) 24%,rgba(10,10,10,.1) 55%,rgba(10,10,10,.5) 100%);}
+  .hero-content{position:absolute;left:0;right:0;bottom:18px;padding:0 18px;z-index:2;text-align:center;}
 
-  .hero-tag{display:inline-flex;align-items:center;gap:5px;margin-bottom:9px;
-    font-size:9.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#fff;
-    padding:4px 9px;border-radius:999px;background:rgba(var(--accent-rgb),.22);
-    border:1px solid rgba(var(--accent-rgb),.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);}
-  .hero-tag svg{width:12px;height:12px;fill:var(--accent-2);}
-  .hero-tag b{color:var(--accent-2);}
+  .hero-tag{display:inline-flex;align-items:center;gap:5px;margin:0 auto 11px;
+    font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--accent-2);
+    padding:5px 12px;border-radius:999px;background:rgba(var(--accent-rgb),.14);
+    border:1px solid rgba(var(--accent-rgb),.4);}
+  .hero-tag svg{width:13px;height:13px;fill:var(--accent-2);}
 
-  .hero-logo{font-size:26px;font-weight:900;line-height:1.05;margin-bottom:9px;
-    text-shadow:0 4px 20px rgba(0,0,0,.75);max-width:92%;letter-spacing:-.4px;}
+  .hero-logo{font-size:30px;font-weight:900;line-height:1.05;margin-bottom:11px;
+    text-shadow:0 3px 18px rgba(0,0,0,.8);letter-spacing:-.5px;}
 
-  .hero-genres{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
-  .hero-genres span{font-size:10px;font-weight:700;color:#eee;padding:3px 9px;border-radius:999px;
-    background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
+  .hero-genres{display:flex;justify-content:center;flex-wrap:wrap;gap:0;margin-bottom:14px;color:#cfcfcf;font-size:11.5px;font-weight:600;}
+  .hero-genres span{position:relative;padding:0 9px;}
+  .hero-genres span+span::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:3px;border-radius:50%;background:var(--accent);}
 
-  .hero-meta{display:flex;align-items:center;flex-wrap:wrap;gap:5px 9px;color:#dcdcdc;font-size:11.5px;font-weight:700;margin-bottom:13px;}
+  .hero-meta{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:5px 9px;color:#dcdcdc;font-size:11.5px;font-weight:700;margin-bottom:16px;}
   .hero-meta .rate{display:inline-flex;align-items:center;gap:3px;color:#ffd04a;}
   .hero-meta .rate svg{width:13px;height:13px;fill:#ffd04a;}
   .hero-meta .tag-hd{color:var(--accent-2);border:1px solid rgba(var(--accent-rgb),.5);padding:1px 6px;border-radius:5px;font-size:9.5px;font-weight:800;}
-  .hero-meta .dot{width:3px;height:3px;border-radius:50%;background:#888;}
+  .hero-meta .dot{width:3px;height:3px;border-radius:50%;background:#777;}
 
-  .hero-actions{display:flex;gap:8px;}
-  .btn-play{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:12px;border-radius:12px;
-    font-size:14px;font-weight:800;color:#fff;background:var(--grad);
-    box-shadow:0 8px 20px rgba(var(--accent-rgb),.45),inset 0 1px 0 rgba(255,255,255,.3);
+  .hero-actions{display:flex;gap:9px;max-width:420px;margin:0 auto;}
+  .btn-play{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:13px;border-radius:14px;
+    font-size:14.5px;font-weight:800;color:#fff;background:var(--grad);
+    box-shadow:0 10px 24px -4px rgba(var(--accent-rgb),.6),inset 0 1px 0 rgba(255,255,255,.3);
     transition:transform .18s;}
   .btn-play:active{transform:scale(.97);}
   .btn-play svg{width:18px;height:18px;}
-  .btn-round{display:flex;align-items:center;justify-content:center;gap:6px;flex:0 0 auto;
-    padding:0 14px;height:44px;border-radius:12px;font-size:12.5px;font-weight:800;color:#fff;
-    background:rgba(28,28,32,.66);border:1px solid var(--border);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:transform .18s,background .2s;}
-  .btn-round:active{transform:scale(.94);}
-  .btn-round svg{width:18px;height:18px;}
+  .btn-round{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:50px;height:50px;border-radius:14px;color:#fff;
+    background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);transition:transform .18s,background .2s;}
+  .btn-round:active{transform:scale(.92);}
+  .btn-round svg{width:22px;height:22px;}
+  .btn-round span{display:none;}
 
-  .hero-dots{display:flex;gap:6px;justify-content:center;margin-top:13px;}
-  .hero-dots span{width:6px;height:6px;border-radius:999px;background:rgba(255,255,255,.3);cursor:pointer;transition:width .35s,background .35s;}
-  .hero-dots span.on{width:20px;background:var(--grad);box-shadow:0 0 8px rgba(var(--accent-rgb),.6);}
+  /* dots DENTRO del hero, arriba-derecha, estilo moderno */
+  .hero-dots{position:absolute;top:calc(env(safe-area-inset-top) + 56px);right:16px;z-index:3;display:flex;flex-direction:column;gap:6px;}
+  .hero-dots span{width:4px;height:4px;border-radius:999px;background:rgba(255,255,255,.4);cursor:pointer;transition:height .35s,background .35s;}
+  .hero-dots span.on{height:16px;background:var(--grad);box-shadow:0 0 8px rgba(var(--accent-rgb),.6);}
 
   /* ===== Filas / carruseles (compacto) ===== */
   .rows{padding:10px 0 20px;}
@@ -147,16 +147,20 @@
   .card-wide .ctitle{font-size:12px;font-weight:700;margin-top:7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .card-wide .csub{font-size:10.5px;color:var(--muted);margin-top:1px;}
 
-  /* ===== Top 10 — moderno y compacto ===== */
-  .top10 .row-scroll{gap:0;padding-left:30px;}
-  .top10-card{flex:0 0 118px;scroll-snap-align:start;position:relative;display:flex;align-items:flex-end;cursor:pointer;height:130px;transition:transform .2s;}
+  /* ===== Top 10 — rediseño ===== */
+  .top10 .row-scroll{gap:14px;padding:4px 16px 4px 40px;}
+  .top10-card{flex:0 0 110px;scroll-snap-align:start;position:relative;cursor:pointer;transition:transform .2s;}
   .top10-card:active{transform:scale(.95);}
-  .top10-num{position:absolute;left:-26px;bottom:-6px;z-index:1;font-size:96px;font-weight:900;line-height:.8;
-    background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
-    filter:drop-shadow(0 2px 6px rgba(0,0,0,.6));}
-  .top10-card .poster{position:relative;z-index:2;width:88px;height:126px;border-radius:11px;overflow:hidden;background:var(--bg2);
-    box-shadow:0 8px 18px -8px rgba(0,0,0,.75),0 0 0 1px rgba(255,255,255,.08);}
+  .top10-num{position:absolute;left:-34px;bottom:30px;z-index:1;font-size:88px;font-weight:900;line-height:.8;
+    color:#15151a;-webkit-text-stroke:2px rgba(var(--accent-rgb),.9);
+    text-shadow:0 0 22px rgba(var(--accent-rgb),.3);letter-spacing:-4px;}
+  .top10-card .poster{position:relative;z-index:2;width:110px;height:158px;border-radius:14px;overflow:hidden;background:var(--bg2);
+    box-shadow:0 10px 22px -8px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.08);}
   .top10-card .poster img{width:100%;height:100%;object-fit:cover;}
+  .top10-card .poster::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,rgba(0,0,0,.65));}
+  .top10-card .trate{position:absolute;right:7px;bottom:7px;z-index:3;display:flex;align-items:center;gap:2px;font-size:10px;font-weight:800;color:#fff;}
+  .top10-card .trate svg{width:11px;height:11px;fill:#ffd04a;}
+  .top10-card .tname{font-size:11.5px;font-weight:700;margin-top:7px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
   /* ===== Vistas (Explorar / Mi lista / Cuenta) ===== */
   .view{animation:fadeIn .3s ease;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 20px);}
@@ -428,7 +432,7 @@ function heroSlide(it,on,rank){
       <div class="hero-meta">${meta}</div>
       <div class="hero-actions">
         <button class="btn-play" data-play><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Reproducir</button>
-        <button class="btn-round" data-info><svg viewBox="0 0 24 24"><path d="M12 4a1.4 1.4 0 110 2.8A1.4 1.4 0 0112 4zm1.2 15h-2.4v-8h2.4z"/></svg> Mi lista</button>
+        <button class="btn-round" data-info aria-label="Mi lista"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg><span>Mi lista</span></button>
       </div>
     </div>
   </div>`;
@@ -502,10 +506,16 @@ function wideHTML(it){
   </div>`;
 }
 function top10HTML(items){
-  return `<div class="row top10 reveal"><div class="row-head"><div class="row-title">TOP 10 hoy</div></div>
+  return `<div class="row top10 reveal"><div class="row-head"><div class="row-title">Top 10 hoy</div></div>
     <div class="row-scroll">${items.slice(0,10).map((it,i)=>`
-      <div class="top10-card" data-id="${esc(it.id)}"><div class="top10-num">${i+1}</div>
-      <div class="poster"><img src="${img(it.poster)}" onerror="this.src='${FALL}'" alt=""/></div></div>`).join("")}</div></div>`;
+      <div class="top10-card" data-id="${esc(it.id)}">
+        <div class="top10-num">${i+1}</div>
+        <div class="poster">
+          <span class="trate"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>${it.rating}</span>
+          <img src="${img(it.poster)}" onerror="this.src='${FALL}'" alt=""/>
+        </div>
+        <div class="tname">${esc(it.title)}</div>
+      </div>`).join("")}</div></div>`;
 }
 function rowHTML(title,items,variant,rowId){
   if(!items.length) return "";
