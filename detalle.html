@@ -32,13 +32,26 @@
   /* ====== Keyframes ====== */
   @keyframes fadeUp{from{opacity:0;transform:translateY(26px);}to{opacity:1;transform:translateY(0);}}
   @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-  @keyframes slowZoom{from{transform:scale(1.12);}to{transform:scale(1);}}
   @keyframes pulseGlow{
     0%,100%{box-shadow:0 0 0 0 rgba(244,117,33,.55);}
     50%{box-shadow:0 0 0 14px rgba(244,117,33,0);}
   }
   @keyframes floatPoster{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
   @keyframes popIn{from{opacity:0;transform:scale(.96) translateY(8px);}to{opacity:1;transform:scale(1) translateY(0);}}
+  /* --- Ken Burns: paneo + zoom continuo en bucle para la imagen de fondo --- */
+  @keyframes kenBurns{
+    0%{transform:scale(1.15) translate3d(0,0,0);}
+    50%{transform:scale(1.28) translate3d(-3%,-2.5%,0);}
+    100%{transform:scale(1.15) translate3d(0,0,0);}
+  }
+  /* --- Brillo/gradiente animado que recorre el backdrop --- */
+  @keyframes sheen{
+    0%{transform:translateX(-120%) rotate(8deg);}
+    100%{transform:translateX(220%) rotate(8deg);}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .hero-bg,.poster{animation:none !important;}
+  }
 
   .reveal{opacity:0;animation:fadeUp .7s cubic-bezier(.22,.61,.36,1) forwards;}
   .d1{animation-delay:.15s;}.d2{animation-delay:.28s;}.d3{animation-delay:.4s;}
@@ -69,15 +82,28 @@
 
   /* ====== Hero ====== */
   .hero{position:relative;width:100%;min-height:78vh;overflow:hidden;}
+  /* wrapper para parallax (lo movemos con JS) */
+  .hero-bg-wrap{position:absolute;inset:0;overflow:hidden;will-change:transform;}
   .hero-bg{
-    position:absolute;inset:0;background-size:cover;background-position:center;
-    animation:slowZoom 8s ease-out forwards;
+    position:absolute;inset:-6% ;   /* overscan para que el paneo no muestre bordes */
+    background-size:cover;background-position:center;
+    transform-origin:center;
+    animation:kenBurns 26s ease-in-out infinite;
+    will-change:transform;
   }
   .hero-bg::after{
     content:"";position:absolute;inset:0;
     background:
       linear-gradient(180deg,rgba(10,10,10,.35) 0%,rgba(10,10,10,0) 30%,rgba(10,10,10,.75) 72%,var(--bg) 100%),
       linear-gradient(90deg,rgba(10,10,10,.55),rgba(10,10,10,0) 60%);
+  }
+  /* destello que recorre el fondo */
+  .hero-sheen{
+    position:absolute;top:-30%;left:0;width:45%;height:160%;z-index:1;pointer-events:none;
+    background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.08) 50%,rgba(255,255,255,0) 100%);
+    filter:blur(6px);
+    animation:sheen 9s ease-in-out infinite;
+    animation-delay:1.5s;
   }
   .hero-inner{
     position:relative;z-index:2;
@@ -115,7 +141,7 @@
   }
 
   /* CTA buttons */
-  .cta-row{display:flex;gap:12px;margin:6px 0 26px;}
+  .cta-row{display:flex;gap:12px;margin:6px 0 22px;}
   .btn-play{
     flex:1;display:flex;align-items:center;justify-content:center;gap:9px;
     padding:15px 20px;border-radius:14px;font-size:16px;font-weight:800;
@@ -136,13 +162,33 @@
   .btn-ghost svg{width:24px;height:24px;}
 
   /* Genre chips */
-  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
   .chip{
     font-size:13px;font-weight:600;padding:7px 14px;border-radius:999px;
     background:var(--card);border:1px solid var(--border);color:#ddd;
     transition:transform .15s, border-color .2s;
   }
   .chip:active{transform:scale(.94);border-color:var(--accent);}
+
+  /* ====== TABS ====== */
+  .tabs{
+    position:sticky;top:calc(env(safe-area-inset-top) + 56px);z-index:30;
+    display:flex;gap:6px;margin:0 -20px 20px;padding:10px 20px;
+    overflow-x:auto;-webkit-overflow-scrolling:touch;
+    background:linear-gradient(180deg,var(--bg) 70%,rgba(10,10,10,0));
+  }
+  .tabs::-webkit-scrollbar{height:0;}
+  .tab{
+    flex:0 0 auto;position:relative;padding:9px 16px;border-radius:999px;
+    font-size:14px;font-weight:700;color:var(--muted);white-space:nowrap;
+    background:var(--card);border:1px solid var(--border);
+    transition:color .2s, background .25s, border-color .2s, transform .15s;
+  }
+  .tab:active{transform:scale(.95);}
+  .tab.active{color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent-2));border-color:transparent;}
+
+  .tab-panel{animation:fadeIn .35s ease;}
+  .tab-panel[hidden]{display:none;}
 
   /* Section */
   .section{margin-bottom:28px;}
@@ -151,7 +197,7 @@
   .section-title::before{content:"";width:4px;height:18px;border-radius:3px;background:var(--accent);}
 
   .synopsis{color:#cfcfcf;font-size:15px;line-height:1.7;}
-  .synopsis.clamp{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;}
+  .synopsis.clamp{display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden;}
   .read-more{margin-top:8px;color:var(--accent);font-weight:700;font-size:14px;}
 
   /* Info grid */
@@ -164,45 +210,42 @@
   .info-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
   .info-value{font-size:15px;font-weight:700;}
 
-  /* ====== Serie: controles (temporada + ordenar) ====== */
+  /* ====== Serie: controles (temporada <select> nativo + ordenar) ====== */
   .ep-controls{display:flex;align-items:center;gap:10px;}
-  .season-select{position:relative;}
-  .season-btn,.sort-btn{
+  .native-season{
+    position:relative;display:flex;align-items:center;
+    background:var(--card);border:1px solid var(--border);border-radius:11px;
+    padding-left:12px;transition:border-color .2s;
+  }
+  .native-season:focus-within{border-color:rgba(244,117,33,.6);}
+  .native-season svg.lead{width:18px;height:18px;color:#fff;pointer-events:none;}
+  /* El <select> nativo: en Android/WebView abre el diálogo/lista nativo del sistema */
+  .native-season select{
+    appearance:none;-webkit-appearance:none;-moz-appearance:none;
+    background:transparent;color:#fff;font-size:14px;font-weight:700;
+    border:none;outline:none;padding:10px 34px 10px 8px;cursor:pointer;
+    max-width:180px;text-overflow:ellipsis;
+  }
+  .native-season select option{color:#111;}
+  .native-season svg.caret{
+    position:absolute;right:10px;width:18px;height:18px;color:#fff;pointer-events:none;
+  }
+  .sort-btn{
     display:flex;align-items:center;gap:7px;
-    padding:9px 14px;border-radius:11px;font-size:14px;font-weight:700;
+    padding:11px 12px;border-radius:11px;font-size:14px;font-weight:700;
     background:var(--card);border:1px solid var(--border);color:#fff;
-    transition:transform .15s, border-color .2s, background .2s;
+    transition:transform .15s, border-color .2s;
   }
-  .season-btn:active,.sort-btn:active{transform:scale(.95);}
-  .season-btn svg,.sort-btn svg{width:18px;height:18px;}
-  .season-btn .caret{transition:transform .25s;}
-  .season-select.open .caret{transform:rotate(180deg);}
-  .sort-btn{padding:9px 12px;}
+  .sort-btn:active{transform:scale(.95);}
+  .sort-btn svg{width:18px;height:18px;transition:transform .3s;}
   .sort-btn.desc svg{transform:scaleY(-1);}
-
-  .season-menu{
-    position:absolute;top:calc(100% + 8px);left:0;z-index:20;min-width:200px;
-    background:#17171a;border:1px solid var(--border);border-radius:14px;
-    padding:6px;box-shadow:0 18px 44px rgba(0,0,0,.6);
-    opacity:0;transform:translateY(-8px);pointer-events:none;
-    transition:opacity .2s, transform .2s;
-  }
-  .season-select.open .season-menu{opacity:1;transform:translateY(0);pointer-events:auto;}
-  .season-item{
-    display:flex;align-items:center;justify-content:space-between;gap:12px;
-    padding:11px 12px;border-radius:9px;font-size:14px;font-weight:600;width:100%;text-align:left;
-    transition:background .15s;
-  }
-  .season-item:active{background:rgba(255,255,255,.06);}
-  .season-item.active{color:var(--accent);background:rgba(244,117,33,.12);}
-  .season-item small{color:var(--muted);font-weight:600;}
 
   /* ====== Lista de episodios (tarjetas) ====== */
   .ep-list{display:flex;flex-direction:column;gap:12px;}
   .ep-item{
     display:flex;gap:13px;padding:10px;border-radius:14px;
     background:var(--card);border:1px solid var(--border);cursor:pointer;
-    animation:popIn .4s ease forwards;
+    animation:popIn .4s ease both;
     transition:transform .18s, border-color .2s, background .2s;
   }
   .ep-item:active{transform:scale(.985);border-color:rgba(244,117,33,.45);background:#1f1f22;}
@@ -225,9 +268,8 @@
   .ep-desc{font-size:12.5px;color:var(--muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 
   /* Cast */
-  .cast-scroll{display:flex;gap:16px;overflow-x:auto;padding-bottom:6px;}
-  .cast-scroll::-webkit-scrollbar{height:0;}
-  .cast-card{flex:0 0 76px;text-align:center;}
+  .cast-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:18px 10px;}
+  .cast-card{text-align:center;}
   .cast-img{width:76px;height:76px;border-radius:50%;overflow:hidden;border:2px solid var(--border);margin:0 auto 8px;}
   .cast-img img{width:100%;height:100%;object-fit:cover;}
   .cast-name{font-size:12px;font-weight:700;line-height:1.2;}
@@ -286,7 +328,10 @@
 
   <!-- ===== Hero ===== -->
   <section class="hero">
-    <div class="hero-bg" id="heroBg"></div>
+    <div class="hero-bg-wrap" id="heroWrap">
+      <div class="hero-bg" id="heroBg"></div>
+      <div class="hero-sheen"></div>
+    </div>
     <div class="hero-inner">
       <div class="poster reveal d1" id="poster"><img id="posterImg" alt="Poster" /></div>
       <div class="hero-meta">
@@ -323,42 +368,54 @@
 
     <div class="chips reveal d5" id="genreChips"></div>
 
-    <div class="section reveal d5">
-      <h2 class="section-title">Sinopsis</h2>
-      <p class="synopsis clamp" id="synopsis"></p>
-      <div class="read-more" id="readMore">Leer más ▾</div>
-    </div>
+    <!-- ===== TABS ===== -->
+    <nav class="tabs reveal d5" id="tabs"></nav>
 
-    <!-- ===== Solo SERIE: episodios con temporadas + ordenar ===== -->
-    <div class="section reveal d6" id="episodesSection" hidden>
-      <div class="section-head">
-        <h2 class="section-title">Episodios</h2>
-        <div class="ep-controls">
-          <div class="season-select" id="seasonSelect">
-            <button class="season-btn" id="seasonBtn">
-              <svg viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
-              <span id="seasonLabel">Temporada 1</span>
-              <svg class="caret" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
-            </button>
-            <div class="season-menu" id="seasonMenu"></div>
-          </div>
-          <button class="sort-btn" id="sortBtn" title="Ordenar">
-            <svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3zm0-5h12v-2H3zm0-7v2h18V6z"/></svg>
-          </button>
-        </div>
+    <!-- ===== Panel: Sinopsis ===== -->
+    <section class="tab-panel" id="panel-sinopsis">
+      <div class="section">
+        <h2 class="section-title">Sinopsis</h2>
+        <p class="synopsis clamp" id="synopsis"></p>
+        <div class="read-more" id="readMore">Leer más ▾</div>
       </div>
-      <div class="ep-list" id="epList"></div>
-    </div>
+    </section>
 
-    <div class="section reveal d6">
-      <h2 class="section-title">Reparto de voces</h2>
-      <div class="cast-scroll" id="castScroll"></div>
-    </div>
+    <!-- ===== Panel: Episodios (solo serie) ===== -->
+    <section class="tab-panel" id="panel-episodios" hidden>
+      <div class="section">
+        <div class="section-head">
+          <h2 class="section-title">Episodios</h2>
+          <div class="ep-controls">
+            <!-- Selector de temporada con <select> NATIVO (lista/diálogo de Android) -->
+            <label class="native-season" for="seasonSelect">
+              <svg class="lead" viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+              <select id="seasonSelect" aria-label="Seleccionar temporada"></select>
+              <svg class="caret" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+            </label>
+            <button class="sort-btn" id="sortBtn" title="Ordenar">
+              <svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3zm0-5h12v-2H3zm0-7v2h18V6z"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="ep-list" id="epList"></div>
+      </div>
+    </section>
 
-    <div class="section reveal d6">
-      <h2 class="section-title">Información</h2>
-      <div class="info-grid" id="infoGrid"></div>
-    </div>
+    <!-- ===== Panel: Reparto ===== -->
+    <section class="tab-panel" id="panel-reparto" hidden>
+      <div class="section">
+        <h2 class="section-title">Reparto de voces</h2>
+        <div class="cast-grid" id="castGrid"></div>
+      </div>
+    </section>
+
+    <!-- ===== Panel: Info ===== -->
+    <section class="tab-panel" id="panel-info" hidden>
+      <div class="section">
+        <h2 class="section-title">Información</h2>
+        <div class="info-grid" id="infoGrid"></div>
+      </div>
+    </section>
 
   </div>
 
@@ -380,8 +437,9 @@
 /* ============================================================
    DATOS — Cambia "type" a "pelicula" o "serie"
    ------------------------------------------------------------
-   type:"pelicula"  → solo muestra el botón Reproducir
-   type:"serie"     → muestra temporadas + ordenar + episodios
+   type:"pelicula"  → tabs: Sinopsis · Reparto · Info  (solo Reproducir)
+   type:"serie"     → tabs: Sinopsis · Episodios · Reparto · Info
+                      (temporadas con <select> nativo + ordenar)
    ============================================================ */
 
 /* ---- EJEMPLO SERIE (activo) ---- */
@@ -400,7 +458,6 @@ const ANIME = {
   badges: ["Simulcast", "HD 1080p", "SUB · DOB", "16+"],
   genres: ["Acción", "Shounen", "Sobrenatural", "Fantasía", "Terror"],
   synopsis: "Yuji Itadori es un estudiante de secundaria con una fuerza física extraordinaria que vive una vida tranquila hasta que, para salvar a sus amigos, se traga un dedo maldito perteneciente a Ryomen Sukuna, un legendario y temible rey de las maldiciones. Al convertirse en el recipiente de este poder, Yuji se une a la Escuela Técnica de Jujutsu de Tokio, donde aprenderá a controlar la energía maldita y luchará junto a otros hechiceros para exorcizar a las criaturas que amenazan a la humanidad.",
-  // Para SERIE: una o varias temporadas
   seasons: [
     {
       name: "Temporada 1",
@@ -453,49 +510,42 @@ const ANIME = {
    ESTADO
    ============================================================ */
 const isMovie = ANIME.type === "pelicula";
-let currentSeason = 0;   // índice de temporada activa (solo serie)
-let sortAsc = true;      // orden de episodios (solo serie)
+let currentSeason = 0;
+let sortAsc = true;
+
+const $ = (id) => document.getElementById(id);
 
 /* ============================================================
-   RENDER BASE (común a serie y película)
+   RENDER BASE
    ============================================================ */
 (function renderBase(){
   document.title = "NekoWolf — " + ANIME.title;
-  document.getElementById("heroBg").style.backgroundImage = `url('${ANIME.backdrop}')`;
-  document.getElementById("posterImg").src = ANIME.poster;
-  document.getElementById("animeTitle").textContent = ANIME.title;
-  document.getElementById("metaRating").textContent = ANIME.rating;
-  document.getElementById("metaYear").textContent = ANIME.year;
-  document.getElementById("metaType").textContent = isMovie ? "Película" : "Serie TV";
-  document.getElementById("synopsis").textContent = ANIME.synopsis;
+  $("heroBg").style.backgroundImage = `url('${ANIME.backdrop}')`;
+  $("posterImg").src = ANIME.poster;
+  $("animeTitle").textContent = ANIME.title;
+  $("metaRating").textContent = ANIME.rating;
+  $("metaYear").textContent = ANIME.year;
+  $("metaType").textContent = isMovie ? "Película" : "Serie TV";
+  $("synopsis").textContent = ANIME.synopsis;
+  $("metaExtra").textContent = isMovie ? ANIME.duration : (totalEpisodes() + " Episodios");
 
-  // Meta extra: duración (película) o nº de episodios (serie)
-  document.getElementById("metaExtra").textContent =
-    isMovie ? ANIME.duration : (totalEpisodes() + " Episodios");
-
-  // Badges
-  document.getElementById("badges").innerHTML = (ANIME.badges || []).map((b,i) => {
+  $("badges").innerHTML = (ANIME.badges || []).map((b,i) => {
     const cls = i === 0 ? "badge accent" : (/HD|1080|720|4K/i.test(b) ? "badge hd" : "badge");
     return `<span class="${cls}">${b}</span>`;
   }).join("");
 
-  // Géneros
-  document.getElementById("genreChips").innerHTML =
+  $("genreChips").innerHTML =
     (ANIME.genres || []).map(g => `<span class="chip">${g}</span>`).join("");
 
-  // Botón reproducir
-  document.getElementById("btnPlayLabel").textContent =
-    isMovie ? "Reproducir película" : "Reproducir E1";
+  $("btnPlayLabel").textContent = isMovie ? "Reproducir película" : "Reproducir E1";
 
-  // Reparto
-  document.getElementById("castScroll").innerHTML = (ANIME.cast || []).map(p => `
+  $("castGrid").innerHTML = (ANIME.cast || []).map(p => `
     <div class="cast-card">
       <div class="cast-img"><img src="${p.img}" alt="${p.name}" /></div>
       <div class="cast-name">${p.name}</div>
       <div class="cast-role">${p.role}</div>
     </div>`).join("");
 
-  // Info
   const info = [
     ["Estado", ANIME.status],
     ["Estudio", ANIME.studio],
@@ -504,7 +554,7 @@ let sortAsc = true;      // orden de episodios (solo serie)
     ["Director", ANIME.director],
     ["Año", ANIME.year]
   ].filter(([,v]) => v != null && v !== "");
-  document.getElementById("infoGrid").innerHTML = info.map(([l,v]) => `
+  $("infoGrid").innerHTML = info.map(([l,v]) => `
     <div class="info-card"><div class="info-label">${l}</div><div class="info-value">${v}</div></div>`).join("");
 })();
 
@@ -513,49 +563,46 @@ function totalEpisodes(){
 }
 
 /* ============================================================
-   MODO SERIE — temporadas, ordenar y lista de episodios
+   TABS
+   ============================================================ */
+(function buildTabs(){
+  const tabsDef = isMovie
+    ? [["sinopsis","Sinopsis"],["reparto","Reparto"],["info","Información"]]
+    : [["sinopsis","Sinopsis"],["episodios","Episodios"],["reparto","Reparto"],["info","Información"]];
+
+  $("tabs").innerHTML = tabsDef
+    .map((t,i) => `<button class="tab ${i===0?'active':''}" data-tab="${t[0]}">${t[1]}</button>`)
+    .join("");
+
+  const panels = ["sinopsis","episodios","reparto","info"];
+  function show(tab){
+    panels.forEach(p => { const el = $("panel-"+p); if(el) el.hidden = (p !== tab); });
+    $("tabs").querySelectorAll(".tab").forEach(b =>
+      b.classList.toggle("active", b.dataset.tab === tab));
+  }
+  $("tabs").querySelectorAll(".tab").forEach(b =>
+    b.addEventListener("click", () => show(b.dataset.tab)));
+  show(tabsDef[0][0]);
+})();
+
+/* ============================================================
+   MODO SERIE — temporadas (select nativo), ordenar, episodios
    ============================================================ */
 if (!isMovie && ANIME.seasons && ANIME.seasons.length){
-  const section = document.getElementById("episodesSection");
-  section.hidden = false;
+  const seasonSelect = $("seasonSelect");
+  const sortBtn      = $("sortBtn");
+  const epList       = $("epList");
 
-  const seasonSelect = document.getElementById("seasonSelect");
-  const seasonBtn    = document.getElementById("seasonBtn");
-  const seasonMenu   = document.getElementById("seasonMenu");
-  const seasonLabel  = document.getElementById("seasonLabel");
-  const sortBtn      = document.getElementById("sortBtn");
-  const epList       = document.getElementById("epList");
+  // Poblamos el <select> nativo → en Android abre la lista/diálogo del sistema
+  seasonSelect.innerHTML = ANIME.seasons
+    .map((t,i) => `<option value="${i}">${t.name} · ${t.episodes.length} ep</option>`)
+    .join("");
+  seasonSelect.value = String(currentSeason);
+  seasonSelect.addEventListener("change", () => {
+    currentSeason = +seasonSelect.value;
+    renderEpisodes();
+  });
 
-  // Menú de temporadas (se oculta si solo hay 1)
-  if (ANIME.seasons.length > 1){
-    seasonMenu.innerHTML = ANIME.seasons.map((t,i) => `
-      <button class="season-item ${i===currentSeason?'active':''}" data-i="${i}">
-        <span>${t.name}</span><small>${t.episodes.length} ep</small>
-      </button>`).join("");
-
-    seasonBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      seasonSelect.classList.toggle("open");
-    });
-    seasonMenu.querySelectorAll(".season-item").forEach(item => {
-      item.addEventListener("click", () => {
-        currentSeason = +item.dataset.i;
-        seasonMenu.querySelectorAll(".season-item").forEach(x => x.classList.remove("active"));
-        item.classList.add("active");
-        seasonLabel.textContent = ANIME.seasons[currentSeason].name;
-        seasonSelect.classList.remove("open");
-        renderEpisodes();
-      });
-    });
-    document.addEventListener("click", () => seasonSelect.classList.remove("open"));
-  } else {
-    // Una sola temporada: el botón no despliega menú
-    seasonBtn.style.pointerEvents = "none";
-    seasonBtn.querySelector(".caret").style.display = "none";
-  }
-  seasonLabel.textContent = ANIME.seasons[currentSeason].name;
-
-  // Botón ordenar
   sortBtn.addEventListener("click", () => {
     sortAsc = !sortAsc;
     sortBtn.classList.toggle("desc", !sortAsc);
@@ -584,58 +631,58 @@ if (!isMovie && ANIME.seasons && ANIME.seasons.length){
       </div>`).join("");
     epList.querySelectorAll(".ep-item").forEach(c =>
       c.addEventListener("click", () =>
-        openPlayer(`${ANIME.seasons[currentSeason].name} · Episodio ${c.dataset.ep}`))
-    );
+        openPlayer(`${ANIME.seasons[currentSeason].name} · Episodio ${c.dataset.ep}`)));
   }
   renderEpisodes();
 
-  // El botón "Reproducir E1" lanza el primer episodio de la temporada actual
-  document.getElementById("btnPlay").addEventListener("click", () => {
+  $("btnPlay").addEventListener("click", () => {
     const first = [...ANIME.seasons[currentSeason].episodes].sort((a,b)=>a.n-b.n)[0];
     openPlayer(`${ANIME.seasons[currentSeason].name} · Episodio ${first ? first.n : 1}`);
   });
 } else {
-  /* ===== MODO PELÍCULA — solo reproducir ===== */
-  document.getElementById("btnPlay").addEventListener("click", () => openPlayer(ANIME.title));
+  $("btnPlay").addEventListener("click", () => openPlayer(ANIME.title));
 }
 
 /* ===== Leer más / menos ===== */
-const syn = document.getElementById("synopsis");
-const rm = document.getElementById("readMore");
-rm.addEventListener("click", () => {
+const syn = $("synopsis");
+$("readMore").addEventListener("click", function(){
   const clamped = syn.classList.toggle("clamp");
-  rm.textContent = clamped ? "Leer más ▾" : "Leer menos ▴";
+  this.textContent = clamped ? "Leer más ▾" : "Leer menos ▴";
 });
 
 /* ===== Favorito / Descargar ===== */
-document.getElementById("btnFav").addEventListener("click", function(){
+$("btnFav").addEventListener("click", function(){
   this.classList.toggle("on");
   toast(this.classList.contains("on") ? "Añadido a Mi lista" : "Quitado de Mi lista");
 });
-document.getElementById("btnDownload").addEventListener("click", () => toast("Descarga iniciada"));
+$("btnDownload").addEventListener("click", () => toast("Descarga iniciada"));
 
 /* ===== Reproductor ===== */
-const player = document.getElementById("player");
+const player = $("player");
 function openPlayer(label){
-  document.getElementById("playerLabel").textContent = "Reproduciendo: " + label;
+  $("playerLabel").textContent = "Reproduciendo: " + label;
   player.classList.add("open");
   document.body.style.overflow = "hidden";
 }
-document.getElementById("playerClose").addEventListener("click", () => {
+$("playerClose").addEventListener("click", () => {
   player.classList.remove("open");
   document.body.style.overflow = "";
 });
 
-/* ===== Top bar solid al hacer scroll ===== */
-const topbar = document.getElementById("topbar");
+/* ===== Scroll: topbar sólida + PARALLAX del fondo ===== */
+const topbar = $("topbar");
+const heroWrap = $("heroWrap");
 window.addEventListener("scroll", () => {
-  topbar.classList.toggle("solid", window.scrollY > 60);
+  const y = window.scrollY;
+  topbar.classList.toggle("solid", y > 60);
+  // Parallax: el fondo se mueve más lento que el scroll
+  heroWrap.style.transform = `translate3d(0, ${y * 0.4}px, 0)`;
 }, { passive:true });
 
 /* ===== Toast ===== */
 let toastTimer;
 function toast(msg){
-  const t = document.getElementById("toast");
+  const t = $("toast");
   t.textContent = msg;
   t.classList.add("show");
   clearTimeout(toastTimer);
