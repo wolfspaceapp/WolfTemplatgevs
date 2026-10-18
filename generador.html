@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NekoWolf — Generador de entradas (TMDB)</title>
+<style>
+  :root{
+    --accent:#f47521; --accent2:#ff9a52;
+    --bg:#0b0b0d; --bg2:#151518; --card:#1b1b1f; --card2:#222228;
+    --text:#f4f4f6; --muted:#9a9aa3; --border:rgba(255,255,255,.1);
+    --ok:#3ecf8e; --err:#ff5a6a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.5;padding-bottom:60px;}
+  a{color:var(--accent);}
+  h1,h2,h3{line-height:1.2;}
+  .wrap{max-width:860px;margin:0 auto;padding:20px 16px;}
+  header{display:flex;align-items:center;gap:12px;padding:18px 16px;position:sticky;top:0;z-index:5;background:linear-gradient(180deg,var(--bg),rgba(11,11,13,.9));backdrop-filter:blur(8px);border-bottom:1px solid var(--border);}
+  .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;}
+  header h1{font-size:18px;font-weight:800;}
+  header small{display:block;color:var(--muted);font-size:12px;font-weight:600;}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:18px;}
+  .card > h2{font-size:15px;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+  .card > h2 .step{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+  .card > .hint{color:var(--muted);font-size:12.5px;margin-bottom:14px;}
+
+  label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:10px 0 5px;text-transform:uppercase;letter-spacing:.4px;}
+  input,textarea,select{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--text);font:inherit;padding:10px 12px;outline:none;transition:border-color .2s;}
+  input:focus,textarea:focus,select:focus{border-color:var(--accent);}
+  textarea{resize:vertical;min-height:72px;}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+  @media(max-width:620px){.row,.row3{grid-template-columns:1fr;}}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 16px;border:none;border-radius:10px;font:inherit;font-weight:800;cursor:pointer;transition:transform .15s,filter .2s;}
+  .btn:active{transform:scale(.97);}
+  .btn.primary{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;}
+  .btn.ghost{background:var(--card2);color:var(--text);border:1px solid var(--border);}
+  .btn.sm{padding:7px 12px;font-size:13px;}
+  .btn.danger{background:rgba(255,90,106,.15);color:var(--err);border:1px solid rgba(255,90,106,.4);}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+
+  .search-row{display:flex;gap:10px;}
+  .search-row input{flex:1;}
+  .results{display:flex;flex-direction:column;gap:8px;margin-top:12px;max-height:340px;overflow:auto;}
+  .res{display:flex;gap:12px;align-items:center;padding:8px;border-radius:12px;background:var(--bg2);border:1px solid var(--border);cursor:pointer;transition:border-color .2s,background .2s;}
+  .res:hover{border-color:var(--accent);background:var(--card2);}
+  .res img{width:46px;height:68px;object-fit:cover;border-radius:7px;background:#000;flex:0 0 auto;}
+  .res .info b{display:block;font-size:14px;}
+  .res .info small{color:var(--muted);font-size:12px;}
+  .res .tag{margin-left:auto;font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:999px;background:rgba(244,117,33,.16);color:var(--accent);}
+
+  .status{font-size:12.5px;margin-top:8px;min-height:18px;}
+  .status.ok{color:var(--ok);} .status.err{color:var(--err);} .status.load{color:var(--muted);}
+
+  .ep{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px;}
+  .ep-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .ep-head b{font-size:13px;}
+  .ep-head .btn{margin-left:auto;}
+  .srv{display:grid;grid-template-columns:1fr 1.4fr 2.2fr auto;gap:8px;margin-bottom:6px;align-items:center;}
+  @media(max-width:620px){.srv{grid-template-columns:1fr;}}
+  .srv input{padding:8px 10px;}
+  .mini{font-size:11px;color:var(--muted);}
+
+  .out-wrap{position:relative;}
+  textarea#output{min-height:260px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;white-space:pre;overflow:auto;}
+  .out-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;}
+  .pill{display:inline-block;font-size:11px;font-weight:700;color:var(--muted);background:var(--bg2);border:1px solid var(--border);border-radius:999px;padding:3px 10px;margin:0 6px 6px 0;}
+  details{margin-top:10px;border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:var(--bg2);}
+  summary{cursor:pointer;font-weight:700;font-size:13px;}
+  .seg{display:inline-flex;background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+  .seg button{padding:9px 16px;border:none;background:none;color:var(--muted);font:inherit;font-weight:800;cursor:pointer;}
+  .seg button.on{background:var(--accent);color:#fff;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">N</div>
+  <div>
+    <h1>Generador de entradas</h1>
+    <small>Importa desde TMDB o rellena manual → genera el código para Blogger</small>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ===== 1. Configuración ===== -->
+  <div class="card">
+    <h2><span class="step">1</span> Configuración</h2>
+    <p class="hint">Tu <b>API key de TMDB</b> (gratis en themoviedb.org → Ajustes → API). Se guarda solo en tu navegador.</p>
+    <div class="row">
+      <div>
+        <label>API Key de TMDB</label>
+        <input id="cfgKey" type="text" placeholder="Pega aquí tu API key (v3)" autocomplete="off" />
+      </div>
+      <div>
+        <label>Idioma de los datos</label>
+        <select id="cfgLang">
+          <option value="es-ES">Español (España)</option>
+          <option value="es-MX" selected>Español (Latinoamérica)</option>
+          <option value="en-US">Inglés</option>
+          <option value="ja-JP">Japonés</option>
+        </select>
+      </div>
+    </div>
+    <label style="margin-top:12px">Idiomas de audio para los servidores (coma)</label>
+    <input id="cfgAudios" type="text" value="Latino, Subtitulado" placeholder="Latino, Subtitulado, Castellano" />
+    <p class="mini" style="margin-top:6px">Se crearán estas pestañas de idioma en cada episodio para que pegues los servidores.</p>
+    <div class="status" id="cfgStatus"></div>
+  </div>
+
+  <!-- ===== 2. Importar desde TMDB ===== -->
+  <div class="card">
+    <h2><span class="step">2</span> Importar desde TMDB <span class="mini" style="font-weight:600">(opcional)</span></h2>
+    <p class="hint">Busca la serie o película; al elegirla rellenamos todo (título, póster, sinopsis, géneros, reparto y episodios).</p>
+    <div class="seg" style="margin-bottom:12px">
+      <button id="segTv" class="on" data-kind="tv">Serie</button>
+      <button id="segMovie" data-kind="movie">Película</button>
+    </div>
+    <div class="search-row">
+      <input id="q" type="text" placeholder="Ej: Jujutsu Kaisen" />
+      <button class="btn primary" id="btnSearch">Buscar</button>
+    </div>
+    <div class="status load" id="searchStatus"></div>
+    <div class="results" id="results"></div>
+  </div>
+
+  <!-- ===== 3. Datos ===== -->
+  <div class="card">
+    <h2><span class="step">3</span> Datos de la entrada</h2>
+    <p class="hint">Edita lo que quieras. Puedes empezar vacío (manual) o tras importar de TMDB.</p>
+    <label>Tipo</label>
+    <div class="seg" style="margin-bottom:6px">
+      <button id="typeSerie" class="on" data-type="serie">Serie</button>
+      <button id="typePeli" data-type="pelicula">Película</button>
+    </div>
+    <label>Título</label>
+    <input id="fTitle" type="text" placeholder="Título del anime" />
+    <div class="row3">
+      <div><label>Año</label><input id="fYear" type="text" placeholder="2024" /></div>
+      <div><label>Rating</label><input id="fRating" type="text" placeholder="8.7" /></div>
+      <div><label>Duración</label><input id="fDur" type="text" placeholder="24 min/ep" /></div>
+    </div>
+    <div class="row">
+      <div><label>Estado</label><input id="fStatus" type="text" placeholder="En emisión" /></div>
+      <div><label>Estudio</label><input id="fStudio" type="text" placeholder="MAPPA" /></div>
+    </div>
+    <div class="row">
+      <div><label>Audio</label><input id="fAudio" type="text" placeholder="Japonés · Latino" /></div>
+      <div><label>Director</label><input id="fDirector" type="text" placeholder="Nombre" /></div>
+    </div>
+    <label>Géneros / etiquetas (coma)</label>
+    <input id="fGenres" type="text" placeholder="Acción, Shounen, Fantasía" />
+    <label>Badges (coma)</label>
+    <input id="fBadges" type="text" placeholder="Simulcast, HD 1080p, SUB · DOB, 16+" />
+    <div class="row">
+      <div><label>Póster (URL)</label><input id="fPoster" type="text" placeholder="https://…" /></div>
+      <div><label>Fondo / backdrop (URL)</label><input id="fBackdrop" type="text" placeholder="https://…" /></div>
+    </div>
+    <label>Sinopsis</label>
+    <textarea id="fSynopsis" placeholder="Descripción del anime…"></textarea>
+    <label>Reparto (Nombre:Rol:Imagen, separados por coma)</label>
+    <textarea id="fCast" placeholder="Yuji Itadori:Enoki:https://…, Megumi:Uchida:https://…"></textarea>
+  </div>
+
+  <!-- ===== 4. Episodios ===== -->
+  <div class="card" id="epsCard">
+    <h2><span class="step">4</span> Episodios <span class="mini" style="font-weight:600" id="epsCount"></span></h2>
+    <p class="hint">Rellena los servidores por idioma (Nombre + URL). YouTube, Drive, Vimeo, OK.ru y .mp4/.m3u8 se reproducen solos.</p>
+    <div id="epsList"></div>
+    <button class="btn ghost sm" id="btnAddEp">＋ Añadir episodio</button>
+  </div>
+
+  <!-- ===== 5. Código generado ===== -->
+  <div class="card">
+    <h2><span class="step">5</span> Código para la entrada de Blogger</h2>
+    <p class="hint">Pega esto en el <b>cuerpo del post</b> (vista HTML). Pon el título en el campo de título de Blogger, y las etiquetas/géneros en las labels.</p>
+    <div id="labelsPreview"></div>
+    <div class="out-wrap">
+      <textarea id="output" readonly></textarea>
+    </div>
+    <div class="out-actions">
+      <button class="btn primary" id="btnGen">⟳ Generar código</button>
+      <button class="btn ghost" id="btnCopy">⧉ Copiar</button>
+      <button class="btn ghost" id="btnDownload">⭳ Descargar .txt</button>
+    </div>
+    <div class="status" id="genStatus"></div>
+  </div>
+
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const IMG = "https://image.tmdb.org/t/p/";
+let KIND = "tv";       // búsqueda tmdb
+let TYPE = "serie";    // tipo de entrada
+
+/* ---------- Config persistente ---------- */
+(function initCfg(){
+  try {
+    $("cfgKey").value   = localStorage.getItem("nw_tmdb_key") || "";
+    $("cfgLang").value  = localStorage.getItem("nw_tmdb_lang") || "es-MX";
+    $("cfgAudios").value= localStorage.getItem("nw_audios") || "Latino, Subtitulado";
+  } catch(e){}
+})();
+function saveCfg(){
+  try{
+    localStorage.setItem("nw_tmdb_key", $("cfgKey").value.trim());
+    localStorage.setItem("nw_tmdb_lang", $("cfgLang").value);
+    localStorage.setItem("nw_audios", $("cfgAudios").value);
+  }catch(e){}
+}
+["cfgKey","cfgLang","cfgAudios"].forEach(id => $(id).addEventListener("change", saveCfg));
+
+function audios(){ return $("cfgAudios").value.split(",").map(s=>s.trim()).filter(Boolean); }
+function tmdb(path, extra){
+  const key = $("cfgKey").value.trim();
+  if(!key) throw new Error("Falta la API key de TMDB (paso 1)");
+  const lang = $("cfgLang").value;
+  const sep = path.includes("?") ? "&" : "?";
+  return fetch(IMG && ("https://api.themoviedb.org/3"+path+sep+"api_key="+encodeURIComponent(key)+"&language="+lang+(extra||"")))
+    .then(r => { if(!r.ok) throw new Error("TMDB "+r.status); return r.json(); });
+}
+
+/* ---------- Segmentos (serie/película) ---------- */
+function bindSeg(aId, bId, cb){
+  const a=$(aId), b=$(bId);
+  a.addEventListener("click", ()=>{a.classList.add("on");b.classList.remove("on");cb(a.dataset);});
+  b.addEventListener("click", ()=>{b.classList.add("on");a.classList.remove("on");cb(b.dataset);});
+}
+bindSeg("segTv","segMovie", d => { KIND = d.kind; });
+bindSeg("typeSerie","typePeli", d => { TYPE = d.type; toggleEps(); });
+function toggleEps(){ $("epsCard").style.display = (TYPE==="serie") ? "" : "none"; if(TYPE!=="serie" && EPS.length===0) addEp(); }
+
+/* ---------- Buscar en TMDB ---------- */
+$("btnSearch").addEventListener("click", doSearch);
+$("q").addEventListener("keydown", e => { if(e.key==="Enter") doSearch(); });
+function doSearch(){
+  const q = $("q").value.trim();
+  if(!q) return;
+  saveCfg();
+  setStatus("searchStatus","load","Buscando…");
+  $("results").innerHTML="";
+  tmdb("/search/"+KIND, "&query="+encodeURIComponent(q))
+    .then(data => {
+      const list = (data.results||[]).slice(0,12);
+      if(!list.length){ setStatus("searchStatus","err","Sin resultados."); return; }
+      setStatus("searchStatus","ok", list.length+" resultado(s). Elige uno:");
+      $("results").innerHTML = list.map(r => {
+        const title = r.name || r.title || "Sin título";
+        const date = (r.first_air_date || r.release_date || "").slice(0,4);
+        const poster = r.poster_path ? IMG+"w92"+r.poster_path : "";
+        return `<div class="res" data-id="${r.id}">
+          <img src="${poster}" onerror="this.style.visibility='hidden'"/>
+          <div class="info"><b>${esc(title)}</b><small>${date || "—"} · ⭐ ${(r.vote_average||0).toFixed(1)}</small></div>
+          <span class="tag">${KIND==="tv"?"Serie":"Película"}</span>
+        </div>`;
+      }).join("");
+      document.querySelectorAll(".res").forEach(el => el.addEventListener("click", ()=> importItem(el.dataset.id)));
+    })
+    .catch(err => setStatus("searchStatus","err", err.message));
+}
+
+/* ---------- Importar detalle completo ---------- */
+function importItem(id){
+  saveCfg();
+  setStatus("searchStatus","load","Importando datos…");
+  if(KIND==="tv") importTv(id); else importMovie(id);
+}
+
+function importMovie(id){
+  TYPE="pelicula"; $("typePeli").classList.add("on"); $("typeSerie").classList.remove("on"); toggleEps();
+  tmdb("/movie/"+id, "&append_to_response=credits")
+    .then(m => {
+      fill({
+        title: m.title,
+        year: (m.release_date||"").slice(0,4),
+        rating: (m.vote_average||0).toFixed(1),
+        dur: m.runtime ? (m.runtime+" min") : "",
+        status: "Estreno",
+        studio: (m.production_companies||[])[0] ? m.production_companies[0].name : "",
+        audio: "", director: dirOf(m.credits),
+        genres: (m.genres||[]).map(g=>g.name),
+        poster: m.poster_path ? IMG+"w500"+m.poster_path : "",
+        backdrop: m.backdrop_path ? IMG+"original"+m.backdrop_path : "",
+        synopsis: m.overview || "",
+        cast: castOf(m.credits)
+      });
+      // película: 1 "episodio" para las fuentes generales
+      EPS = [ emptyEp(1, m.title) ];
+      renderEps();
+      setStatus("searchStatus","ok","✓ Importado. Revisa los datos y añade los servidores.");
+    })
+    .catch(err => setStatus("searchStatus","err", err.message));
+}
+
+function importTv(id){
+  TYPE="serie"; $("typeSerie").classList.add("on"); $("typePeli").classList.remove("on"); toggleEps();
+  tmdb("/tv/"+id, "&append_to_response=credits")
+    .then(t => {
+      fill({
+        title: t.name,
+        year: (t.first_air_date||"").slice(0,4),
+        rating: (t.vote_average||0).toFixed(1),
+        dur: (t.episode_run_time||[])[0] ? (t.episode_run_time[0]+" min/ep") : "24 min/ep",
+        status: t.status === "Returning Series" ? "En emisión" : (t.status||""),
+        studio: (t.production_companies||[])[0] ? t.production_companies[0].name : "",
+        audio: "", director: (t.created_by||[])[0] ? t.created_by[0].name : "",
+        genres: (t.genres||[]).map(g=>g.name),
+        poster: t.poster_path ? IMG+"w500"+t.poster_path : "",
+        backdrop: t.backdrop_path ? IMG+"original"+t.backdrop_path : "",
+        synopsis: t.overview || "",
+        cast: castOf(t.credits)
+      });
+      // Traer episodios de la última/primera temporada normal (nº 1 por defecto)
+      const seasons = (t.seasons||[]).filter(s => s.season_number > 0);
+      const sn = seasons.length ? seasons[0].season_number : 1;
+      setStatus("searchStatus","load","Importando episodios T"+sn+"…");
+      return tmdb("/tv/"+id+"/season/"+sn).then(se => {
+        EPS = (se.episodes||[]).map(ep => {
+          const e = emptyEp(ep.episode_number, ep.name);
+          e.dur = ep.runtime ? (ep.runtime+"m") : "";
+          e.desc = ep.overview || "";
+          e.thumb = ep.still_path ? IMG+"w300"+ep.still_path : "";
+          return e;
+        });
+        if(!EPS.length) EPS=[ emptyEp(1,"Episodio 1") ];
+        renderEps();
+        setStatus("searchStatus","ok","✓ Importado ("+EPS.length+" episodios). Añade los servidores de cada uno.");
+      });
+    })
+    .catch(err => setStatus("searchStatus","err", err.message));
+}
+
+function dirOf(credits){ const c=(credits&&credits.crew)||[]; const d=c.find(x=>x.job==="Director"); return d?d.name:""; }
+function castOf(credits){
+  const c=(credits&&credits.cast)||[];
+  return c.slice(0,8).map(p => ({ name:p.character||p.name, role:p.name, img:p.profile_path?IMG+"w185"+p.profile_path:"" }));
+}
+
+/* ---------- Rellenar formulario ---------- */
+function fill(d){
+  $("fTitle").value = d.title||"";
+  $("fYear").value = d.year||"";
+  $("fRating").value = d.rating||"";
+  $("fDur").value = d.dur||"";
+  $("fStatus").value = d.status||"";
+  $("fStudio").value = d.studio||"";
+  $("fAudio").value = d.audio||"";
+  $("fDirector").value = d.director||"";
+  $("fGenres").value = (d.genres||[]).join(", ");
+  $("fBadges").value = $("fBadges").value || "HD 1080p, SUB";
+  $("fPoster").value = d.poster||"";
+  $("fBackdrop").value = d.backdrop||"";
+  $("fSynopsis").value = d.synopsis||"";
+  $("fCast").value = (d.cast||[]).map(p => `${p.name}:${p.role}:${p.img}`).join(", ");
+}
+
+/* ---------- Episodios ---------- */
+let EPS = [];
+function emptyEp(n, title){
+  const srv = {};
+  audios().forEach(a => srv[a] = [ {name:"", url:""} ]);
+  return { n:n||1, title:title||"", dur:"", desc:"", thumb:"", sources:srv };
+}
+function addEp(){ EPS.push(emptyEp(EPS.length+1, "")); renderEps(); }
+$("btnAddEp").addEventListener("click", addEp);
+
+function renderEps(){
+  $("epsCount").textContent = EPS.length ? ("· "+EPS.length) : "";
+  $("epsList").innerHTML = EPS.map((ep,i)=>{
+    const srvHtml = Object.keys(ep.sources).map(lang => {
+      const rows = ep.sources[lang].map((s,si)=>`
+        <div class="srv">
+          <input value="${esc(lang)}" data-ep="${i}" data-lang="${esc(lang)}" data-srv="${si}" data-f="langname" readonly style="opacity:.6"/>
+          <input placeholder="Servidor (YouTube, Mega…)" value="${esc(s.name)}" data-ep="${i}" data-lang="${esc(lang)}" data-srv="${si}" data-f="name"/>
+          <input placeholder="URL del video" value="${esc(s.url)}" data-ep="${i}" data-lang="${esc(lang)}" data-srv="${si}" data-f="url"/>
+          <button class="btn ghost sm" data-addsrv="${i}" data-lang="${esc(lang)}">＋</button>
+        </div>`).join("");
+      return `<div style="margin:8px 0"><div class="mini" style="font-weight:800;color:var(--accent);margin-bottom:4px">${esc(lang)}</div>${rows}</div>`;
+    }).join("");
+    return `<div class="ep">
+      <div class="ep-head">
+        <b>Episodio</b>
+        <input style="width:60px" type="number" value="${ep.n}" data-ep="${i}" data-f="n"/>
+        <input placeholder="Título" value="${esc(ep.title)}" data-ep="${i}" data-f="title"/>
+        <button class="btn danger sm" data-delep="${i}">✕</button>
+      </div>
+      <div class="row3">
+        <input placeholder="Duración (24m)" value="${esc(ep.dur)}" data-ep="${i}" data-f="dur"/>
+        <input placeholder="Miniatura URL" value="${esc(ep.thumb)}" data-ep="${i}" data-f="thumb"/>
+        <input placeholder="Intro fin (seg)" value="${ep.introEnd||''}" data-ep="${i}" data-f="introEnd"/>
+      </div>
+      <input placeholder="Descripción" value="${esc(ep.desc)}" data-ep="${i}" data-f="desc" style="margin-top:8px"/>
+      <div style="margin-top:6px">${srvHtml}</div>
+    </div>`;
+  }).join("");
+
+  // bind inputs
+  $("epsList").querySelectorAll("input[data-ep]").forEach(inp => {
+    inp.addEventListener("input", () => {
+      const i=+inp.dataset.ep, f=inp.dataset.f;
+      if(f && !inp.dataset.srv){ EPS[i][f] = inp.value; }
+      else if(inp.dataset.srv!=null && f!=="langname"){
+        EPS[i].sources[inp.dataset.lang][+inp.dataset.srv][f] = inp.value;
+      }
+    });
+  });
+  $("epsList").querySelectorAll("[data-delep]").forEach(b => b.addEventListener("click", ()=>{ EPS.splice(+b.dataset.delep,1); renderEps(); }));
+  $("epsList").querySelectorAll("[data-addsrv]").forEach(b => b.addEventListener("click", ()=>{ EPS[+b.dataset.addsrv].sources[b.dataset.lang].push({name:"",url:""}); renderEps(); }));
+}
+
+/* ---------- Generar código ---------- */
+$("btnGen").addEventListener("click", generate);
+function generate(){
+  const g = {
+    year:$("fYear").value.trim(), rating:$("fRating").value.trim(), status:$("fStatus").value.trim(),
+    studio:$("fStudio").value.trim(), duration:$("fDur").value.trim(), audio:$("fAudio").value.trim(),
+    director:$("fDirector").value.trim(), badges:$("fBadges").value.trim(),
+    poster:$("fPoster").value.trim(), backdrop:$("fBackdrop").value.trim(), synopsis:$("fSynopsis").value.trim()
+  };
+  let out = "";
+
+  // [NW] metadatos
+  const nw = [];
+  Object.keys(g).forEach(k => { if(g[k]) nw.push(k+": "+g[k]); });
+  if(nw.length) out += "[NW]\n"+nw.join("\n")+"\n[/NW]\n\n";
+
+  // [CAST]
+  const cast = $("fCast").value.trim();
+  if(cast) out += "[CAST]"+cast+"[/CAST]\n\n";
+
+  // [EP] (solo serie, o 1 para película con fuentes generales)
+  if(TYPE==="serie" || EPS.length){
+    EPS.forEach(ep => {
+      const fuentes = Object.keys(ep.sources).map(lang => {
+        const servers = ep.sources[lang].filter(s => s.name && s.url).map(s => s.name+":"+s.url).join(",");
+        return servers ? (lang+"="+servers) : "";
+      }).filter(Boolean).join(";");
+      const parts = [ ep.n, ep.title, ep.dur, ep.desc, ep.thumb, fuentes ];
+      // recorta campos vacíos finales
+      while(parts.length && (parts[parts.length-1]===""||parts[parts.length-1]==null)) parts.pop();
+      out += "[EP]"+parts.join("|")+"[/EP]\n";
+    });
+  }
+
+  $("output").value = out.trim() || "// Rellena al menos el título y algún dato.";
+  renderLabels();
+  setStatus("genStatus","ok","✓ Código generado. Cópialo al cuerpo del post.");
+}
+
+function renderLabels(){
+  const genres = $("fGenres").value.split(",").map(s=>s.trim()).filter(Boolean);
+  const extra = (TYPE==="pelicula") ? ["Pelicula"] : [];
+  const all = extra.concat(genres);
+  $("labelsPreview").innerHTML = all.length
+    ? '<div style="margin-bottom:10px"><span class="mini" style="font-weight:800">Etiquetas del post (añádelas en Blogger):</span><br/>'
+      + all.map(l=>`<span class="pill">${esc(l)}</span>`).join("") + '</div>'
+    : "";
+}
+
+/* ---------- Copiar / Descargar ---------- */
+$("btnCopy").addEventListener("click", ()=>{
+  const t=$("output"); if(!t.value) return;
+  t.select(); 
+  navigator.clipboard?.writeText(t.value).then(
+    ()=> setStatus("genStatus","ok","✓ Copiado al portapapeles"),
+    ()=> { document.execCommand("copy"); setStatus("genStatus","ok","✓ Copiado"); }
+  );
+});
+$("btnDownload").addEventListener("click", ()=>{
+  const title = $("fTitle").value.trim() || "entrada";
+  const blob = new Blob([$("output").value], {type:"text/plain"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download = title.replace(/[^\w]+/g,"-").toLowerCase()+".txt";
+  a.click();
+});
+
+/* ---------- utils ---------- */
+function esc(s){ return (s==null?"":String(s)).replace(/"/g,"&quot;"); }
+function setStatus(id,cls,msg){ const el=$(id); el.className="status "+cls; el.textContent=msg; }
+
+/* arranque: 1 episodio vacío para empezar manual */
+addEp();
+renderLabels();
+$("fGenres").addEventListener("input", renderLabels);
+</script>
+</body>
+</html>
