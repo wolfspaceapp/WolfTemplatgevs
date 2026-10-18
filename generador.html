@@ -139,6 +139,8 @@
     </div>
     <label>Título</label>
     <input id="fTitle" type="text" placeholder="Título del anime" />
+    <label>URL de detalle <span class="mini" style="font-weight:600;text-transform:none;letter-spacing:0">(se abre al pulsar la entrada en la app)</span></label>
+    <input id="fDetailUrl" type="text" placeholder="https://tusitio.com/detalle/mi-anime" />
     <div class="row3">
       <div><label>Año</label><input id="fYear" type="text" placeholder="2024" /></div>
       <div><label>Rating</label><input id="fRating" type="text" placeholder="8.7" /></div>
@@ -423,6 +425,10 @@ function generate(){
     poster:$("fPoster").value.trim(), backdrop:$("fBackdrop").value.trim(), synopsis:$("fSynopsis").value.trim()
   };
   let out = "";
+
+  // [URL] URL de detalle: la app la abre al pulsar la entrada
+  const detailUrl = $("fDetailUrl").value.trim();
+  if(detailUrl) out += "[URL]"+detailUrl+"[/URL]\n\n";
 
   // [NW] metadatos
   const nw = [];
