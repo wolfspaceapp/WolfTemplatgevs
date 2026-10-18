@@ -112,10 +112,11 @@
   }
   .poster{
     flex:0 0 128px;width:128px;height:190px;border-radius:14px;overflow:hidden;
-    box-shadow:0 14px 34px rgba(0,0,0,.6);border:2px solid rgba(255,255,255,.1);
+    background:var(--bg2);
+    box-shadow:0 14px 34px rgba(0,0,0,.6);border:2px solid rgba(255,255,255,.12);
     animation:floatPoster 6s ease-in-out infinite;
   }
-  .poster img{width:100%;height:100%;object-fit:cover;}
+  .poster img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;background:var(--bg2);}
   .hero-meta{flex:1;min-width:0;padding-bottom:4px;}
   .badges{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px;}
   .badge{
@@ -170,22 +171,30 @@
   }
   .chip:active{transform:scale(.94);border-color:var(--accent);}
 
-  /* ====== TABS ====== */
+  /* ====== TABS (línea inferior en la activa) ====== */
   .tabs{
     position:sticky;top:calc(env(safe-area-inset-top) + 56px);z-index:30;
-    display:flex;gap:6px;margin:0 -20px 20px;padding:10px 20px;
+    display:flex;gap:4px;margin:0 -20px 20px;padding:0 20px;
     overflow-x:auto;-webkit-overflow-scrolling:touch;
-    background:linear-gradient(180deg,var(--bg) 70%,rgba(10,10,10,0));
+    background:var(--bg);
+    border-bottom:1px solid var(--border);
   }
   .tabs::-webkit-scrollbar{height:0;}
   .tab{
-    flex:0 0 auto;position:relative;padding:9px 16px;border-radius:999px;
-    font-size:14px;font-weight:700;color:var(--muted);white-space:nowrap;
-    background:var(--card);border:1px solid var(--border);
-    transition:color .2s, background .25s, border-color .2s, transform .15s;
+    flex:0 0 auto;position:relative;padding:14px 14px 13px;
+    font-size:14.5px;font-weight:700;color:var(--muted);white-space:nowrap;
+    background:none;border:none;
+    transition:color .25s;
   }
-  .tab:active{transform:scale(.95);}
-  .tab.active{color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent-2));border-color:transparent;}
+  .tab::after{
+    content:"";position:absolute;left:14px;right:14px;bottom:0;height:3px;
+    border-radius:3px 3px 0 0;background:var(--accent);
+    transform:scaleX(0);transform-origin:center;opacity:0;
+    transition:transform .3s cubic-bezier(.22,.61,.36,1), opacity .25s;
+  }
+  .tab:active{color:#fff;}
+  .tab.active{color:#fff;}
+  .tab.active::after{transform:scaleX(1);opacity:1;}
 
   .tab-panel{animation:fadeIn .35s ease;}
   .tab-panel[hidden]{display:none;}
@@ -316,14 +325,6 @@
     <button class="round-btn" aria-label="Volver" onclick="history.back()">
       <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z"/></svg>
     </button>
-    <div class="top-actions">
-      <button class="round-btn" aria-label="Compartir" onclick="toast('Enlace copiado')">
-        <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
-      </button>
-      <button class="round-btn" aria-label="Cast" onclick="toast('Buscando dispositivos…')">
-        <svg viewBox="0 0 24 24"><path d="M1 18v3h3c0-1.66-1.34-3-3-3zm0-4v2c2.76 0 5 2.24 5 5h2c0-3.87-3.13-7-7-7zm0-4v2c4.97 0 9 4.03 9 9h2c0-6.08-4.93-11-11-11zm20-7H3c-1.1 0-2 .9-2 2v3h2V5h18v14h-7v2h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
-      </button>
-    </div>
   </header>
 
   <!-- ===== Hero ===== -->
@@ -333,7 +334,7 @@
       <div class="hero-sheen"></div>
     </div>
     <div class="hero-inner">
-      <div class="poster reveal d1" id="poster"><img id="posterImg" alt="Poster" /></div>
+      <div class="poster reveal d1" id="poster"><img id="posterImg" alt="Poster" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x450/1a1a1a/f47521?text=Poster';" /></div>
       <div class="hero-meta">
         <div class="badges reveal d2" id="badges"></div>
         <h1 class="title reveal d3" id="animeTitle">Título</h1>
@@ -380,27 +381,6 @@
       </div>
     </section>
 
-    <!-- ===== Panel: Episodios (solo serie) ===== -->
-    <section class="tab-panel" id="panel-episodios" hidden>
-      <div class="section">
-        <div class="section-head">
-          <h2 class="section-title">Episodios</h2>
-          <div class="ep-controls">
-            <!-- Selector de temporada con <select> NATIVO (lista/diálogo de Android) -->
-            <label class="native-season" for="seasonSelect">
-              <svg class="lead" viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
-              <select id="seasonSelect" aria-label="Seleccionar temporada"></select>
-              <svg class="caret" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
-            </label>
-            <button class="sort-btn" id="sortBtn" title="Ordenar">
-              <svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3zm0-5h12v-2H3zm0-7v2h18V6z"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="ep-list" id="epList"></div>
-      </div>
-    </section>
-
     <!-- ===== Panel: Reparto ===== -->
     <section class="tab-panel" id="panel-reparto" hidden>
       <div class="section">
@@ -415,6 +395,25 @@
         <h2 class="section-title">Información</h2>
         <div class="info-grid" id="infoGrid"></div>
       </div>
+    </section>
+
+    <!-- ===== Episodios (NO es tab) — va abajo de todo, solo en serie ===== -->
+    <section class="section" id="episodesSection" hidden>
+      <div class="section-head">
+        <h2 class="section-title">Episodios</h2>
+        <div class="ep-controls">
+          <!-- Selector de temporada con <select> NATIVO (lista/diálogo de Android) -->
+          <label class="native-season" for="seasonSelect">
+            <svg class="lead" viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+            <select id="seasonSelect" aria-label="Seleccionar temporada"></select>
+            <svg class="caret" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+          </label>
+          <button class="sort-btn" id="sortBtn" title="Ordenar">
+            <svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3zm0-5h12v-2H3zm0-7v2h18V6z"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="ep-list" id="epList"></div>
     </section>
 
   </div>
@@ -437,8 +436,9 @@
 /* ============================================================
    DATOS — Cambia "type" a "pelicula" o "serie"
    ------------------------------------------------------------
-   type:"pelicula"  → tabs: Sinopsis · Reparto · Info  (solo Reproducir)
-   type:"serie"     → tabs: Sinopsis · Episodios · Reparto · Info
+   Tabs (ambos modos): Sinopsis · Reparto · Información
+   type:"pelicula"  → solo botón Reproducir
+   type:"serie"     → añade la sección "Episodios" DEBAJO de las tabs
                       (temporadas con <select> nativo + ordenar)
    ============================================================ */
 
@@ -566,15 +566,14 @@ function totalEpisodes(){
    TABS
    ============================================================ */
 (function buildTabs(){
-  const tabsDef = isMovie
-    ? [["sinopsis","Sinopsis"],["reparto","Reparto"],["info","Información"]]
-    : [["sinopsis","Sinopsis"],["episodios","Episodios"],["reparto","Reparto"],["info","Información"]];
+  // Episodios ya NO es tab (va como sección aparte, debajo de todo)
+  const tabsDef = [["sinopsis","Sinopsis"],["reparto","Reparto"],["info","Información"]];
 
   $("tabs").innerHTML = tabsDef
     .map((t,i) => `<button class="tab ${i===0?'active':''}" data-tab="${t[0]}">${t[1]}</button>`)
     .join("");
 
-  const panels = ["sinopsis","episodios","reparto","info"];
+  const panels = ["sinopsis","reparto","info"];
   function show(tab){
     panels.forEach(p => { const el = $("panel-"+p); if(el) el.hidden = (p !== tab); });
     $("tabs").querySelectorAll(".tab").forEach(b =>
@@ -589,6 +588,7 @@ function totalEpisodes(){
    MODO SERIE — temporadas (select nativo), ordenar, episodios
    ============================================================ */
 if (!isMovie && ANIME.seasons && ANIME.seasons.length){
+  $("episodesSection").hidden = false;   // mostrar la sección (abajo de todo)
   const seasonSelect = $("seasonSelect");
   const sortBtn      = $("sortBtn");
   const epList       = $("epList");
