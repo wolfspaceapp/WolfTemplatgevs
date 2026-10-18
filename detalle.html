@@ -722,7 +722,12 @@ const ANIME = {
             "Castellano": [ {name:"Streamtape", url:"#"} ]
           }
         },
-        { n:2, title:"Para mí mismo", dur:"24m", desc:"Yuji comienza su entrenamiento en la escuela técnica.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg" },
+        { n:2, title:"Para mí mismo", dur:"24m", desc:"Yuji comienza su entrenamiento en la escuela técnica.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg",
+          sources: {
+            "Latino":     [ {name:"Streamtape", url:"#"}, {name:"Mega", url:"#"} ],
+            "Subtitulado":[ {name:"YouTube", url:"#"}, {name:"Okru", url:"#"} ]
+          }
+        },
         { n:3, title:"La chica de acero", dur:"24m", desc:"Aparece Nobara Kugisaki y realiza su primera misión.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg" },
         { n:4, title:"Nacimiento maldito", dur:"24m", desc:"El equipo enfrenta una maldición en un edificio abandonado.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg" }
       ]
@@ -761,6 +766,11 @@ const ANIME = {
   badges: ["Película", "HD 1080p", "SUB · DOB", "16+"],
   genres: ["Acción", "Sobrenatural", "Fantasía"],
   synopsis: "Yuta Okkotsu es un adolescente atormentado por Rika, su amiga de la infancia convertida en una maldición...",
+  // En PELÍCULA las fuentes son GENERALES del anime (idioma → servidores)
+  sources: {
+    "Latino":     [ {name:"YourUpload", url:"#"}, {name:"Streamtape", url:"#"} ],
+    "Subtitulado":[ {name:"YouTube", url:"#"}, {name:"Mega", url:"#"} ]
+  },
   cast: [ { name:"Yuta", role:"M. Ogata", img:"https://i.pravatar.cc/150?img=5" } ]
 };
 ---------------------------------------------------------------------------------- */
@@ -965,6 +975,70 @@ function setWatched(s, n, val){
 }
 
 /* ============================================================
+   FLUJO DE REPRODUCCIÓN (genérico) — idioma → servidor → reproductor
+   Reutilizable por SERIE (por episodio) y PELÍCULA (fuentes generales).
+   ============================================================ */
+const playSheet   = $("playSheet");
+const playOptions = $("playOptions");
+const playSub     = $("playSheetSub");
+const playTitle   = $("playSheetTitle");
+const playBack    = $("playSheetBack");
+
+function closePlaySheet(){ playSheet.classList.remove("open"); lockScroll(false); }
+
+/* Abre el flujo. 
+   sources = { Idioma: [ {name,url}, ... ] }
+   title   = texto del encabezado
+   onPick(lang, srv) = callback al elegir servidor */
+function openPlayFlow(sources, title, onPick){
+  const langs = Object.keys(sources || {});
+  playTitle.textContent = title;
+
+  function showLanguages(){
+    playBack.hidden = true;
+    playSub.textContent = "Elige el idioma";
+    playOptions.innerHTML = langs.map(lang => `
+      <button class="list-opt" data-lang="${lang}">
+        <span class="ic"><svg viewBox="0 0 24 24"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg></span>
+        <span class="txt"><b>${lang}</b><small>${sources[lang].length} servidor(es)</small></span>
+        <span class="tick"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5v10z"/></svg></span>
+      </button>`).join("");
+    playOptions.querySelectorAll(".list-opt").forEach(b =>
+      b.addEventListener("click", () => showServers(b.dataset.lang)));
+  }
+  function showServers(lang){
+    playBack.hidden = false;
+    playSub.textContent = `Servidores · ${lang}`;
+    const servers = sources[lang] || [];
+    playOptions.innerHTML = servers.map((srv,i) => `
+      <button class="list-opt" data-srv="${i}">
+        <span class="ic"><svg viewBox="0 0 24 24"><path d="M4 1h16a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1V2a1 1 0 011-1zm0 13h16a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6a1 1 0 011-1zM7 5h2v2H7V5zm0 13h2v2H7v-2z"/></svg></span>
+        <span class="txt"><b>${srv.name}</b><small>Servidor ${i+1}</small></span>
+        <span class="srv-tag">HD</span>
+      </button>`).join("");
+    playBack.onclick = showLanguages;
+    playOptions.querySelectorAll(".list-opt").forEach(b =>
+      b.addEventListener("click", () => onPick(lang, servers[+b.dataset.srv])));
+  }
+
+  showLanguages();
+  playSheet.classList.add("open");
+  lockScroll(true);
+}
+$("playSheetClose").addEventListener("click", closePlaySheet);
+playSheet.addEventListener("click", (e) => { if (e.target === playSheet) closePlaySheet(); });
+$("playSheetBox").addEventListener("click", (e) => e.stopPropagation());
+
+/* ===== PELÍCULA: fuentes generales del anime ===== */
+function openMovieFlow(){
+  const sources = ANIME.sources || DEFAULT_SOURCES;
+  openPlayFlow(sources, ANIME.title, (lang, srv) => {
+    closePlaySheet();
+    openPlayer(`${ANIME.title} · ${lang} · ${srv.name}`);
+  });
+}
+
+/* ============================================================
    MODO SERIE — temporadas (select nativo), ordenar, episodios
    ============================================================ */
 if (!isMovie && ANIME.seasons && ANIME.seasons.length){
@@ -1070,84 +1144,30 @@ if (!isMovie && ANIME.seasons && ANIME.seasons.length){
   renderEpisodes();
 
   /* ============================================================
-     FLUJO DE REPRODUCCIÓN: idioma → servidores → reproductor
+     FLUJO DE REPRODUCCIÓN por episodio (usa fuentes del episodio)
      ============================================================ */
-  const playSheet    = $("playSheet");
-  const playOptions  = $("playOptions");
-  const playSub      = $("playSheetSub");
-  const playTitle    = $("playSheetTitle");
-  const playBack     = $("playSheetBack");
-  let flowSeason = 0, flowN = 1, flowSources = null;
-
   function openEpisodeFlow(s, n){
-    flowSeason = s; flowN = n;
     const ep = epByNum(s, n);
-    flowSources = (ep && ep.sources) ? ep.sources : DEFAULT_SOURCES;
-    playTitle.textContent = `${ANIME.seasons[s].name} · E${n}`;
-    showLanguages();
-    playSheet.classList.add("open");
-    lockScroll(true);
-  }
-  function closePlaySheet(){ playSheet.classList.remove("open"); lockScroll(false); }
-
-  // Paso 1: idiomas
-  function showLanguages(){
-    playBack.hidden = true;
-    playSub.textContent = "Elige el idioma";
-    const langs = Object.keys(flowSources || {});
-    playOptions.innerHTML = langs.map(lang => `
-      <button class="list-opt" data-lang="${lang}">
-        <span class="ic"><svg viewBox="0 0 24 24"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg></span>
-        <span class="txt"><b>${lang}</b><small>${flowSources[lang].length} servidor(es)</small></span>
-        <span class="tick"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5v10z"/></svg></span>
-      </button>`).join("");
-    playOptions.querySelectorAll(".list-opt").forEach(b =>
-      b.addEventListener("click", () => showServers(b.dataset.lang)));
+    // fuentes POR EPISODIO; si el episodio no define, usa el fallback
+    const sources = (ep && ep.sources) ? ep.sources : DEFAULT_SOURCES;
+    openPlayFlow(sources, `${ANIME.seasons[s].name} · E${n}`, (lang, srv) => {
+      setWatched(s, n, true);     // marcar visto
+      saveResume(s, n);           // guardar "continuar viendo"
+      renderEpisodes();
+      closePlaySheet();
+      openPlayer(`${ANIME.seasons[s].name} · E${n} · ${lang} · ${srv.name}`);
+    });
   }
 
-  // Paso 2: servidores del idioma elegido
-  function showServers(lang){
-    playBack.hidden = false;
-    playSub.textContent = `Servidores · ${lang}`;
-    const servers = flowSources[lang] || [];
-    playOptions.innerHTML = servers.map((srv,i) => `
-      <button class="list-opt" data-srv="${i}">
-        <span class="ic"><svg viewBox="0 0 24 24"><path d="M4 1h16a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1V2a1 1 0 011-1zm0 13h16a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6a1 1 0 011-1zM7 5h2v2H7V5zm0 13h2v2H7v-2z"/></svg></span>
-        <span class="txt"><b>${srv.name}</b><small>Servidor ${i+1}</small></span>
-        <span class="srv-tag">HD</span>
-      </button>`).join("");
-    playBack.onclick = showLanguages;
-    playOptions.querySelectorAll(".list-opt").forEach(b =>
-      b.addEventListener("click", () => {
-        const srv = servers[+b.dataset.srv];
-        // marcar visto + guardar continuar viendo
-        setWatched(flowSeason, flowN, true);
-        saveResume(flowSeason, flowN);
-        renderEpisodes();
-        closePlaySheet();
-        openPlayer(`${ANIME.seasons[flowSeason].name} · E${flowN} · ${lang} · ${srv.name}`);
-      }));
-  }
-
-  $("playSheetClose").addEventListener("click", closePlaySheet);
-  playSheet.addEventListener("click", (e) => { if (e.target === playSheet) closePlaySheet(); });
-  $("playSheetBox").addEventListener("click", (e) => e.stopPropagation());
-  // exponer para "continuar viendo"
-  window._openEpisodeFlow = openEpisodeFlow;
-
-  // El botón principal: retoma "continuar viendo" o empieza por el primero
+  // El botón Reproducir: siempre empieza por el primer episodio de la temporada
+  // (la función de retomar vive en la tarjeta "Continuar viendo", no aquí)
   $("btnPlay").addEventListener("click", () => {
-    if (resume && epByNum(resume.s, resume.n)){
-      openEpisodeFlow(resume.s, resume.n);
-    } else {
-      const first = [...ANIME.seasons[currentSeason].episodes].sort((a,b)=>a.n-b.n)[0];
-      openEpisodeFlow(currentSeason, first ? first.n : 1);
-    }
+    const first = [...ANIME.seasons[currentSeason].episodes].sort((a,b)=>a.n-b.n)[0];
+    openEpisodeFlow(currentSeason, first ? first.n : 1);
   });
-  // etiqueta dinámica: "Continuar" si hay progreso
-  if (resume && epByNum(resume.s, resume.n)) $("btnPlayLabel").textContent = "Continuar E" + resume.n;
 } else {
-  $("btnPlay").addEventListener("click", () => openPlayer(ANIME.title));
+  /* ===== PELÍCULA — fuentes generales del anime (idioma → servidor) ===== */
+  $("btnPlay").addEventListener("click", () => openMovieFlow());
 }
 
 /* ===== Leer más / menos ===== */
