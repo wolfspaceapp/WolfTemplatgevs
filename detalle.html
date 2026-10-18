@@ -38,6 +38,9 @@
   }
   @keyframes floatPoster{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
   @keyframes popIn{from{opacity:0;transform:scale(.96) translateY(8px);}to{opacity:1;transform:scale(1) translateY(0);}}
+  /* deslizamiento direccional de paneles al hacer swipe entre tabs */
+  @keyframes panelInRight{from{opacity:0;transform:translateX(28px);}to{opacity:1;transform:translateX(0);}}
+  @keyframes panelInLeft{from{opacity:0;transform:translateX(-28px);}to{opacity:1;transform:translateX(0);}}
   /* --- Ken Burns: paneo + zoom continuo en bucle para la imagen de fondo --- */
   @keyframes kenBurns{
     0%{transform:scale(1.15) translate3d(0,0,0);}
@@ -107,28 +110,11 @@
     animation:sheen 9s ease-in-out infinite;
     animation-delay:1.5s;
   }
-  /* Botón favorito (corazón) sobre la imagen de fondo — estilo píldora limpio */
-  .hero-fav{
-    position:absolute;z-index:5;
-    top:calc(env(safe-area-inset-top) + 10px);right:14px;
-    display:inline-flex;align-items:center;gap:6px;
-    height:36px;padding:0 13px 0 11px;border-radius:999px;
-    background:rgba(16,16,18,.42);
-    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
-    border:1px solid rgba(255,255,255,.22);color:#fff;
-    font-size:12.5px;font-weight:700;letter-spacing:.2px;
-    box-shadow:0 4px 14px rgba(0,0,0,.35);
-    transition:transform .16s, background .25s, border-color .25s, color .25s;
-  }
-  .hero-fav svg{width:18px;height:18px;transition:transform .25s;}
-  .hero-fav .fav-txt{line-height:1;}
-  .hero-fav:active{transform:scale(.93);}
-  .hero-fav.on{
-    color:#fff;background:rgba(244,117,33,.92);border-color:transparent;
-    box-shadow:0 4px 16px rgba(244,117,33,.5);
-  }
-  .hero-fav.on svg{animation:favPop .45s ease;}
-  @keyframes favPop{0%{transform:scale(1);}35%{transform:scale(1.4) rotate(-8deg);}70%{transform:scale(.92);}100%{transform:scale(1);}}
+  /* Botón favorito en la barra superior */
+  .fav-btn svg{width:22px;height:22px;transition:transform .25s;}
+  .fav-btn.on{color:#ff4d5e;background:rgba(255,77,94,.18);}
+  .fav-btn.on svg{animation:favPop .45s ease;}
+  @keyframes favPop{0%{transform:scale(1);}35%{transform:scale(1.4);}70%{transform:scale(.9);}100%{transform:scale(1);}}
 
   .hero-inner{
     position:relative;z-index:2;
@@ -477,6 +463,10 @@
     <button class="round-btn" aria-label="Volver" onclick="history.back()">
       <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z"/></svg>
     </button>
+    <!-- Botón favorito (corazón) en la barra superior -->
+    <button class="round-btn fav-btn" id="btnHeroFav" aria-label="Añadir a favoritos" aria-pressed="false">
+      <svg id="heroFavIcon" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35zM12 18.5l.1-.09C16.81 14.08 20 11.19 20 8.5 20 6.5 18.5 5 16.5 5c-1.54 0-3.04.99-3.57 2.36h-1.87C10.54 5.99 9.04 5 7.5 5 5.5 5 4 6.5 4 8.5c0 2.69 3.19 5.58 7.9 9.91l.1.09z"/></svg>
+    </button>
   </header>
 
   <!-- ===== Hero ===== -->
@@ -485,11 +475,6 @@
       <div class="hero-bg" id="heroBg"></div>
       <div class="hero-sheen"></div>
     </div>
-    <!-- Botón favorito (píldora) encima de la imagen de fondo -->
-    <button class="hero-fav" id="btnHeroFav" aria-label="Favorito">
-      <svg id="heroFavIcon" viewBox="0 0 24 24"></svg>
-      <span class="fav-txt" id="heroFavTxt">Favorito</span>
-    </button>
     <div class="hero-inner">
       <div class="poster reveal d1" id="poster"><img id="posterImg" alt="Poster" /></div>
       <div class="hero-meta">
@@ -510,7 +495,7 @@
   </section>
 
   <!-- ===== Content ===== -->
-  <div class="content">
+  <div class="content" id="content">
 
     <div class="cta-row reveal d4">
       <button class="btn-play" id="btnPlay">
@@ -798,20 +783,58 @@ function totalEpisodes(){
 (function buildTabs(){
   // Episodios ya NO es tab (va como sección aparte, debajo de todo)
   const tabsDef = [["sinopsis","Sinopsis"],["reparto","Reparto"],["info","Información"]];
+  const ids = tabsDef.map(t => t[0]);
+  let idx = 0;
 
   $("tabs").innerHTML = tabsDef
     .map((t,i) => `<button class="tab ${i===0?'active':''}" data-tab="${t[0]}">${t[1]}</button>`)
     .join("");
 
-  const panels = ["sinopsis","reparto","info"];
-  function show(tab){
-    panels.forEach(p => { const el = $("panel-"+p); if(el) el.hidden = (p !== tab); });
-    $("tabs").querySelectorAll(".tab").forEach(b =>
-      b.classList.toggle("active", b.dataset.tab === tab));
+  function show(i, dir){
+    if (i < 0 || i >= ids.length) return;
+    idx = i;
+    ids.forEach((p,j) => {
+      const el = $("panel-"+p);
+      if(!el) return;
+      el.hidden = (j !== i);
+      if (j === i && dir){
+        // animación direccional al deslizar
+        el.style.animation = "none";
+        void el.offsetWidth; // reflow
+        el.style.animation = (dir > 0 ? "panelInRight" : "panelInLeft") + " .28s ease";
+      }
+    });
+    $("tabs").querySelectorAll(".tab").forEach((b,j) =>
+      b.classList.toggle("active", j === i));
   }
-  $("tabs").querySelectorAll(".tab").forEach(b =>
-    b.addEventListener("click", () => show(b.dataset.tab)));
-  show(tabsDef[0][0]);
+
+  $("tabs").querySelectorAll(".tab").forEach((b,i) =>
+    b.addEventListener("click", () => show(i, i > idx ? 1 : (i < idx ? -1 : 0))));
+
+  /* ===== Gestos (swipe) para cambiar de tab ===== */
+  // Zona sensible: los paneles de tabs. Deslizar horizontalmente ahí cambia de tab.
+  let sx = 0, sy = 0, tracking = false;
+  function inTabArea(target){ return !!(target.closest && target.closest(".tab-panel")); }
+  function onStart(x, y, target){
+    if (!inTabArea(target)) { tracking = false; return; }
+    sx = x; sy = y; tracking = true;
+  }
+  function onEnd(x, y){
+    if (!tracking) return;
+    tracking = false;
+    const dx = x - sx, dy = y - sy;
+    if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.6){
+      if (dx < 0) show(Math.min(idx + 1, ids.length - 1), 1);   // izquierda → siguiente
+      else        show(Math.max(idx - 1, 0), -1);               // derecha → anterior
+    }
+  }
+  document.addEventListener("touchstart", e => onStart(e.touches[0].clientX, e.touches[0].clientY, e.target), {passive:true});
+  document.addEventListener("touchend",   e => onEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY), {passive:true});
+  // soporte ratón (para probar en escritorio)
+  document.addEventListener("mousedown", e => onStart(e.clientX, e.clientY, e.target));
+  document.addEventListener("mouseup",   e => onEnd(e.clientX, e.clientY));
+
+  show(0);
 })();
 
 /* ============================================================
@@ -1025,7 +1048,6 @@ updateFavUI();
 const FAV_KEY = "nekowolf_fav_" + (ANIME.title || "anime");
 const btnHeroFav = $("btnHeroFav");
 const heroFavIcon = $("heroFavIcon");
-const heroFavTxt = $("heroFavTxt");
 // Corazón contorno (no favorito) vs relleno (favorito)
 const HEART_OUTLINE = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35zM12 18.5l.1-.09C16.81 14.08 20 11.19 20 8.5 20 6.5 18.5 5 16.5 5c-1.54 0-3.04.99-3.57 2.36h-1.87C10.54 5.99 9.04 5 7.5 5 5.5 5 4 6.5 4 8.5c0 2.69 3.19 5.58 7.9 9.91l.1.09z";
 const HEART_FILLED = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z";
@@ -1033,8 +1055,8 @@ let isFav = false;
 try { isFav = localStorage.getItem(FAV_KEY) === "1"; } catch(e){ isFav = false; }
 function renderFav(){
   btnHeroFav.classList.toggle("on", isFav);
+  btnHeroFav.setAttribute("aria-pressed", String(isFav));
   heroFavIcon.innerHTML = `<path d="${isFav ? HEART_FILLED : HEART_OUTLINE}"/>`;
-  heroFavTxt.textContent = isFav ? "Favorito" : "Favorito";
 }
 renderFav();
 btnHeroFav.addEventListener("click", () => {
