@@ -1275,29 +1275,60 @@ if (!isMovie && ANIME.seasons && ANIME.seasons.length){
   renderEpisodes();
 
   /* ============================================================
-     FLUJO DE REPRODUCCIÓN por episodio (usa fuentes del episodio)
+     FLUJO DE REPRODUCCIÓN por episodio
+     - openEpisodeFlow: abre el menú idioma → servidor (elección manual)
+     - playEpisodeDirect: reproduce directo manteniendo el idioma elegido
+       (para el autoplay del siguiente episodio)
      ============================================================ */
-  function openEpisodeFlow(s, n){
+  function epSources(s, n){
     const ep = epByNum(s, n);
-    const sources = (ep && ep.sources) ? ep.sources : DEFAULT_SOURCES;
-    openPlayFlow(sources, `${ANIME.seasons[s].name} · E${n}`, (lang, srv) => {
-      setWatched(s, n, true);
-      saveResume(s, n);
-      renderEpisodes();
+    return (ep && ep.sources) ? ep.sources : DEFAULT_SOURCES;
+  }
+
+  // Lanza el reproductor para (s,n) con un idioma y servidor concretos
+  function launchEpisode(s, n, lang, srv){
+    const ep = epByNum(s, n);
+    setWatched(s, n, true);
+    saveResume(s, n);
+    renderEpisodes();
+    const hasNext = ANIME.seasons[s].episodes.some(e => e.n === n + 1);
+    openPlayer({
+      title: ep ? ep.title : ("Episodio " + n),
+      subtitle: `${ANIME.seasons[s].name} · E${n} · ${lang} · ${srv.name}`,
+      url: srv.url,
+      duration: (ep && ep.duration) || 1440,
+      intro: (ep && ep.intro) || null,
+      lang,
+      hasNext,
+      // autoplay del siguiente MANTENIENDO el idioma elegido
+      onNext: hasNext ? () => playEpisodeDirect(s, n + 1, lang) : null
+    });
+  }
+
+  // Reproduce directo: usa el idioma preferido si existe en el episodio,
+  // si no, cae automáticamente al primer idioma disponible.
+  function playEpisodeDirect(s, n, preferredLang){
+    const sources = epSources(s, n);
+    const langs = Object.keys(sources);
+    if (!langs.length){ toast("Sin servidores para este episodio"); return; }
+    let lang = (preferredLang && sources[preferredLang] && sources[preferredLang].length)
+                 ? preferredLang
+                 : langs.find(l => sources[l] && sources[l].length) || langs[0];
+    const srv = sources[lang][0];   // primer servidor disponible de ese idioma
+    if (preferredLang && lang !== preferredLang){
+      toast(`"${preferredLang}" no disponible · reproduciendo en ${lang}`);
+    } else {
+      toast(`Siguiente episodio · ${lang}`);
+    }
+    closePlaySheet();
+    launchEpisode(s, n, lang, srv);
+  }
+
+  // Menú manual (elegir idioma → servidor)
+  function openEpisodeFlow(s, n){
+    openPlayFlow(epSources(s, n), `${ANIME.seasons[s].name} · E${n}`, (lang, srv) => {
       closePlaySheet();
-      // contexto completo para el reproductor profesional
-      const eps = ANIME.seasons[s].episodes;
-      const hasNext = eps.some(e => e.n === n + 1);
-      openPlayer({
-        title: ep ? ep.title : ("Episodio " + n),
-        subtitle: `${ANIME.seasons[s].name} · E${n} · ${lang} · ${srv.name}`,
-        url: srv.url,
-        duration: (ep && ep.duration) || 1440,
-        intro: (ep && ep.intro) || null,
-        lang,
-        hasNext,
-        onNext: hasNext ? () => openEpisodeFlow(s, n + 1) : null
-      });
+      launchEpisode(s, n, lang, srv);
     });
   }
 
