@@ -203,24 +203,28 @@
   .genre-cell .garrow{position:absolute;right:12px;bottom:12px;z-index:1;width:18px;height:18px;opacity:.8;}
   .genre-cell .garrow svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2.5;}
 
-  /* Simulcast */
-  .sim-header{padding:calc(env(safe-area-inset-top) + 20px) 16px 4px;}
-  .sim-chip{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--accent);
-    background:rgba(var(--accent-rgb),.14);border:1px solid rgba(var(--accent-rgb),.4);padding:4px 10px;border-radius:999px;margin-bottom:10px;}
-  .sim-title{font-size:26px;font-weight:900;letter-spacing:-.5px;}
-  .sim-desc{font-size:12.5px;color:var(--muted);margin-top:5px;}
-  .sim-grid{display:flex;flex-direction:column;gap:11px;padding:16px;}
-  .sim-card{display:flex;gap:12px;align-items:center;padding:9px;border-radius:14px;background:var(--card);border:1px solid var(--border);cursor:pointer;transition:transform .15s,border-color .2s;}
-  .sim-card:active{transform:scale(.99);border-color:rgba(var(--accent-rgb),.5);}
-  .sim-card .poster{position:relative;width:58px;height:84px;border-radius:10px;overflow:hidden;background:var(--bg2);flex:0 0 auto;}
-  .sim-card .poster img{width:100%;height:100%;object-fit:cover;}
-  .sim-card .info{flex:1;min-width:0;}
-  .sim-card .st{font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .sim-card .ss{font-size:11.5px;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
-  .sim-card .ep{font-size:10px;font-weight:800;color:var(--accent);background:rgba(var(--accent-rgb),.14);padding:2px 8px;border-radius:6px;}
-  .sim-card .day{font-size:10.5px;color:var(--accent-2);font-weight:700;}
-  .sim-card .sgo{flex:0 0 auto;color:var(--muted);}
-  .sim-card .sgo svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  /* Notificaciones */
+  .noti-header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(env(safe-area-inset-top) + 20px) 16px 6px;}
+  .noti-title{font-size:26px;font-weight:900;letter-spacing:-.5px;}
+  .noti-clear{font-size:12px;font-weight:700;color:var(--accent);}
+  .noti-clear:active{opacity:.6;}
+  .noti-list{display:flex;flex-direction:column;gap:9px;padding:14px 16px;}
+  .noti-card{position:relative;display:flex;gap:12px;align-items:center;padding:11px;border-radius:14px;
+    background:var(--card);border:1px solid var(--border);cursor:pointer;transition:transform .15s,border-color .2s,background .2s;}
+  .noti-card:active{transform:scale(.99);}
+  .noti-card.unread{background:rgba(var(--accent-rgb),.07);border-color:rgba(var(--accent-rgb),.3);}
+  .noti-card.unread::before{content:"";position:absolute;left:5px;top:50%;transform:translateY(-50%);width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px rgba(var(--accent-rgb),.7);}
+  .noti-thumb{position:relative;width:52px;height:52px;border-radius:12px;overflow:hidden;background:var(--bg2);flex:0 0 auto;}
+  .noti-thumb img{width:100%;height:100%;object-fit:cover;}
+  .noti-ic{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(var(--accent-rgb),.16);}
+  .noti-ic svg{width:24px;height:24px;fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .noti-body{flex:1;min-width:0;}
+  .noti-body .nt{font-size:13.5px;font-weight:700;line-height:1.3;}
+  .noti-body .nt b{color:var(--accent);}
+  .noti-body .nd{font-size:11px;color:var(--muted);margin-top:3px;}
+  .noti-empty{text-align:center;color:var(--muted);padding:70px 24px;}
+  .noti-empty .ic{font-size:46px;margin-bottom:12px;opacity:.8;}
+  .noti-empty .big{font-size:16px;font-weight:800;color:#fff;margin-bottom:5px;}
 
   /* Mi lista: tabs + cuadrícula */
   .list-tabs{display:flex;gap:8px;padding:0 16px;overflow-x:auto;}
@@ -375,14 +379,13 @@
       <div class="list-tabs" id="listTabs"></div>
       <div id="listBody"></div>
     </div>
-    <!-- Vista: Simulcast -->
-    <div class="view hidden" id="view-simulcast">
-      <div class="sim-header">
-        <span class="sim-chip">Temporada actual</span>
-        <h2 class="sim-title">Simulcasts</h2>
-        <p class="sim-desc">Episodios estrenándose al mismo tiempo que en Japón.</p>
+    <!-- Vista: Notificaciones -->
+    <div class="view hidden" id="view-notis">
+      <div class="noti-header">
+        <h2 class="noti-title">Notificaciones</h2>
+        <button class="noti-clear" id="notiClear">Marcar leídas</button>
       </div>
-      <div class="sim-grid" id="simGrid"></div>
+      <div class="noti-list" id="notiList"></div>
     </div>
     <!-- Vista: Cuenta -->
     <div class="view hidden" id="view-account"></div>
@@ -424,8 +427,8 @@
     <button class="nav-item" data-view="list">
       <svg viewBox="0 0 24 24"><path d="M6 4h12a1 1 0 0 1 1 1v15l-7-3.5L5 20V5a1 1 0 0 1 1-1Z"/></svg><span>Mi lista</span>
     </button>
-    <button class="nav-item" data-view="simulcast">
-      <svg viewBox="0 0 24 24"><path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.9 4.9l2.1 2.1m10 10 2.1 2.1m0-14.2-2.1 2.1m-10 10-2.1 2.1"/><circle cx="12" cy="12" r="4"/></svg><span>Simulcast</span>
+    <button class="nav-item" data-view="notis">
+      <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.5 21a1.8 1.8 0 0 1-3 0"/></svg><span>Avisos</span>
     </button>
     <button class="nav-item" data-view="account">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6"/></svg><span>Cuenta</span>
@@ -702,7 +705,7 @@ function switchView(v){
   if(v==="list") renderList();          // siempre refresca (favoritos pueden cambiar)
   else if(!RENDERED[v]){
     if(v==="explore") renderExplore();
-    else if(v==="simulcast") renderSimulcast();
+    else if(v==="notis") renderNotis();
     else if(v==="account") renderAccount();
     RENDERED[v]=true;
   }
@@ -739,23 +742,43 @@ function renderExplore(){
   er.querySelectorAll("[data-all]").forEach(b=>b.addEventListener("click",()=>openAll("Más populares",DATA.slice().sort((a,b)=>b.rating-a.rating))));
 }
 
-/* ----- Simulcast (temporada actual) ----- */
-const DAYS=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
-function renderSimulcast(){
-  // Simulcast = animes en emisión (serie con "nuevo"); ajusta el filtro a tu feed
-  let items=DATA.filter(d=>d.type==="serie" && d.nuevo);
-  if(!items.length) items=DATA.filter(d=>d.type==="serie");
-  const g=document.getElementById("simGrid");
-  g.innerHTML=items.map((it,i)=>`
-    <div class="sim-card" data-id="${esc(it.id)}">
-      <div class="poster"><img src="${img(it.poster)}" onerror="this.src='${FALL}'" alt=""/></div>
-      <div class="info">
-        <div class="st">${esc(it.title)}</div>
-        <div class="ss"><span class="ep">EP ${it.eps||1}</span><span class="day">${DAYS[i%7]} · nuevo</span><span>${it.sub?"SUB":""}${it.dub?" · DOB":""}</span></div>
-      </div>
-      <span class="sgo"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>
-    </div>`).join("");
-  g.querySelectorAll(".sim-card").forEach(el=>el.addEventListener("click",()=>{const it=DATA.find(x=>x.id===el.dataset.id);if(it)go(it);}));
+/* ----- Notificaciones ----- */
+// Se generan a partir de los animes "nuevos" (nuevos episodios) + avisos del sistema.
+// El estado leído/no leído se guarda en localStorage.
+function readNotis(){ try{return JSON.parse(localStorage.getItem("nw_notis_read")||"[]");}catch(e){return [];} }
+function markNotisRead(ids){ try{localStorage.setItem("nw_notis_read",JSON.stringify(ids));}catch(e){} }
+function buildNotis(){
+  const news=DATA.filter(d=>d.nuevo).map((d,i)=>({
+    id:"ep_"+d.id, anime:d, kind:"ep",
+    title:`Nuevo episodio de <b>${esc(d.title)}</b>`,
+    desc:`Episodio ${d.eps||1} ya disponible · hace ${i+1}h`
+  }));
+  const sys=[{id:"sys_welcome",kind:"sys",title:"¡Bienvenido a CyberKai! 🎉",desc:"Explora el catálogo y arma tu lista."}];
+  return news.concat(sys);
+}
+function renderNotis(){
+  const list=document.getElementById("notiList");
+  const notis=buildNotis(); const read=readNotis();
+  if(!notis.length){ list.innerHTML='<div class="noti-empty"><div class="ic">🔔</div><div class="big">Sin notificaciones</div><div>Te avisaremos de nuevos episodios.</div></div>'; return; }
+  list.innerHTML=notis.map(n=>{
+    const unread=read.indexOf(n.id)===-1;
+    const thumb=n.kind==="ep"
+      ? `<div class="noti-thumb"><img src="${img(n.anime.poster)}" onerror="this.src='${FALL}'"/></div>`
+      : `<div class="noti-thumb"><div class="noti-ic"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.5 21a1.8 1.8 0 0 1-3 0"/></svg></div></div>`;
+    return `<div class="noti-card ${unread?'unread':''}" data-id="${esc(n.id)}" data-anime="${n.anime?esc(n.anime.id):''}">
+      ${thumb}
+      <div class="noti-body"><div class="nt">${n.title}</div><div class="nd">${n.desc}</div></div>
+    </div>`;
+  }).join("");
+  list.querySelectorAll(".noti-card").forEach(el=>el.addEventListener("click",()=>{
+    el.classList.remove("unread");
+    const aid=el.dataset.anime; const it=aid&&DATA.find(x=>x.id===aid);
+    if(it) go(it);
+  }));
+  document.getElementById("notiClear").onclick=()=>{
+    markNotisRead(notis.map(n=>n.id));
+    list.querySelectorAll(".noti-card").forEach(el=>el.classList.remove("unread"));
+  };
 }
 
 /* ----- Mi lista — lee los MISMOS estados que guarda detalle.html -----
