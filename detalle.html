@@ -459,6 +459,42 @@
   /* hidden debe ocultar de verdad (display:flex lo anula si no) */
   .sheet-remove[hidden]{display:none !important;}
 
+  /* Botón "cambiar idioma" dentro del sheet de reproducir */
+  .sheet-back{
+    display:flex;align-items:center;gap:7px;margin-bottom:12px;
+    padding:8px 11px;border-radius:9px;font-size:12.5px;font-weight:700;
+    background:rgba(255,255,255,.06);border:1px solid var(--border);color:#ddd;
+    transition:transform .15s;
+  }
+  .sheet-back:active{transform:scale(.97);}
+  .sheet-back svg{width:16px;height:16px;pointer-events:none;}
+  .sheet-back[hidden]{display:none !important;}
+  /* fila con badge de tipo de servidor */
+  .list-opt .srv-tag{font-size:10px;font-weight:700;color:var(--accent);background:rgba(244,117,33,.14);padding:2px 7px;border-radius:6px;flex:0 0 auto;}
+
+  /* ====== Continuar viendo ====== */
+  .continue-card{
+    display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+    margin-bottom:14px;padding:11px 12px;border-radius:13px;
+    background:linear-gradient(135deg,rgba(244,117,33,.16),rgba(244,117,33,.06));
+    border:1px solid rgba(244,117,33,.32);color:#fff;
+    transition:transform .15s, border-color .2s;
+  }
+  .continue-card:active{transform:scale(.99);}
+  .continue-card[hidden]{display:none !important;}
+  .continue-card > *{pointer-events:none;}
+  .continue-ic{
+    flex:0 0 auto;width:38px;height:38px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--accent);color:#fff;
+  }
+  .continue-ic svg{width:20px;height:20px;}
+  .continue-txt{flex:1;min-width:0;}
+  .continue-txt small{display:block;font-size:10.5px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+  .continue-txt b{display:block;font-size:14px;font-weight:700;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .continue-go{flex:0 0 auto;color:var(--muted);}
+  .continue-go svg{width:22px;height:22px;}
+
   /* Toast */
   .toast{
     position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 24px);
@@ -576,6 +612,17 @@
           </label>
         </div>
       </div>
+
+      <!-- Continuar viendo (último episodio reproducido) -->
+      <button class="continue-card" id="continueCard" hidden>
+        <span class="continue-ic"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
+        <span class="continue-txt">
+          <small>Continuar viendo</small>
+          <b id="continueLabel">Episodio 1</b>
+        </span>
+        <span class="continue-go"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5v10z"/></svg></span>
+      </button>
+
       <div class="ep-list" id="epList"></div>
     </section>
 
@@ -608,6 +655,26 @@
         <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
         Quitar de Mi lista
       </button>
+    </div>
+  </div>
+
+  <!-- ===== Modal: Reproducir (idioma → servidores) ===== -->
+  <div class="sheet-backdrop" id="playSheet">
+    <div class="sheet" id="playSheetBox" role="dialog" aria-label="Opciones de reproducción">
+      <div class="sheet-grip"></div>
+      <div class="sheet-head">
+        <h3 class="sheet-title" id="playSheetTitle">Reproducir</h3>
+        <button class="sheet-x" id="playSheetClose" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </div>
+      <!-- Paso atrás (de servidores → idiomas) -->
+      <button class="sheet-back" id="playSheetBack" hidden>
+        <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z"/></svg>
+        Cambiar idioma
+      </button>
+      <p class="sheet-sub" id="playSheetSub">Elige el idioma</p>
+      <div class="sheet-options" id="playOptions"></div>
     </div>
   </div>
 
@@ -647,7 +714,14 @@ const ANIME = {
     {
       name: "Temporada 1",
       episodes: [
-        { n:1, title:"Ryomen Sukuna", dur:"24m", desc:"Yuji conoce a Megumi y descubre el mundo de las maldiciones.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg" },
+        { n:1, title:"Ryomen Sukuna", dur:"24m", desc:"Yuji conoce a Megumi y descubre el mundo de las maldiciones.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg",
+          // Fuentes por idioma → servidores (así se verá el flujo idioma → servidor → reproductor)
+          sources: {
+            "Latino":     [ {name:"YourUpload", url:"#"}, {name:"Streamtape", url:"#"}, {name:"Mega", url:"#"} ],
+            "Subtitulado":[ {name:"YouTube", url:"#"}, {name:"Okru", url:"#"}, {name:"Mega", url:"#"} ],
+            "Castellano": [ {name:"Streamtape", url:"#"} ]
+          }
+        },
         { n:2, title:"Para mí mismo", dur:"24m", desc:"Yuji comienza su entrenamiento en la escuela técnica.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg" },
         { n:3, title:"La chica de acero", dur:"24m", desc:"Aparece Nobara Kugisaki y realiza su primera misión.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg" },
         { n:4, title:"Nacimiento maldito", dur:"24m", desc:"El equipo enfrenta una maldición en un edificio abandonado.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg" }
@@ -697,6 +771,13 @@ const ANIME = {
 const isMovie = ANIME.type === "pelicula";
 let currentSeason = 0;
 let sortAsc = true;
+
+/* Fuentes por defecto para episodios que no definan "sources" propio.
+   Estructura: { Idioma: [ {name, url}, ... ] } */
+const DEFAULT_SOURCES = ANIME.sources || {
+  "Latino":      [ {name:"YourUpload", url:"#"}, {name:"Streamtape", url:"#"}, {name:"Mega", url:"#"} ],
+  "Subtitulado": [ {name:"YouTube", url:"#"}, {name:"Okru", url:"#"}, {name:"Mega", url:"#"} ]
+};
 
 const $ = (id) => document.getElementById(id);
 
@@ -892,6 +973,30 @@ if (!isMovie && ANIME.seasons && ANIME.seasons.length){
   const sortSelect   = $("sortSelect");
   const epList       = $("epList");
 
+  /* ===== Continuar viendo (persistente) ===== */
+  const RESUME_KEY = "nekowolf_resume_" + (ANIME.title || "anime");
+  let resume = null;  // { s, n }
+  try { resume = JSON.parse(localStorage.getItem(RESUME_KEY) || "null"); } catch(e){ resume = null; }
+  const continueCard = $("continueCard");
+  function saveResume(s, n){
+    resume = { s, n };
+    try { localStorage.setItem(RESUME_KEY, JSON.stringify(resume)); } catch(e){}
+    renderContinue();
+  }
+  function epByNum(s, n){ return (ANIME.seasons[s]?.episodes || []).find(e => e.n === n); }
+  function renderContinue(){
+    if (resume && epByNum(resume.s, resume.n)){
+      const ep = epByNum(resume.s, resume.n);
+      const sName = ANIME.seasons[resume.s] ? ANIME.seasons[resume.s].name : "";
+      $("continueLabel").textContent = `${sName} · E${resume.n} — ${ep.title}`;
+      continueCard.hidden = false;
+    } else {
+      continueCard.hidden = true;
+    }
+  }
+  continueCard.addEventListener("click", () => { if (resume) openEpisodeFlow(resume.s, resume.n); });
+  renderContinue();
+
   // Poblamos el <select> nativo → solo el nombre (sin cantidad de episodios)
   seasonSelect.innerHTML = ANIME.seasons
     .map((t,i) => `<option value="${i}">${t.name}</option>`)
@@ -958,17 +1063,89 @@ if (!isMovie && ANIME.seasons && ANIME.seasons.length){
         toast(nowSeen ? `E${n} marcado como visto` : `E${n} marcado como no visto`);
       });
 
-      // Resto de la card → reproducir
-      card.addEventListener("click", () =>
-        openPlayer(`${ANIME.seasons[currentSeason].name} · Episodio ${n}`));
+      // Resto de la card → flujo idioma → servidor → reproductor
+      card.addEventListener("click", () => openEpisodeFlow(currentSeason, n));
     });
   }
   renderEpisodes();
 
+  /* ============================================================
+     FLUJO DE REPRODUCCIÓN: idioma → servidores → reproductor
+     ============================================================ */
+  const playSheet    = $("playSheet");
+  const playOptions  = $("playOptions");
+  const playSub      = $("playSheetSub");
+  const playTitle    = $("playSheetTitle");
+  const playBack     = $("playSheetBack");
+  let flowSeason = 0, flowN = 1, flowSources = null;
+
+  function openEpisodeFlow(s, n){
+    flowSeason = s; flowN = n;
+    const ep = epByNum(s, n);
+    flowSources = (ep && ep.sources) ? ep.sources : DEFAULT_SOURCES;
+    playTitle.textContent = `${ANIME.seasons[s].name} · E${n}`;
+    showLanguages();
+    playSheet.classList.add("open");
+    lockScroll(true);
+  }
+  function closePlaySheet(){ playSheet.classList.remove("open"); lockScroll(false); }
+
+  // Paso 1: idiomas
+  function showLanguages(){
+    playBack.hidden = true;
+    playSub.textContent = "Elige el idioma";
+    const langs = Object.keys(flowSources || {});
+    playOptions.innerHTML = langs.map(lang => `
+      <button class="list-opt" data-lang="${lang}">
+        <span class="ic"><svg viewBox="0 0 24 24"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg></span>
+        <span class="txt"><b>${lang}</b><small>${flowSources[lang].length} servidor(es)</small></span>
+        <span class="tick"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5v10z"/></svg></span>
+      </button>`).join("");
+    playOptions.querySelectorAll(".list-opt").forEach(b =>
+      b.addEventListener("click", () => showServers(b.dataset.lang)));
+  }
+
+  // Paso 2: servidores del idioma elegido
+  function showServers(lang){
+    playBack.hidden = false;
+    playSub.textContent = `Servidores · ${lang}`;
+    const servers = flowSources[lang] || [];
+    playOptions.innerHTML = servers.map((srv,i) => `
+      <button class="list-opt" data-srv="${i}">
+        <span class="ic"><svg viewBox="0 0 24 24"><path d="M4 1h16a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1V2a1 1 0 011-1zm0 13h16a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6a1 1 0 011-1zM7 5h2v2H7V5zm0 13h2v2H7v-2z"/></svg></span>
+        <span class="txt"><b>${srv.name}</b><small>Servidor ${i+1}</small></span>
+        <span class="srv-tag">HD</span>
+      </button>`).join("");
+    playBack.onclick = showLanguages;
+    playOptions.querySelectorAll(".list-opt").forEach(b =>
+      b.addEventListener("click", () => {
+        const srv = servers[+b.dataset.srv];
+        // marcar visto + guardar continuar viendo
+        setWatched(flowSeason, flowN, true);
+        saveResume(flowSeason, flowN);
+        renderEpisodes();
+        closePlaySheet();
+        openPlayer(`${ANIME.seasons[flowSeason].name} · E${flowN} · ${lang} · ${srv.name}`);
+      }));
+  }
+
+  $("playSheetClose").addEventListener("click", closePlaySheet);
+  playSheet.addEventListener("click", (e) => { if (e.target === playSheet) closePlaySheet(); });
+  $("playSheetBox").addEventListener("click", (e) => e.stopPropagation());
+  // exponer para "continuar viendo"
+  window._openEpisodeFlow = openEpisodeFlow;
+
+  // El botón principal: retoma "continuar viendo" o empieza por el primero
   $("btnPlay").addEventListener("click", () => {
-    const first = [...ANIME.seasons[currentSeason].episodes].sort((a,b)=>a.n-b.n)[0];
-    openPlayer(`${ANIME.seasons[currentSeason].name} · Episodio ${first ? first.n : 1}`);
+    if (resume && epByNum(resume.s, resume.n)){
+      openEpisodeFlow(resume.s, resume.n);
+    } else {
+      const first = [...ANIME.seasons[currentSeason].episodes].sort((a,b)=>a.n-b.n)[0];
+      openEpisodeFlow(currentSeason, first ? first.n : 1);
+    }
   });
+  // etiqueta dinámica: "Continuar" si hay progreso
+  if (resume && epByNum(resume.s, resume.n)) $("btnPlayLabel").textContent = "Continuar E" + resume.n;
 } else {
   $("btnPlay").addEventListener("click", () => openPlayer(ANIME.title));
 }
