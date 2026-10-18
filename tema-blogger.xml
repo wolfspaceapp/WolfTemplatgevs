@@ -455,8 +455,10 @@ function nwBoot(){
     box.style.cssText = "position:fixed;left:0;right:0;bottom:0;z-index:999;background:#201a14;color:#ffd7b0;font:13px/1.5 monospace;padding:14px 16px;border-top:2px solid #f47521;max-height:50vh;overflow:auto;";
     var t=(document.getElementById("nw-title")||{}).textContent||"";
     var b=(document.getElementById("nw-body")||{}).innerHTML||"";
+    var stack=(err&&err.stack?String(err.stack):"").split("\n").slice(0,4).join(" | ");
     box.innerHTML = "<b style='color:#ff9a52'>NekoWolf: no se pudo construir el detalle.</b><br/>"+
       "Error: "+(err&&err.message?err.message:err)+"<br/>"+
+      "Dónde: "+stack+"<br/>"+
       "Título leído: "+(t?("\u2713 "+t):"\u2717 vacío")+"<br/>"+
       "Cuerpo del post: "+(b?("\u2713 "+b.length+" caracteres"):"\u2717 vacío")+"<br/>"+
       "Comparte este mensaje para depurar.";
@@ -601,7 +603,18 @@ function buildDetailFromPost(){
    MOTOR DEL DETALLE + REPRODUCTOR
    (misma lógica que detalle.html, parametrizada con ANIME)
    ============================================================ */
-function NWDetail(ANIME, $){
+function NWDetail(ANIME, _$){
+  // $ seguro: si falta un elemento, devuelve un stub inerte (no rompe el render)
+  var STUB_STYLE={setProperty:function(){}};
+  function $(id){
+    var el=document.getElementById(id);
+    if(el) return el;
+    return { textContent:"", innerHTML:"", value:"", hidden:true, style:STUB_STYLE,
+      classList:{add:function(){},remove:function(){},toggle:function(){},contains:function(){return false;}},
+      setAttribute:function(){}, getAttribute:function(){return null;},
+      addEventListener:function(){}, querySelector:function(){return null;},
+      querySelectorAll:function(){return [];}, appendChild:function(){}, focus:function(){} };
+  }
   var isMovie = ANIME.type==="pelicula";
   var currentSeason=0, sortAsc=true;
 
