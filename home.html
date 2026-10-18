@@ -199,9 +199,12 @@
   .list-tabs::-webkit-scrollbar{height:0;}
   .list-tab{flex:0 0 auto;font-size:12.5px;font-weight:700;color:var(--muted);padding:8px 15px;border-radius:999px;background:var(--card);border:1px solid var(--border);transition:.2s;}
   .list-tab.on{color:#fff;background:var(--grad);border-color:transparent;}
-  .list-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 10px;padding:16px;}
+  .list-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px 10px;padding:16px;}
   .list-grid .card{flex:none;width:100%;}
   .list-grid .card .poster{width:100%;height:auto;aspect-ratio:2/3;}
+  .lstatus{display:inline-block;font-size:9px;font-weight:800;color:var(--accent);background:rgba(var(--accent-rgb),.14);
+    padding:2px 7px;border-radius:6px;margin-left:auto;}
+  .lstatus.fav{color:#ff6b7a;background:rgba(255,107,122,.16);}
   .empty{text-align:center;color:var(--muted);padding:60px 24px;}
   .empty .ic{font-size:46px;margin-bottom:12px;}
   .empty .big{font-size:16px;font-weight:800;color:#fff;margin-bottom:6px;}
@@ -662,33 +665,66 @@ function renderExplore(){
   er.querySelectorAll("[data-all]").forEach(b=>b.addEventListener("click",()=>openAll("Más populares",DATA.slice().sort((a,b)=>b.rating-a.rating))));
 }
 
-/* ----- Mi lista (localStorage) ----- */
-function getFavs(){ try{return JSON.parse(localStorage.getItem("nw_favs")||"[]");}catch(e){return [];} }
-const LIST_TABS=[["fav","Favoritos"],["viendo","Viendo"],["hist","Historial"]];
+/* ----- Mi lista — lee los MISMOS estados que guarda detalle.html -----
+   El detalle guarda:  nekowolf_list_<título> = viendo|completado|pendiente|espera|abandonado
+                       nekowolf_fav_<título>  = "1"
+   Aquí leemos esos estados por el título de cada item del home. */
+function statusOf(it){ try{return localStorage.getItem("nekowolf_list_"+it.title)||null;}catch(e){return null;} }
+function isFav(it){ try{return localStorage.getItem("nekowolf_fav_"+it.title)==="1";}catch(e){return false;} }
+
+// Mismas opciones que el modal de detalle + Favoritos y Todos
+const LIST_TABS=[
+  ["todos","Todos"],
+  ["fav","Favoritos"],
+  ["viendo","Viendo"],
+  ["completado","Completado"],
+  ["pendiente","Planeo ver"],
+  ["espera","En espera"],
+  ["abandonado","Abandonado"]
+];
+let listTab="todos";
 function renderList(){
   const tabsEl=document.getElementById("listTabs");
-  if(!tabsEl.dataset.init){
-    tabsEl.innerHTML=LIST_TABS.map((t,i)=>`<button class="list-tab ${i===0?'on':''}" data-t="${t[0]}">${t[1]}</button>`).join("");
-    tabsEl.querySelectorAll(".list-tab").forEach(b=>b.addEventListener("click",()=>{
-      tabsEl.querySelectorAll(".list-tab").forEach(x=>x.classList.remove("on"));b.classList.add("on");showList(b.dataset.t);
-    }));
-    tabsEl.dataset.init="1";
-  }
-  showList("fav");
+  tabsEl.innerHTML=LIST_TABS.map(t=>`<button class="list-tab ${t[0]===listTab?'on':''}" data-t="${t[0]}">${t[1]}</button>`).join("");
+  tabsEl.querySelectorAll(".list-tab").forEach(b=>b.addEventListener("click",()=>{
+    listTab=b.dataset.t;
+    tabsEl.querySelectorAll(".list-tab").forEach(x=>x.classList.toggle("on",x===b));
+    showList(listTab);
+  }));
+  showList(listTab);
 }
 function showList(tab){
   const body=document.getElementById("listBody");
-  let items=[];
-  if(tab==="fav"){ const f=getFavs(); items=DATA.filter(d=>f.includes(d.id)); }
+  let items;
+  if(tab==="todos")      items=DATA.filter(d=>isFav(d)||statusOf(d));
+  else if(tab==="fav")   items=DATA.filter(d=>isFav(d));
+  else                   items=DATA.filter(d=>statusOf(d)===tab);
+
   if(!items.length){
-    const msg = tab==="fav" ? ["💔","Tu lista está vacía","Añade animes a tu lista desde la pantalla de detalle."]
-      : tab==="viendo" ? ["▶️","No estás viendo nada aún","Empieza un anime y aparecerá aquí."]
-      : ["🕐","Sin historial","Lo que veas se guardará aquí."];
-    body.innerHTML=`<div class="empty"><div class="ic">${msg[0]}</div><div class="big">${msg[1]}</div><div>${msg[2]}</div></div>`;
+    const M={ todos:["📺","Tu lista está vacía","Añade animes desde la pantalla de detalle (botón Mi lista)."],
+      fav:["🤍","Sin favoritos","Marca el corazón en el detalle para guardarlos aquí."],
+      viendo:["▶️","Nada en curso","Marca un anime como \"Viendo\"."],
+      completado:["✅","Nada completado aún",""],
+      pendiente:["🔖","Nada planeado","Guarda animes como \"Planeo ver\"."],
+      espera:["⏸️","Nada en espera",""],
+      abandonado:["🚫","Nada abandonado",""] }[tab]||["📺","Vacío",""];
+    body.innerHTML=`<div class="empty"><div class="ic">${M[0]}</div><div class="big">${M[1]}</div><div>${M[2]}</div></div>`;
     return;
   }
+  const STLBL={viendo:"Viendo",completado:"Completado",pendiente:"Planeo ver",espera:"En espera",abandonado:"Abandonado"};
   body.innerHTML=`<div class="list-grid">${items.map(cardHTML).join("")}</div>`;
-  body.querySelectorAll(".card").forEach(el=>el.addEventListener("click",()=>{const it=DATA.find(x=>x.id===el.dataset.id);if(it)go(it);}));
+  body.querySelectorAll(".card").forEach(el=>{
+    const it=DATA.find(x=>x.id===el.dataset.id);
+    el.addEventListener("click",()=>{ if(it) go(it); });
+    // etiqueta de estado/favorito en el subtítulo
+    const st=it?statusOf(it):null, sub=el.querySelector(".csub");
+    if(sub && (st || (it&&isFav(it)))){
+      const s=document.createElement("span");
+      s.className="lstatus"+((!st&&isFav(it))?" fav":"");
+      s.textContent = st ? (STLBL[st]||st) : "♥";
+      sub.appendChild(s);
+    }
+  });
 }
 
 /* ----- Cuenta ----- */
