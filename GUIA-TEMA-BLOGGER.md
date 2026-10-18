@@ -104,3 +104,19 @@ El color se aplica a **toda la interfaz** (botón reproducir, tabs, switches, et
 
 > Nota: el almacenamiento (favoritos, vistos, progreso) usa `localStorage` del
 > navegador del usuario.
+
+---
+
+## 🛠️ Si la entrada no se ve bien
+
+1. **Escribe el código en la vista HTML** del editor de Blogger (botón `<>` / "Vista HTML"),
+   no en la vista "Redactar". Pega el bloque generado tal cual.
+2. El tema ahora **normaliza** el contenido que Blogger reformatea (convierte `<br>`,
+   `<p>`, `&nbsp;` y los enlaces `<a>` de vuelta a texto/URL), así que los marcadores
+   `[NW]`, `[EP]`, `[CAST]` se leen aunque Blogger los envuelva en HTML.
+3. Asegúrate de **publicar** la entrada (no solo previsualizar el editor).
+4. Comprueba que instalaste el tema en **Tema → Restaurar/Copia de seguridad** (subir XML),
+   no en "Editar HTML" pegando parcialmente.
+5. Si ves el texto crudo de los marcadores: revisa que el `<script>` del tema esté presente
+   (algunos widgets de terceros pueden bloquear scripts). El contenido se construye por JS
+   al cargar la página de la entrada.

@@ -274,7 +274,7 @@
         <b:loop values='data:posts' var='post'>
 
           <!-- Datos crudos del post ocultos: el JS los lee y construye el detalle -->
-          <div id='nw-source'>
+          <div id='nw-source' style='display:none'>
             <span id='nw-title'><data:post.title/></span>
             <div id='nw-body'><data:post.body/></div>
             <span id='nw-date'><data:post.date/></span>
@@ -454,29 +454,42 @@ function buildDetailFromPost(){
   var $=function(id){return document.getElementById(id);};
 
   /* ---- 1. Leer datos crudos del post de Blogger ---- */
+  var srcEl   = $("nw-source");
   var rawTitle = ($("nw-title").textContent||"").trim();
-  var bodyHtml = $("nw-body").innerHTML||"";
+  var bodyEl  = $("nw-body");
+  var bodyHtml = bodyEl ? bodyEl.innerHTML||"" : "";
   var dateTxt  = ($("nw-date").textContent||"").trim();
   var labels   = Array.prototype.map.call(document.querySelectorAll("#nw-labels .nw-label"), function(x){return x.textContent.trim();}).filter(Boolean);
 
-  /* ---- 2. Parsear el cuerpo del post ---- 
-     Marcadores soportados dentro del post (vista HTML de Blogger):
-       [NW] campo: valor ... [/NW]  -> metadatos (year, rating, studio, etc.)
-       [EP]n|Titulo|dur|desc|thumb|Idioma=Servidor:URL,Servidor:URL;Idioma2=...[/EP]
-     Si no hay [EP], toma todos los <a> del post como episodios. */
   function stripTags(h){var d=document.createElement("div");d.innerHTML=h||"";return (d.textContent||"").trim();}
   function firstImg(h){var m=(h||"").match(/<img[^>]+src=["']([^"']+)["']/i);return m?m[1]:null;}
   function hiRes(u){return u?u.replace(/\/s\d+(-c)?\//,"/s1600/").replace(/=s\d+(-c)?$/,"=s1600"):u;}
 
-  // Metadatos [NW]clave:valor[/NW]
+  /* ---- 2. TEXTO NORMALIZADO del cuerpo ----
+     Blogger mete <br>, <p>, &nbsp; y convierte URLs en <a>. Para que los
+     marcadores [NW]/[EP]/[CAST] se lean bien, pasamos el HTML a texto plano:
+     - <a href="X">X</a>  ->  X  (recupera la URL real)
+     - <br>, </p>, </div> ->  salto de línea
+     - decodifica entidades (&amp; &nbsp; etc.) */
+  function htmlToText(h){
+    if(!h) return "";
+    h = h.replace(/<a[^>]*href=["']([^"']+)["'][^>]*>[\s\S]*?<\/a>/gi, "$1"); // enlaces -> su URL
+    h = h.replace(/<br\s*\/?>/gi, "\n").replace(/<\/(p|div|li)>/gi, "\n");
+    h = h.replace(/<[^>]+>/g, "");                                            // quitar tags restantes
+    var d = document.createElement("textarea"); d.innerHTML = h;             // decodificar entidades
+    return (d.value || "").replace(/\u00a0/g, " ");
+  }
+  var bodyText = htmlToText(bodyHtml);
+
+  // Metadatos [NW]clave:valor[/NW]  (sobre el texto normalizado)
   var META={};
-  (bodyHtml.match(/\[NW\]([\s\S]*?)\[\/NW\]/i)||[]).forEach(function(block,i){
-    if(i===0) return;
-    block.split(/\n|<br\s*\/?>/i).forEach(function(line){
+  var nwBlock = bodyText.match(/\[NW\]([\s\S]*?)\[\/NW\]/i);
+  if(nwBlock){
+    nwBlock[1].split(/\n+/).forEach(function(line){
       var mm=line.match(/^\s*([\w]+)\s*:\s*(.+?)\s*$/);
-      if(mm) META[mm[1].toLowerCase()]=stripTags(mm[2]);
+      if(mm) META[mm[1].toLowerCase()]=mm[2].trim();
     });
-  });
+  }
 
   // Episodios con idiomas/servidores
   function parseSources(str){
@@ -497,8 +510,8 @@ function buildDetailFromPost(){
 
   var episodes=[];
   var reEp=/\[EP\]([\s\S]*?)\[\/EP\]/gi, m;
-  while((m=reEp.exec(bodyHtml))!==null){
-    var p=m[1].split("|");
+  while((m=reEp.exec(bodyText))!==null){
+    var p=m[1].replace(/\n/g," ").split("|");
     episodes.push({
       n: parseInt(p[0],10) || (episodes.length+1),
       title:(p[1]||"").trim()||("Episodio "+(episodes.length+1)),
@@ -541,14 +554,27 @@ function buildDetailFromPost(){
     poster: poster, backdrop: backdrop,
     badges: (META.badges? META.badges.split(",").map(function(s){return s.trim();}) : labels.slice(0,4)),
     genres: labels,
-    synopsis: META.synopsis || stripTags(bodyHtml.replace(/\[(NW|EP)\][\s\S]*?\[\/(NW|EP)\]/gi,"")).slice(0,600),
+    synopsis: META.synopsis || bodyText.replace(/\[(NW|EP|CAST)\][\s\S]*?\[\/(NW|EP|CAST)\]/gi,"").replace(/\s+/g," ").trim().slice(0,600),
     seasons: isMovie ? null : [ { name: META.season || "Temporada 1", episodes: episodes } ],
     sources: isMovie ? (episodes[0] && episodes[0].sources ? episodes[0].sources : null) : null,
     cast: []
   };
   // Reparto [CAST]Nombre:Rol:img,...[/CAST]
-  var cm=bodyHtml.match(/\[CAST\]([\s\S]*?)\[\/CAST\]/i);
-  if(cm){ cm[1].split(",").forEach(function(c){var pp=c.split(":");if(pp[0])ANIME.cast.push({name:pp[0].trim(),role:(pp[1]||"").trim(),img:(pp[2]||"").trim()||"EMBED"});}); }
+  var cm=bodyText.match(/\[CAST\]([\s\S]*?)\[\/CAST\]/i);
+  if(cm){
+    cm[1].split(",").forEach(function(c){
+      c=c.trim(); if(!c) return;
+      // Nombre:Rol:URL  (la URL puede contener ":")
+      var i1=c.indexOf(":"); var name=i1<0?c:c.slice(0,i1).trim();
+      var rest=i1<0?"":c.slice(i1+1).trim();
+      var role="", img="";
+      if(rest){
+        if(/^https?:\/\//i.test(rest)){ img=rest; }         // Nombre:URL
+        else { var i2=rest.indexOf(":"); if(i2<0){ role=rest; } else { role=rest.slice(0,i2).trim(); img=rest.slice(i2+1).trim(); } }
+      }
+      if(name) ANIME.cast.push({name:name,role:role,img:img||"EMBED"});
+    });
+  }
 
   /* ---- 4. Motor del detalle (idéntico a detalle.html) ---- */
   NWDetail(ANIME, $);
