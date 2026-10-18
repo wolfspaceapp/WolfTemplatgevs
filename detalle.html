@@ -49,13 +49,15 @@
     0%{transform:translateX(-120%) rotate(8deg);}
     100%{transform:translateX(220%) rotate(8deg);}
   }
-  @media (prefers-reduced-motion: reduce){
-    .hero-bg,.poster{animation:none !important;}
-  }
-
   .reveal{opacity:0;animation:fadeUp .7s cubic-bezier(.22,.61,.36,1) forwards;}
   .d1{animation-delay:.15s;}.d2{animation-delay:.28s;}.d3{animation-delay:.4s;}
   .d4{animation-delay:.52s;}.d5{animation-delay:.64s;}.d6{animation-delay:.76s;}
+
+  @media (prefers-reduced-motion: reduce){
+    /* sin movimiento, pero NADA debe quedar invisible */
+    .hero-bg,.poster,.reveal,.ep-item{animation:none !important;}
+    .reveal,.ep-item{opacity:1 !important;}
+  }
 
   /* ====== Top bar ====== */
   .topbar{
@@ -105,21 +107,28 @@
     animation:sheen 9s ease-in-out infinite;
     animation-delay:1.5s;
   }
-  /* Botón favorito (corazón) sobre la imagen de fondo */
+  /* Botón favorito (corazón) sobre la imagen de fondo — estilo píldora limpio */
   .hero-fav{
     position:absolute;z-index:5;
-    top:calc(env(safe-area-inset-top) + 9px);right:12px;
-    width:40px;height:40px;border-radius:50%;
-    display:flex;align-items:center;justify-content:center;
-    background:rgba(20,20,20,.5);backdrop-filter:blur(6px);
-    border:1px solid rgba(255,255,255,.14);color:#fff;
-    transition:transform .18s, background .2s, color .2s;
+    top:calc(env(safe-area-inset-top) + 10px);right:14px;
+    display:inline-flex;align-items:center;gap:6px;
+    height:36px;padding:0 13px 0 11px;border-radius:999px;
+    background:rgba(16,16,18,.42);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,.22);color:#fff;
+    font-size:12.5px;font-weight:700;letter-spacing:.2px;
+    box-shadow:0 4px 14px rgba(0,0,0,.35);
+    transition:transform .16s, background .25s, border-color .25s, color .25s;
   }
-  .hero-fav svg{width:21px;height:21px;transition:transform .2s;}
-  .hero-fav:active{transform:scale(.88);}
-  .hero-fav.on{color:#ff5a6a;background:rgba(255,90,106,.16);border-color:rgba(255,90,106,.5);}
-  .hero-fav.on svg{animation:favPop .4s ease;}
-  @keyframes favPop{0%{transform:scale(1);}40%{transform:scale(1.35);}100%{transform:scale(1);}}
+  .hero-fav svg{width:18px;height:18px;transition:transform .25s;}
+  .hero-fav .fav-txt{line-height:1;}
+  .hero-fav:active{transform:scale(.93);}
+  .hero-fav.on{
+    color:#fff;background:rgba(244,117,33,.92);border-color:transparent;
+    box-shadow:0 4px 16px rgba(244,117,33,.5);
+  }
+  .hero-fav.on svg{animation:favPop .45s ease;}
+  @keyframes favPop{0%{transform:scale(1);}35%{transform:scale(1.4) rotate(-8deg);}70%{transform:scale(.92);}100%{transform:scale(1);}}
 
   .hero-inner{
     position:relative;z-index:2;
@@ -363,12 +372,12 @@
   .ep-check svg{width:12px;height:12px;fill:#fff;}
   .ep-item.watched .ep-check{display:flex;}
 
-  /* Cast (slider horizontal) */
+  /* Cast (slider horizontal) — respeta el padding lateral, no toca el borde */
   .cast-grid{
-    display:flex;gap:14px;margin:0 -16px;padding:0 16px 4px;
+    display:flex;gap:14px;padding:2px 2px 4px;
     overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;
   }
-  .cast-grid::after{content:"";flex:0 0 8px;}
+  .cast-grid::after{content:"";flex:0 0 2px;}
   .cast-grid::-webkit-scrollbar{height:0;}
   .cast-card{flex:0 0 64px;scroll-snap-align:start;text-align:center;}
   .cast-img{width:64px;height:64px;border-radius:50%;overflow:hidden;border:2px solid var(--border);margin:0 auto 7px;}
@@ -476,9 +485,10 @@
       <div class="hero-bg" id="heroBg"></div>
       <div class="hero-sheen"></div>
     </div>
-    <!-- Botón favorito (corazón) encima de la imagen de fondo -->
-    <button class="hero-fav" id="btnHeroFav" aria-label="Favorito" title="Favorito">
-      <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    <!-- Botón favorito (píldora) encima de la imagen de fondo -->
+    <button class="hero-fav" id="btnHeroFav" aria-label="Favorito">
+      <svg id="heroFavIcon" viewBox="0 0 24 24"></svg>
+      <span class="fav-txt" id="heroFavTxt">Favorito</span>
     </button>
     <div class="hero-inner">
       <div class="poster reveal d1" id="poster"><img id="posterImg" alt="Poster" /></div>
@@ -1014,14 +1024,24 @@ updateFavUI();
    ============================================================ */
 const FAV_KEY = "nekowolf_fav_" + (ANIME.title || "anime");
 const btnHeroFav = $("btnHeroFav");
+const heroFavIcon = $("heroFavIcon");
+const heroFavTxt = $("heroFavTxt");
+// Corazón contorno (no favorito) vs relleno (favorito)
+const HEART_OUTLINE = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35zM12 18.5l.1-.09C16.81 14.08 20 11.19 20 8.5 20 6.5 18.5 5 16.5 5c-1.54 0-3.04.99-3.57 2.36h-1.87C10.54 5.99 9.04 5 7.5 5 5.5 5 4 6.5 4 8.5c0 2.69 3.19 5.58 7.9 9.91l.1.09z";
+const HEART_FILLED = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z";
 let isFav = false;
 try { isFav = localStorage.getItem(FAV_KEY) === "1"; } catch(e){ isFav = false; }
-btnHeroFav.classList.toggle("on", isFav);
+function renderFav(){
+  btnHeroFav.classList.toggle("on", isFav);
+  heroFavIcon.innerHTML = `<path d="${isFav ? HEART_FILLED : HEART_OUTLINE}"/>`;
+  heroFavTxt.textContent = isFav ? "Favorito" : "Favorito";
+}
+renderFav();
 btnHeroFav.addEventListener("click", () => {
   isFav = !isFav;
   try { isFav ? localStorage.setItem(FAV_KEY,"1") : localStorage.removeItem(FAV_KEY); } catch(e){}
-  btnHeroFav.classList.toggle("on", isFav);
-  toast(isFav ? "Añadido a Favoritos ♥" : "Quitado de Favoritos");
+  renderFav();
+  toast(isFav ? "Añadido a Favoritos" : "Quitado de Favoritos");
 });
 
 /* ===== Reproductor ===== */
@@ -1055,6 +1075,12 @@ function toast(msg){
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove("show"), 2000);
 }
+
+/* ===== Failsafe: si alguna animación .reveal no dispara (ciertos WebView),
+   forzamos visibilidad para que el póster y la info NUNCA queden invisibles. */
+setTimeout(() => {
+  document.querySelectorAll(".reveal").forEach(el => { el.style.opacity = "1"; });
+}, 1200);
 </script>
 </body>
 </html>
