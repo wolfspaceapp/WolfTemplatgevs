@@ -9,6 +9,8 @@
   :root{
     --accent:#f47521;
     --accent-2:#ff9a52;
+    --accent-rgb:244, 117, 33;   /* RGB del acento (lo sobreescribe THEME en JS) */
+    --grad:linear-gradient(135deg,#ffa24d 0%,#f47521 48%,#e8630e 100%); /* degradado (THEME) */
     --bg:#0a0a0a;
     --bg2:#141414;
     --card:#1a1a1a;
@@ -37,8 +39,8 @@
   @keyframes fadeUp{from{opacity:0;transform:translateY(26px);}to{opacity:1;transform:translateY(0);}}
   @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
   @keyframes pulseGlow{
-    0%,100%{box-shadow:0 0 0 0 rgba(244,117,33,.55);}
-    50%{box-shadow:0 0 0 14px rgba(244,117,33,0);}
+    0%,100%{box-shadow:0 0 0 0 rgba(var(--accent-rgb),.55);}
+    50%{box-shadow:0 0 0 14px rgba(var(--accent-rgb),0);}
   }
   @keyframes floatPoster{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
   @keyframes popIn{from{opacity:0;transform:scale(.96) translateY(8px);}to{opacity:1;transform:scale(1) translateY(0);}}
@@ -85,7 +87,7 @@
     background:rgba(20,20,20,.55);backdrop-filter:blur(6px);
     color:#fff;transition:transform .2s, background .2s;
   }
-  .round-btn:active{transform:scale(.9);background:rgba(244,117,33,.35);}
+  .round-btn:active{transform:scale(.9);background:rgba(var(--accent-rgb),.35);}
   .round-btn svg{width:20px;height:20px;}
   .top-actions{display:flex;gap:8px;}
 
@@ -142,7 +144,7 @@
     border:1px solid var(--border);
   }
   .badge.accent{background:var(--accent);color:#fff;border-color:transparent;}
-  .badge.hd{color:var(--accent-2);border-color:rgba(244,117,33,.5);}
+  .badge.hd{color:var(--accent-2);border-color:rgba(var(--accent-rgb),.5);}
   h1.title{
     font-size:20px;line-height:1.15;font-weight:800;margin-bottom:6px;
     text-shadow:0 2px 12px rgba(0,0,0,.6);
@@ -166,15 +168,15 @@
     flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
     padding:14px 18px;border-radius:13px;font-size:14.5px;font-weight:800;
     letter-spacing:.2px;color:#fff;
-    /* NARANJA PREMIUM OSCURO: degradado naranja quemado con profundidad */
-    background:linear-gradient(135deg,#e06a16 0%,#c9550a 48%,#a63f04 100%);
-    border:1px solid rgba(255,150,80,.4);
+    /* degradado configurable desde THEME (--grad) */
+    background:var(--grad);
+    border:1px solid rgba(255,255,255,.22);
     box-shadow:
-      0 8px 22px rgba(140,55,0,.6),
-      0 3px 8px rgba(90,35,0,.4),
-      inset 0 1px 0 rgba(255,210,170,.3),
-      inset 0 -2px 6px rgba(80,28,0,.5);
-    text-shadow:0 1px 2px rgba(70,24,0,.6);
+      0 8px 22px rgba(var(--accent-rgb), .5),
+      0 3px 8px rgba(0,0,0,.3),
+      inset 0 1px 0 rgba(255,255,255,.3),
+      inset 0 -2px 6px rgba(0,0,0,.28);
+    text-shadow:0 1px 2px rgba(0,0,0,.45);
     transition:transform .18s, box-shadow .25s;
   }
   /* brillo superior "glossy" premium */
@@ -192,7 +194,7 @@
   }
   .btn-play span,.btn-play svg{position:relative;z-index:1;}
   .btn-play svg{width:19px;height:19px;}
-  .btn-play:active{transform:scale(.96);box-shadow:0 4px 12px rgba(140,55,0,.5),inset 0 1px 0 rgba(255,210,170,.25);}
+  .btn-play:active{transform:scale(.96);box-shadow:0 4px 12px rgba(var(--accent-rgb),.45),inset 0 1px 0 rgba(255,255,255,.25);}
   @keyframes btnShine{
     0%{left:-60%;}
     55%{left:130%;}
@@ -205,7 +207,7 @@
     transition:transform .18s, background .2s, color .2s;
   }
   .btn-ghost:active{transform:scale(.9);}
-  .btn-ghost.on{color:var(--accent);background:rgba(244,117,33,.14);border-color:rgba(244,117,33,.4);}
+  .btn-ghost.on{color:var(--accent);background:rgba(var(--accent-rgb),.14);border-color:rgba(var(--accent-rgb),.4);}
   .btn-ghost svg{width:21px;height:21px;}
 
   /* Genre chips (slider horizontal dentro del hero) */
@@ -226,7 +228,7 @@
     color:#f0f0f0;backdrop-filter:blur(4px);
     transition:transform .15s, background .2s;
   }
-  .chip:active{transform:scale(.94);background:rgba(244,117,33,.3);}
+  .chip:active{transform:scale(.94);background:rgba(var(--accent-rgb),.3);}
 
   /* ====== TABS (línea inferior en la activa) ====== */
   .tabs{
@@ -274,7 +276,7 @@
     background:var(--card);border:1px solid var(--border);border-radius:12px;
     padding:11px 12px;transition:transform .2s, border-color .2s;
   }
-  .info-card:active{transform:translateY(-2px);border-color:rgba(244,117,33,.4);}
+  .info-card:active{transform:translateY(-2px);border-color:rgba(var(--accent-rgb),.4);}
   .info-label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
   .info-value{font-size:13.5px;font-weight:700;}
 
@@ -288,8 +290,8 @@
   }
   /* temporada activa → fondo destacado (el borde NO cambia al pulsar) */
   .native-season.active-season{
-    background:rgba(244,117,33,.18);
-    border-color:rgba(244,117,33,.45);
+    background:rgba(var(--accent-rgb),.18);
+    border-color:rgba(var(--accent-rgb),.45);
   }
   .native-season.active-season svg.lead,
   .native-season.active-season select{color:var(--accent);}
@@ -334,7 +336,7 @@
     opacity:0;animation:epIn .42s cubic-bezier(.22,.61,.36,1) both;
     transition:transform .18s, border-color .2s, background .2s;
   }
-  .ep-item:active{transform:scale(.985);border-color:rgba(244,117,33,.45);background:#1f1f22;}
+  .ep-item:active{transform:scale(.985);border-color:rgba(var(--accent-rgb),.45);background:#1f1f22;}
   .ep-thumb{
     position:relative;flex:0 0 112px;width:112px;height:66px;border-radius:9px;overflow:hidden;
     background:var(--bg2);
@@ -349,7 +351,7 @@
   .ep-dur{position:absolute;right:5px;bottom:5px;background:rgba(0,0,0,.75);font-size:9.5px;font-weight:700;padding:2px 5px;border-radius:5px;}
   .ep-info{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;}
   .ep-top{display:flex;align-items:center;gap:7px;margin-bottom:3px;}
-  .ep-num{font-size:11px;font-weight:800;color:var(--accent);background:rgba(244,117,33,.14);padding:1px 7px;border-radius:6px;}
+  .ep-num{font-size:11px;font-weight:800;color:var(--accent);background:rgba(var(--accent-rgb),.14);padding:1px 7px;border-radius:6px;}
   .ep-title{font-size:13px;font-weight:700;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .ep-desc{font-size:11.5px;color:var(--muted);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 
@@ -372,7 +374,7 @@
   /* Estado "visto": card atenuada + miniatura marcada */
   .ep-item.watched{opacity:.62;}
   .ep-item.watched .ep-thumb::before{
-    content:"";position:absolute;inset:0;z-index:1;background:rgba(244,117,33,.18);
+    content:"";position:absolute;inset:0;z-index:1;background:rgba(var(--accent-rgb),.18);
   }
   .ep-check{
     position:absolute;left:5px;top:5px;z-index:2;width:18px;height:18px;border-radius:50%;
@@ -420,7 +422,7 @@
   .player-video .big-play{
     width:84px;height:84px;border-radius:50%;
     display:flex;align-items:center;justify-content:center;
-    background:rgba(244,117,33,.92);box-shadow:0 8px 30px rgba(0,0,0,.6);
+    background:rgba(var(--accent-rgb),.92);box-shadow:0 8px 30px rgba(0,0,0,.6);
     transition:transform .2s;
   }
   .player-video .big-play:active{transform:scale(.9);}
@@ -487,7 +489,7 @@
   }
   .pl-seek-buffer{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:rgba(255,255,255,.35);width:0;}
   .pl-seek-fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:var(--accent);width:0;}
-  .pl-seek-knob{position:absolute;top:50%;width:13px;height:13px;border-radius:50%;background:var(--accent);transform:translate(-50%,-50%);left:0;box-shadow:0 0 0 4px rgba(244,117,33,.25);}
+  .pl-seek-knob{position:absolute;top:50%;width:13px;height:13px;border-radius:50%;background:var(--accent);transform:translate(-50%,-50%);left:0;box-shadow:0 0 0 4px rgba(var(--accent-rgb),.25);}
   .pl-actions{display:flex;align-items:center;justify-content:space-between;margin-top:12px;}
   .pl-act{display:flex;align-items:center;gap:6px;color:#eee;font-size:12.5px;font-weight:700;}
   .pl-act svg{width:20px;height:20px;}
@@ -535,7 +537,7 @@
   .list-opt .txt small{display:block;font-size:11.5px;color:var(--muted);margin-top:1px;}
   .list-opt .tick{width:20px;height:20px;flex:0 0 auto;color:var(--accent);opacity:0;transition:opacity .2s;}
   .list-opt .tick svg{width:20px;height:20px;}
-  .list-opt.selected{background:rgba(244,117,33,.12);border-color:rgba(244,117,33,.5);}
+  .list-opt.selected{background:rgba(var(--accent-rgb),.12);border-color:rgba(var(--accent-rgb),.5);}
   .list-opt.selected .tick{opacity:1;}
   .sheet-remove{
     display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
@@ -559,7 +561,7 @@
   .sheet-back svg{width:16px;height:16px;pointer-events:none;}
   .sheet-back[hidden]{display:none !important;}
   /* fila con badge de tipo de servidor */
-  .list-opt .srv-tag{font-size:10px;font-weight:700;color:var(--accent);background:rgba(244,117,33,.14);padding:2px 7px;border-radius:6px;flex:0 0 auto;}
+  .list-opt .srv-tag{font-size:10px;font-weight:700;color:var(--accent);background:rgba(var(--accent-rgb),.14);padding:2px 7px;border-radius:6px;flex:0 0 auto;}
 
   /* Toast */
   .toast{
@@ -804,6 +806,52 @@
   <div class="toast" id="toast"></div>
 
 <script>
+/* ============================================================
+   🎨 CONFIGURACIÓN DE TEMA — cambia los colores de toda la interfaz
+   ------------------------------------------------------------
+   Edita SOLO estos valores para personalizar el color de acento
+   (el "naranja") y el degradado de botones/elementos. Se aplican
+   automáticamente a toda la pantalla (botón reproducir, tabs,
+   switches, selección, favorito, etc.).
+   ============================================================ */
+const THEME = {
+  accent:    "#f47521",   // color principal (el "naranja")
+  accent2:   "#ff9a52",   // variante clara del acento (brillos/bordes)
+
+  // Degradado (botón reproducir y acentos). 3 paradas: claro → medio → oscuro
+  gradFrom:  "#ffa24d",   // inicio del degradado
+  gradMid:   "#f47521",   // centro del degradado
+  gradTo:    "#e8630e",   // final del degradado
+  gradAngle: "135deg",    // ángulo del degradado
+
+  // (opcional) fondos de la app
+  bg:        "#0a0a0a",
+  bg2:       "#141414",
+  card:      "#1a1a1a"
+};
+
+/* Aplica el tema a las variables CSS :root (toda la interfaz lo usa) */
+(function applyTheme(){
+  const r = document.documentElement.style;
+  r.setProperty("--accent",   THEME.accent);
+  r.setProperty("--accent-2", THEME.accent2);
+  r.setProperty("--bg",       THEME.bg);
+  r.setProperty("--bg2",      THEME.bg2);
+  r.setProperty("--card",     THEME.card);
+  // degradado reutilizable
+  r.setProperty("--grad", `linear-gradient(${THEME.gradAngle}, ${THEME.gradFrom} 0%, ${THEME.gradMid} 48%, ${THEME.gradTo} 100%)`);
+  // versiones con alpha del acento (para fondos/sombras suaves)
+  const rgb = hexToRgb(THEME.accent);
+  if (rgb){
+    r.setProperty("--accent-rgb", `${rgb.r}, ${rgb.g}, ${rgb.b}`);
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEME.bg);
+  }
+  function hexToRgb(hex){
+    const m = hex.replace("#","").match(/^([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i);
+    return m ? { r:parseInt(m[1],16), g:parseInt(m[2],16), b:parseInt(m[3],16) } : null;
+  }
+})();
+
 /* ============================================================
    DATOS — Cambia "type" a "pelicula" o "serie"
    ------------------------------------------------------------
