@@ -807,6 +807,100 @@
 
 <script>
 /* ============================================================
+   CARGA DESDE BLOGGER — si la URL trae ?post=<url del post>,
+   trae ese post del feed, parsea los marcadores [NW]/[EP]/[CAST]
+   y construye el objeto que usará el detalle. Usa sessionStorage
+   para entregar los datos al motor sin reestructurar el script.
+   ============================================================ */
+(function feedBootstrap(){
+  var qs=new URLSearchParams(location.search);
+  var postUrl=qs.get("post"), blog=qs.get("blog");
+  if(!postUrl) return;                       // sin ?post= → modo demo normal
+  // ¿ya tenemos los datos cargados para este post? (evita bucle de recarga)
+  if(sessionStorage.getItem("nw_feed_for")===postUrl) return;
+
+  // pantalla de carga mientras llega el feed
+  document.addEventListener("DOMContentLoaded",function(){
+    document.body.insertAdjacentHTML("afterbegin",
+      "<div id='nwload' style='position:fixed;inset:0;z-index:9999;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#9b9b9b'>"
+      +"<div style='width:46px;height:46px;border:3px solid rgba(255,255,255,.15);border-top-color:#00F0FF;border-radius:50%;animation:spin .8s linear infinite'></div>"
+      +"<div style='font-weight:700'>Cargando…</div></div>");
+  });
+
+  // helpers de parseo (mismos marcadores que el generador)
+  function htmlToText(h){ if(!h) return "";
+    h=h.replace(/<a[^>]*href=["']([^"']+)["'][^>]*>[\s\S]*?<\/a>/gi,"$1");
+    h=h.replace(/<br\s*\/?>/gi,"\n").replace(/<\/(p|div|li)>/gi,"\n").replace(/<[^>]+>/g,"");
+    var d=document.createElement("textarea"); d.innerHTML=h; return (d.value||"").replace(/\u00a0/g," "); }
+  function hiRes(u){ return u?u.replace(/\/s\d+(-c)?\//,"/s1600/").replace(/=s\d+(-c)?$/,"=s1600"):u; }
+  function firstImg(h){ var m=(h||"").match(/<img[^>]+src=["']([^"']+)["']/i); return m?hiRes(m[1]):null; }
+  function parseSources(str){ var out={}; (str||"").split(";").forEach(function(g){ var gg=g.split("="); if(gg.length<2)return;
+    var lang=gg[0].trim(),sv=[]; gg[1].split(",").forEach(function(s){ var i=s.indexOf(":"); if(i>-1) sv.push({name:s.slice(0,i).trim(),url:s.slice(i+1).trim()}); });
+    if(lang&&sv.length) out[lang]=sv; }); return Object.keys(out).length?out:null; }
+
+  function build(entry){
+    var title=entry.title?entry.title.$t:"Anime";
+    var htmlRaw=(entry.content&&entry.content.$t)||(entry.summary&&entry.summary.$t)||"";
+    var text=htmlToText(htmlRaw);
+    var labels=(entry.category||[]).map(function(c){return c.term;});
+    var low=labels.map(function(l){return l.toLowerCase();});
+    var isMovie=low.some(function(l){return /pel[ií]cula|movie|film/.test(l);});
+    // [NW]
+    var META={}, nw=text.match(/\[NW\]([\s\S]*?)\[\/NW\]/i);
+    if(nw) nw[1].split(/\n+/).forEach(function(l){ var mm=l.match(/^\s*(\w+)\s*:\s*(.+?)\s*$/); if(mm) META[mm[1].toLowerCase()]=mm[2].trim(); });
+    // [EP]
+    var eps=[], re=/\[EP\]([\s\S]*?)\[\/EP\]/gi, m;
+    while((m=re.exec(text))!==null){ var p=m[1].replace(/\n/g," ").split("|");
+      eps.push({ n:parseInt(p[0],10)||(eps.length+1), title:(p[1]||"").trim()||("Episodio "+(eps.length+1)),
+        dur:(p[2]||"").trim(), desc:(p[3]||"").trim(), thumb:hiRes((p[4]||"").trim())||null, sources:parseSources((p[5]||"").trim()) }); }
+    var poster=hiRes(firstImg(htmlRaw))||META.poster||"EMBED";
+    var A={
+      type:isMovie?"pelicula":"serie", title:title,
+      year:META.year||"", rating:META.rating||"—", status:META.status||(isMovie?"Estreno":"En emisión"),
+      studio:META.studio||"", duration:META.duration||(isMovie?"":"24 min/ep"), audio:META.audio||"", director:META.director||"",
+      poster:poster, backdrop:META.backdrop||poster,
+      badges:(META.badges?META.badges.split(",").map(function(s){return s.trim();}):labels.slice(0,4)),
+      genres:labels,
+      synopsis:META.synopsis||text.replace(/\[(NW|EP|CAST)\][\s\S]*?\[\/(NW|EP|CAST)\]/gi,"").replace(/\s+/g," ").trim().slice(0,600),
+      seasons:isMovie?null:[{name:META.season||"Temporada 1",episodes:eps}],
+      sources:isMovie?(eps[0]&&eps[0].sources?eps[0].sources:null):null,
+      cast:[]
+    };
+    var cm=text.match(/\[CAST\]([\s\S]*?)\[\/CAST\]/i);
+    if(cm) cm[1].split(",").forEach(function(c){ c=c.trim(); if(!c)return;
+      var i1=c.indexOf(":"),name=i1<0?c:c.slice(0,i1).trim(),rest=i1<0?"":c.slice(i1+1).trim(),role="",imgu="";
+      if(rest){ if(/^https?:\/\//i.test(rest))imgu=rest; else{var i2=rest.indexOf(":");if(i2<0)role=rest;else{role=rest.slice(0,i2).trim();imgu=rest.slice(i2+1).trim();}} }
+      if(name) A.cast.push({name:name,role:role,img:imgu||"EMBED"}); });
+    return A;
+  }
+
+  // JSONP del post concreto: pedimos el feed por su ruta y filtramos por URL
+  var cb="__nwpost_"+Math.random().toString(36).slice(2);
+  window[cb]=function(data){
+    try{
+      var entries=(data&&data.feed&&data.feed.entry)||[];
+      // localizar la entrada cuyo enlace 'alternate' coincide con postUrl
+      var found=null;
+      entries.forEach(function(e){ (e.link||[]).forEach(function(l){ if(l.rel==="alternate"&&l.href===postUrl) found=e; }); });
+      if(!found && entries.length) found=entries[0];
+      if(found){
+        var A=build(found);
+        sessionStorage.setItem("nw_feed_for",postUrl);
+        sessionStorage.setItem("nw_feed_anime",JSON.stringify(A));
+        location.reload();   // recarga: el bloque ANIME usará estos datos
+        return;
+      }
+    }catch(e){}
+    // si falla, quita el loader y sigue con demo
+    var el=document.getElementById("nwload"); if(el) el.remove();
+  };
+  var base=(blog||"").replace(/\/+$/,"");
+  var s=document.createElement("script");
+  s.src=base+"/feeds/posts/default?alt=json&max-results=150&callback="+cb;
+  document.head.appendChild(s);
+})();
+
+/* ============================================================
    🎨 CONFIGURACIÓN DE TEMA — cambia los colores de toda la interfaz
    ------------------------------------------------------------
    Edita SOLO estos valores para personalizar el color de acento
@@ -858,8 +952,8 @@ const THEME = {
                       (temporadas con <select> nativo + ordenar)
    ============================================================ */
 
-/* ---- EJEMPLO SERIE (activo) ---- */
-const ANIME = {
+/* ---- EJEMPLO SERIE (fallback / demo si no llega ?post= del feed) ---- */
+let ANIME = {
   type: "serie",                        // "serie" | "pelicula"
   title: "Jujutsu Kaisen",
   year: 2024,
@@ -919,6 +1013,15 @@ const ANIME = {
     { name:"Sukuna", role:"J. Suwabe", img:"https://i.pravatar.cc/150?img=8" }
   ]
 };
+
+/* Si venimos del feed de Blogger, usamos esos datos en vez del demo */
+try{
+  var _fa=sessionStorage.getItem("nw_feed_anime");
+  var _qs=new URLSearchParams(location.search);
+  if(_fa && sessionStorage.getItem("nw_feed_for")===_qs.get("post")){
+    ANIME = JSON.parse(_fa);
+  }
+}catch(e){}
 
 /* ---- EJEMPLO PELÍCULA (copia esto sobre ANIME para probar el modo película) ----
 const ANIME = {

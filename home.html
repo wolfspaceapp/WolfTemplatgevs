@@ -906,8 +906,12 @@ function postToItem(entry){
   };
 }
 
-/* go(): abre el post real del blog */
-function go(item){ if(item && item.url) location.href=item.url; }
+/* go(): abre la pantalla de detalle con el post del blog */
+function go(item){
+  if(!item) return;
+  if(item.url) location.href="detalle.html?post="+encodeURIComponent(item.url)+"&blog="+encodeURIComponent(BLOG.URL);
+  else location.href="detalle.html?id="+encodeURIComponent(item.id);
+}
 
 function renderAll(){ heroItems = DATA.slice(0,5); renderHero(); renderRows(); }
 
