@@ -380,7 +380,7 @@
       <div class="hero-sheen"></div>
     </div>
     <div class="hero-inner">
-      <div class="poster reveal d1" id="poster"><img id="posterImg" alt="Poster" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x450/1a1a1a/f47521?text=Poster';" /></div>
+      <div class="poster reveal d1" id="poster"><img id="posterImg" alt="Poster" /></div>
       <div class="hero-meta">
         <div class="badges reveal d2" id="badges"></div>
         <h1 class="title reveal d3" id="animeTitle">Título</h1>
@@ -557,13 +557,34 @@ let sortAsc = true;
 
 const $ = (id) => document.getElementById(id);
 
+/* Placeholder SVG embebido (data URI) — no depende de internet,
+   así el póster SIEMPRE muestra algo aunque la imagen remota falle. */
+const PLACEHOLDER = "data:image/svg+xml;utf8," + encodeURIComponent(
+  `<svg xmlns='http://www.w3.org/2000/svg' width='300' height='450'>
+     <defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+       <stop offset='0' stop-color='#1f1f23'/><stop offset='1' stop-color='#141416'/>
+     </linearGradient></defs>
+     <rect width='300' height='450' fill='url(#g)'/>
+     <text x='150' y='232' font-size='120' text-anchor='middle' fill='#f47521' font-family='Arial' font-weight='bold'>N</text>
+   </svg>`
+);
+
 /* ============================================================
    RENDER BASE
    ============================================================ */
 (function renderBase(){
   document.title = "NekoWolf — " + ANIME.title;
-  $("heroBg").style.backgroundImage = `url('${ANIME.backdrop}')`;
-  $("posterImg").src = ANIME.poster;
+
+  // Póster: si la URL remota falla, cae al placeholder embebido
+  const posterImg = $("posterImg");
+  posterImg.onerror = () => { posterImg.onerror = null; posterImg.src = PLACEHOLDER; };
+  posterImg.src = ANIME.poster || PLACEHOLDER;
+
+  // Backdrop: precargamos para saber si funciona; si no, usamos el póster
+  const bd = new Image();
+  bd.onload  = () => { $("heroBg").style.backgroundImage = `url('${ANIME.backdrop}')`; };
+  bd.onerror = () => { $("heroBg").style.backgroundImage = `url('${ANIME.poster || PLACEHOLDER}')`; };
+  bd.src = ANIME.backdrop || ANIME.poster || PLACEHOLDER;
   $("animeTitle").textContent = ANIME.title;
   $("metaRating").textContent = ANIME.rating;
   $("metaYear").textContent = ANIME.year;
@@ -583,7 +604,7 @@ const $ = (id) => document.getElementById(id);
 
   $("castGrid").innerHTML = (ANIME.cast || []).map(p => `
     <div class="cast-card">
-      <div class="cast-img"><img src="${p.img}" alt="${p.name}" /></div>
+      <div class="cast-img"><img src="${p.img}" alt="${p.name}" onerror="this.onerror=null;this.src='${PLACEHOLDER}';" /></div>
       <div class="cast-name">${p.name}</div>
       <div class="cast-role">${p.role}</div>
     </div>`).join("");
@@ -676,7 +697,7 @@ if (!isMovie && ANIME.seasons && ANIME.seasons.length){
       return `
       <div class="ep-item ${seen?'watched':''}" data-ep="${ep.n}" style="animation-delay:${i*45}ms">
         <div class="ep-thumb">
-          <img src="${ep.thumb}" alt="EP ${ep.n}" />
+          <img src="${ep.thumb}" alt="EP ${ep.n}" onerror="this.onerror=null;this.src='${PLACEHOLDER}';" />
           <span class="ep-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
           <span class="ep-dur">${ep.dur}</span>
           <div class="play-ov"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
