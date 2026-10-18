@@ -203,28 +203,29 @@
   .genre-cell .garrow{position:absolute;right:12px;bottom:12px;z-index:1;width:18px;height:18px;opacity:.8;}
   .genre-cell .garrow svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2.5;}
 
-  /* Notificaciones */
-  .noti-header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(env(safe-area-inset-top) + 20px) 16px 6px;}
-  .noti-title{font-size:26px;font-weight:900;letter-spacing:-.5px;}
-  .noti-clear{font-size:12px;font-weight:700;color:var(--accent);}
-  .noti-clear:active{opacity:.6;}
-  .noti-list{display:flex;flex-direction:column;gap:9px;padding:14px 16px;}
-  .noti-card{position:relative;display:flex;gap:12px;align-items:center;padding:11px;border-radius:14px;
-    background:var(--card);border:1px solid var(--border);cursor:pointer;transition:transform .15s,border-color .2s,background .2s;}
-  .noti-card:active{transform:scale(.99);}
-  .noti-card.unread{background:rgba(var(--accent-rgb),.07);border-color:rgba(var(--accent-rgb),.3);}
-  .noti-card.unread::before{content:"";position:absolute;left:5px;top:50%;transform:translateY(-50%);width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px rgba(var(--accent-rgb),.7);}
-  .noti-thumb{position:relative;width:52px;height:52px;border-radius:12px;overflow:hidden;background:var(--bg2);flex:0 0 auto;}
-  .noti-thumb img{width:100%;height:100%;object-fit:cover;}
-  .noti-ic{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(var(--accent-rgb),.16);}
-  .noti-ic svg{width:24px;height:24px;fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
-  .noti-body{flex:1;min-width:0;}
-  .noti-body .nt{font-size:13.5px;font-weight:700;line-height:1.3;}
-  .noti-body .nt b{color:var(--accent);}
-  .noti-body .nd{font-size:11px;color:var(--muted);margin-top:3px;}
-  .noti-empty{text-align:center;color:var(--muted);padding:70px 24px;}
-  .noti-empty .ic{font-size:46px;margin-bottom:12px;opacity:.8;}
-  .noti-empty .big{font-size:16px;font-weight:800;color:#fff;margin-bottom:5px;}
+  /* Noticias */
+  .news-header{padding:calc(env(safe-area-inset-top) + 20px) 16px 6px;}
+  .news-title{font-size:26px;font-weight:900;letter-spacing:-.5px;}
+  .news-list{display:flex;flex-direction:column;gap:14px;padding:14px 16px;}
+  /* primera noticia: destacada grande */
+  .news-card{border-radius:16px;overflow:hidden;background:var(--card);border:1px solid var(--border);cursor:pointer;transition:transform .15s,border-color .2s;}
+  .news-card:active{transform:scale(.98);border-color:rgba(var(--accent-rgb),.5);}
+  .news-feat{position:relative;}
+  .news-feat .cover{width:100%;height:170px;object-fit:cover;display:block;background:var(--bg2);}
+  .news-feat .cover-ov{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(5,5,8,.92));}
+  .news-feat .cont{position:absolute;left:0;right:0;bottom:0;padding:14px;}
+  .news-cat{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#fff;
+    background:var(--grad);padding:3px 9px;border-radius:999px;margin-bottom:8px;}
+  .news-feat .h{font-size:17px;font-weight:800;line-height:1.25;text-shadow:0 2px 10px rgba(0,0,0,.8);}
+  .news-feat .d{font-size:11.5px;color:#bbb;margin-top:6px;}
+  /* noticias normales: fila horizontal */
+  .news-row{display:flex;gap:12px;align-items:center;padding:11px;}
+  .news-row .thumb{width:84px;height:62px;border-radius:11px;overflow:hidden;background:var(--bg2);flex:0 0 auto;}
+  .news-row .thumb img{width:100%;height:100%;object-fit:cover;}
+  .news-row .info{flex:1;min-width:0;}
+  .news-row .cat{font-size:9px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--accent);}
+  .news-row .h{font-size:13.5px;font-weight:700;line-height:1.3;margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .news-row .d{font-size:10.5px;color:var(--muted);margin-top:4px;}
 
   /* Mi lista: tabs + cuadrícula */
   .list-tabs{display:flex;gap:8px;padding:0 16px;overflow-x:auto;}
@@ -379,13 +380,10 @@
       <div class="list-tabs" id="listTabs"></div>
       <div id="listBody"></div>
     </div>
-    <!-- Vista: Notificaciones -->
-    <div class="view hidden" id="view-notis">
-      <div class="noti-header">
-        <h2 class="noti-title">Notificaciones</h2>
-        <button class="noti-clear" id="notiClear">Marcar leídas</button>
-      </div>
-      <div class="noti-list" id="notiList"></div>
+    <!-- Vista: Noticias -->
+    <div class="view hidden" id="view-news">
+      <div class="news-header"><h2 class="news-title">Noticias</h2></div>
+      <div class="news-list" id="newsList"></div>
     </div>
     <!-- Vista: Cuenta -->
     <div class="view hidden" id="view-account"></div>
@@ -427,8 +425,8 @@
     <button class="nav-item" data-view="list">
       <svg viewBox="0 0 24 24"><path d="M6 4h12a1 1 0 0 1 1 1v15l-7-3.5L5 20V5a1 1 0 0 1 1-1Z"/></svg><span>Mi lista</span>
     </button>
-    <button class="nav-item" data-view="notis">
-      <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.5 21a1.8 1.8 0 0 1-3 0"/></svg><span>Avisos</span>
+    <button class="nav-item" data-view="news">
+      <svg viewBox="0 0 24 24"><path d="M4 5h13a1 1 0 0 1 1 1v12a2 2 0 0 0 2 2H5a1 1 0 0 1-1-1z"/><path d="M20 20a2 2 0 0 1-2-2V8h2a1 1 0 0 1 1 1v9a2 2 0 0 1-1 2z"/><path d="M7 8h7M7 11h7M7 14h4"/></svg><span>Noticias</span>
     </button>
     <button class="nav-item" data-view="account">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6"/></svg><span>Cuenta</span>
@@ -705,7 +703,7 @@ function switchView(v){
   if(v==="list") renderList();          // siempre refresca (favoritos pueden cambiar)
   else if(!RENDERED[v]){
     if(v==="explore") renderExplore();
-    else if(v==="notis") renderNotis();
+    else if(v==="news") renderNews();
     else if(v==="account") renderAccount();
     RENDERED[v]=true;
   }
@@ -742,43 +740,41 @@ function renderExplore(){
   er.querySelectorAll("[data-all]").forEach(b=>b.addEventListener("click",()=>openAll("Más populares",DATA.slice().sort((a,b)=>b.rating-a.rating))));
 }
 
-/* ----- Notificaciones ----- */
-// Se generan a partir de los animes "nuevos" (nuevos episodios) + avisos del sistema.
-// El estado leído/no leído se guarda en localStorage.
-function readNotis(){ try{return JSON.parse(localStorage.getItem("nw_notis_read")||"[]");}catch(e){return [];} }
-function markNotisRead(ids){ try{localStorage.setItem("nw_notis_read",JSON.stringify(ids));}catch(e){} }
-function buildNotis(){
-  const news=DATA.filter(d=>d.nuevo).map((d,i)=>({
-    id:"ep_"+d.id, anime:d, kind:"ep",
-    title:`Nuevo episodio de <b>${esc(d.title)}</b>`,
-    desc:`Episodio ${d.eps||1} ya disponible · hace ${i+1}h`
-  }));
-  const sys=[{id:"sys_welcome",kind:"sys",title:"¡Bienvenido a CyberKai! 🎉",desc:"Explora el catálogo y arma tu lista."}];
-  return news.concat(sys);
+/* ----- Noticias ----- */
+// Edita este array o conéctalo a tu feed de noticias / Blogger.
+const NEWS = [
+  { cat:"Estreno", title:"La nueva temporada de Jujutsu Kaisen ya tiene fecha", date:"Hoy", id:"jjk", img:"" },
+  { cat:"Anuncio", title:"Chainsaw Man confirma película secuela para el próximo año", date:"Ayer", id:"csm", img:"" },
+  { cat:"Doblaje", title:"Frieren estrena doblaje latino en todos los episodios", date:"Hace 2 días", id:"frn", img:"" },
+  { cat:"Industria", title:"One Piece supera récord de visualizaciones del mes", date:"Hace 3 días", id:"onp", img:"" },
+  { cat:"Evento", title:"Demon Slayer anuncia gira de proyección en cines", date:"Hace 4 días", id:"dmc", img:"" }
+];
+function newsImg(n){
+  if(n.img) return n.img;
+  const a=DATA.find(d=>d.id===n.id);
+  return img(a && (a.backdrop||a.poster));
 }
-function renderNotis(){
-  const list=document.getElementById("notiList");
-  const notis=buildNotis(); const read=readNotis();
-  if(!notis.length){ list.innerHTML='<div class="noti-empty"><div class="ic">🔔</div><div class="big">Sin notificaciones</div><div>Te avisaremos de nuevos episodios.</div></div>'; return; }
-  list.innerHTML=notis.map(n=>{
-    const unread=read.indexOf(n.id)===-1;
-    const thumb=n.kind==="ep"
-      ? `<div class="noti-thumb"><img src="${img(n.anime.poster)}" onerror="this.src='${FALL}'"/></div>`
-      : `<div class="noti-thumb"><div class="noti-ic"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.5 21a1.8 1.8 0 0 1-3 0"/></svg></div></div>`;
-    return `<div class="noti-card ${unread?'unread':''}" data-id="${esc(n.id)}" data-anime="${n.anime?esc(n.anime.id):''}">
-      ${thumb}
-      <div class="noti-body"><div class="nt">${n.title}</div><div class="nd">${n.desc}</div></div>
-    </div>`;
-  }).join("");
-  list.querySelectorAll(".noti-card").forEach(el=>el.addEventListener("click",()=>{
-    el.classList.remove("unread");
-    const aid=el.dataset.anime; const it=aid&&DATA.find(x=>x.id===aid);
-    if(it) go(it);
+function renderNews(){
+  const list=document.getElementById("newsList");
+  if(!NEWS.length){ list.innerHTML='<div style="padding:70px 24px;text-align:center;color:var(--muted)"><div style="font-size:46px;margin-bottom:12px">📰</div><div style="font-size:16px;font-weight:800;color:#fff">Sin noticias</div></div>'; return; }
+  // primera destacada
+  const f=NEWS[0];
+  let html=`<div class="news-card" data-id="${esc(f.id||'')}">
+    <div class="news-feat">
+      <img class="cover" src="${newsImg(f)}" onerror="this.src='${FALL}'" alt=""/>
+      <div class="cover-ov"></div>
+      <div class="cont"><span class="news-cat">${esc(f.cat)}</span><div class="h">${esc(f.title)}</div><div class="d">${esc(f.date)}</div></div>
+    </div></div>`;
+  // resto en filas
+  html += NEWS.slice(1).map(n=>`
+    <div class="news-card" data-id="${esc(n.id||'')}"><div class="news-row">
+      <div class="thumb"><img src="${newsImg(n)}" onerror="this.src='${FALL}'" alt=""/></div>
+      <div class="info"><div class="cat">${esc(n.cat)}</div><div class="h">${esc(n.title)}</div><div class="d">${esc(n.date)}</div></div>
+    </div></div>`).join("");
+  list.innerHTML=html;
+  list.querySelectorAll(".news-card").forEach(el=>el.addEventListener("click",()=>{
+    const it=DATA.find(x=>x.id===el.dataset.id); if(it) go(it);
   }));
-  document.getElementById("notiClear").onclick=()=>{
-    markNotisRead(notis.map(n=>n.id));
-    list.querySelectorAll(".noti-card").forEach(el=>el.classList.remove("unread"));
-  };
 }
 
 /* ----- Mi lista — lee los MISMOS estados que guarda detalle.html -----
