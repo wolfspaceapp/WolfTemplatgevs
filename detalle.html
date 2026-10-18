@@ -111,9 +111,11 @@
     padding:0 16px 18px;min-height:46vh;
   }
   .poster{
-    flex:0 0 100px;width:100px;height:148px;border-radius:12px;overflow:hidden;
+    flex:0 0 112px;width:112px;height:166px;border-radius:13px;overflow:hidden;
     background:var(--bg2);
-    box-shadow:0 10px 26px rgba(0,0,0,.6);border:1.5px solid rgba(255,255,255,.12);
+    box-shadow:0 14px 34px rgba(0,0,0,.75), 0 0 0 1px rgba(0,0,0,.4);
+    border:2px solid rgba(255,255,255,.16);
+    margin-bottom:-6px;              /* sobresale un poco: destaca sobre el fondo */
     animation:floatPoster 6s ease-in-out infinite;
   }
   .poster img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;background:var(--bg2);}
@@ -146,35 +148,38 @@
   .btn-play{
     position:relative;overflow:hidden;
     flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
-    padding:13px 18px;border-radius:13px;font-size:14.5px;font-weight:800;
+    padding:14px 18px;border-radius:13px;font-size:14.5px;font-weight:800;
     letter-spacing:.2px;color:#fff;
-    /* naranja premium: degradado multiparada + profundidad */
-    background:linear-gradient(135deg,#ff8a3d 0%,#f47521 42%,#e85d04 100%);
-    border:1px solid rgba(255,255,255,.22);
+    /* PREMIUM OSCURO: base casi negra con brillo naranja sutil */
+    background:
+      radial-gradient(120% 140% at 0% 0%, rgba(244,117,33,.28) 0%, rgba(244,117,33,0) 55%),
+      linear-gradient(135deg,#242427 0%,#161618 60%,#0f0f10 100%);
+    border:1px solid rgba(244,117,33,.42);
     box-shadow:
-      0 6px 18px rgba(232,93,4,.45),
-      0 2px 4px rgba(0,0,0,.25),
-      inset 0 1px 0 rgba(255,255,255,.35);
-    text-shadow:0 1px 2px rgba(130,45,0,.45);
-    animation:pulseGlow 2.6s ease-in-out infinite;
-    transition:transform .18s, box-shadow .25s;
+      0 6px 20px rgba(0,0,0,.55),
+      0 0 0 1px rgba(0,0,0,.3),
+      inset 0 1px 0 rgba(255,255,255,.08);
+    text-shadow:0 1px 2px rgba(0,0,0,.6);
+    transition:transform .18s, box-shadow .25s, border-color .25s;
   }
-  /* brillo superior tipo "glossy" premium */
+  .btn-play:hover{border-color:rgba(244,117,33,.7);box-shadow:0 8px 26px rgba(0,0,0,.6),0 0 22px rgba(244,117,33,.25);}
+  /* borde superior con brillo tenue (acabado premium) */
   .btn-play::before{
-    content:"";position:absolute;left:0;right:0;top:0;height:48%;
-    background:linear-gradient(180deg,rgba(255,255,255,.4),rgba(255,255,255,0));
+    content:"";position:absolute;left:0;right:0;top:0;height:46%;
+    background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,0));
     pointer-events:none;
   }
-  /* destello que recorre el botón */
+  /* destello naranja sutil que recorre el botón */
   .btn-play::after{
-    content:"";position:absolute;top:0;bottom:0;left:-60%;width:40%;
-    background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.55),rgba(255,255,255,0));
+    content:"";position:absolute;top:0;bottom:0;left:-60%;width:35%;
+    background:linear-gradient(90deg,rgba(244,117,33,0),rgba(244,117,33,.22),rgba(244,117,33,0));
     transform:skewX(-20deg);
-    animation:btnShine 4.5s ease-in-out infinite;
+    animation:btnShine 5s ease-in-out infinite;
   }
   .btn-play span,.btn-play svg{position:relative;z-index:1;}
-  .btn-play:active{transform:scale(.96);box-shadow:0 3px 10px rgba(232,93,4,.4),inset 0 1px 0 rgba(255,255,255,.3);}
-  .btn-play svg{width:19px;height:19px;}
+  /* el icono play en naranja para dar el acento premium */
+  .btn-play svg{width:19px;height:19px;fill:var(--accent);filter:drop-shadow(0 0 6px rgba(244,117,33,.5));}
+  .btn-play:active{transform:scale(.96);box-shadow:0 3px 12px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);}
   @keyframes btnShine{
     0%{left:-60%;}
     55%{left:130%;}
@@ -587,15 +592,26 @@ const $ = (id) => document.getElementById(id);
 
 /* Placeholder SVG embebido (data URI) — no depende de internet,
    así el póster SIEMPRE muestra algo aunque la imagen remota falle. */
-const PLACEHOLDER = "data:image/svg+xml;utf8," + encodeURIComponent(
+function makePlaceholder(label){
+  const t = (label || "").replace(/[<>&]/g,"").slice(0,22);
+  return "data:image/svg+xml;utf8," + encodeURIComponent(
   `<svg xmlns='http://www.w3.org/2000/svg' width='300' height='450'>
-     <defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
-       <stop offset='0' stop-color='#1f1f23'/><stop offset='1' stop-color='#141416'/>
-     </linearGradient></defs>
+     <defs>
+       <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+         <stop offset='0' stop-color='#26262b'/><stop offset='1' stop-color='#111113'/>
+       </linearGradient>
+       <linearGradient id='o' x1='0' y1='0' x2='1' y2='1'>
+         <stop offset='0' stop-color='#ff8a3d'/><stop offset='1' stop-color='#e85d04'/>
+       </linearGradient>
+     </defs>
      <rect width='300' height='450' fill='url(#g)'/>
-     <text x='150' y='232' font-size='120' text-anchor='middle' fill='#f47521' font-family='Arial' font-weight='bold'>N</text>
-   </svg>`
-);
+     <circle cx='150' cy='185' r='58' fill='url(#o)'/>
+     <text x='150' y='210' font-size='70' text-anchor='middle' fill='#fff' font-family='Arial' font-weight='bold'>N</text>
+     <text x='150' y='300' font-size='20' text-anchor='middle' fill='#cfcfcf' font-family='Arial' font-weight='bold'>${t}</text>
+     <text x='150' y='330' font-size='14' text-anchor='middle' fill='#7a7a7a' font-family='Arial'>Sin imagen</text>
+   </svg>`);
+}
+const PLACEHOLDER = makePlaceholder("");
 
 /* ============================================================
    RENDER BASE
@@ -603,10 +619,11 @@ const PLACEHOLDER = "data:image/svg+xml;utf8," + encodeURIComponent(
 (function renderBase(){
   document.title = "NekoWolf — " + ANIME.title;
 
-  // Póster: si la URL remota falla, cae al placeholder embebido
+  // Póster: si la URL remota falla, cae al placeholder (con el título)
   const posterImg = $("posterImg");
-  posterImg.onerror = () => { posterImg.onerror = null; posterImg.src = PLACEHOLDER; };
-  posterImg.src = ANIME.poster || PLACEHOLDER;
+  const posterFallback = makePlaceholder(ANIME.title);
+  posterImg.onerror = () => { posterImg.onerror = null; posterImg.src = posterFallback; };
+  posterImg.src = ANIME.poster || posterFallback;
 
   // Backdrop: precargamos para saber si funciona; si no, usamos el póster
   const bd = new Image();
