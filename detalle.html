@@ -144,14 +144,42 @@
   /* CTA buttons */
   .cta-row{display:flex;gap:10px;margin:4px 0 16px;}
   .btn-play{
+    position:relative;overflow:hidden;
     flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
-    padding:12px 18px;border-radius:12px;font-size:14.5px;font-weight:800;
-    background:linear-gradient(135deg,var(--accent),var(--accent-2));
-    color:#fff;animation:pulseGlow 2.6s ease-in-out infinite;
-    transition:transform .18s;
+    padding:13px 18px;border-radius:13px;font-size:14.5px;font-weight:800;
+    letter-spacing:.2px;color:#fff;
+    /* naranja premium: degradado multiparada + profundidad */
+    background:linear-gradient(135deg,#ff8a3d 0%,#f47521 42%,#e85d04 100%);
+    border:1px solid rgba(255,255,255,.22);
+    box-shadow:
+      0 6px 18px rgba(232,93,4,.45),
+      0 2px 4px rgba(0,0,0,.25),
+      inset 0 1px 0 rgba(255,255,255,.35);
+    text-shadow:0 1px 2px rgba(130,45,0,.45);
+    animation:pulseGlow 2.6s ease-in-out infinite;
+    transition:transform .18s, box-shadow .25s;
   }
-  .btn-play:active{transform:scale(.96);}
+  /* brillo superior tipo "glossy" premium */
+  .btn-play::before{
+    content:"";position:absolute;left:0;right:0;top:0;height:48%;
+    background:linear-gradient(180deg,rgba(255,255,255,.4),rgba(255,255,255,0));
+    pointer-events:none;
+  }
+  /* destello que recorre el botón */
+  .btn-play::after{
+    content:"";position:absolute;top:0;bottom:0;left:-60%;width:40%;
+    background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.55),rgba(255,255,255,0));
+    transform:skewX(-20deg);
+    animation:btnShine 4.5s ease-in-out infinite;
+  }
+  .btn-play span,.btn-play svg{position:relative;z-index:1;}
+  .btn-play:active{transform:scale(.96);box-shadow:0 3px 10px rgba(232,93,4,.4),inset 0 1px 0 rgba(255,255,255,.3);}
   .btn-play svg{width:19px;height:19px;}
+  @keyframes btnShine{
+    0%{left:-60%;}
+    55%{left:130%;}
+    100%{left:130%;}
+  }
   .btn-ghost{
     width:46px;height:46px;flex:0 0 auto;border-radius:12px;
     display:flex;align-items:center;justify-content:center;
@@ -495,8 +523,8 @@ const ANIME = {
   duration: "24 min/ep",
   audio: "Japonés · Latino",
   director: "Sunghoo Park",
-  poster: "https://image.tmdb.org/t/p/w500/fHpKWq9ayzSk8nSwqRuaAUemRKh.jpg",
-  backdrop: "https://image.tmdb.org/t/p/original/vIgyYkXkg6NC2whRbYjBD7eb3Er.jpg",
+  poster: "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx113415-bbBWj4pEFseh.jpg",
+  backdrop: "https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg",
   badges: ["Simulcast", "HD 1080p", "SUB · DOB", "16+"],
   genres: ["Acción", "Shounen", "Sobrenatural", "Fantasía", "Terror"],
   synopsis: "Yuji Itadori es un estudiante de secundaria con una fuerza física extraordinaria que vive una vida tranquila hasta que, para salvar a sus amigos, se traga un dedo maldito perteneciente a Ryomen Sukuna, un legendario y temible rey de las maldiciones. Al convertirse en el recipiente de este poder, Yuji se une a la Escuela Técnica de Jujutsu de Tokio, donde aprenderá a controlar la energía maldita y luchará junto a otros hechiceros para exorcizar a las criaturas que amenazan a la humanidad.",
@@ -504,18 +532,18 @@ const ANIME = {
     {
       name: "Temporada 1",
       episodes: [
-        { n:1, title:"Ryomen Sukuna", dur:"24m", desc:"Yuji conoce a Megumi y descubre el mundo de las maldiciones.", thumb:"https://image.tmdb.org/t/p/w500/vIgyYkXkg6NC2whRbYjBD7eb3Er.jpg" },
-        { n:2, title:"Para mí mismo", dur:"24m", desc:"Yuji comienza su entrenamiento en la escuela técnica.", thumb:"https://image.tmdb.org/t/p/w500/fHpKWq9ayzSk8nSwqRuaAUemRKh.jpg" },
-        { n:3, title:"La chica de acero", dur:"24m", desc:"Aparece Nobara Kugisaki y realiza su primera misión.", thumb:"https://image.tmdb.org/t/p/w500/vIgyYkXkg6NC2whRbYjBD7eb3Er.jpg" },
-        { n:4, title:"Nacimiento maldito", dur:"24m", desc:"El equipo enfrenta una maldición en un edificio abandonado.", thumb:"https://image.tmdb.org/t/p/w500/fHpKWq9ayzSk8nSwqRuaAUemRKh.jpg" }
+        { n:1, title:"Ryomen Sukuna", dur:"24m", desc:"Yuji conoce a Megumi y descubre el mundo de las maldiciones.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg" },
+        { n:2, title:"Para mí mismo", dur:"24m", desc:"Yuji comienza su entrenamiento en la escuela técnica.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg" },
+        { n:3, title:"La chica de acero", dur:"24m", desc:"Aparece Nobara Kugisaki y realiza su primera misión.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg" },
+        { n:4, title:"Nacimiento maldito", dur:"24m", desc:"El equipo enfrenta una maldición en un edificio abandonado.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg" }
       ]
     },
     {
       name: "Temporada 2",
       episodes: [
-        { n:1, title:"El incidente de Shibuya", dur:"24m", desc:"Comienza uno de los arcos más intensos de la serie.", thumb:"https://image.tmdb.org/t/p/w500/vIgyYkXkg6NC2whRbYjBD7eb3Er.jpg" },
-        { n:2, title:"Hidden Inventory", dur:"24m", desc:"Un vistazo al pasado de Gojo y Geto.", thumb:"https://image.tmdb.org/t/p/w500/fHpKWq9ayzSk8nSwqRuaAUemRKh.jpg" },
-        { n:3, title:"Sello", dur:"24m", desc:"La situación se vuelve crítica en Shibuya.", thumb:"https://image.tmdb.org/t/p/w500/vIgyYkXkg6NC2whRbYjBD7eb3Er.jpg" }
+        { n:1, title:"El incidente de Shibuya", dur:"24m", desc:"Comienza uno de los arcos más intensos de la serie.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg" },
+        { n:2, title:"Hidden Inventory", dur:"24m", desc:"Un vistazo al pasado de Gojo y Geto.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg" },
+        { n:3, title:"Sello", dur:"24m", desc:"La situación se vuelve crítica en Shibuya.", thumb:"https://s4.anilist.co/file/anilistcdn/media/anime/banner/113415-jQBSkxWAAk83.jpg" }
       ]
     }
   ],
