@@ -101,17 +101,8 @@
   .hero-dots span{width:6px;height:6px;border-radius:999px;background:rgba(255,255,255,.28);transition:width .35s,background .35s;}
   .hero-dots span.on{width:22px;background:var(--accent);}
 
-  /* ===== Chips de categorías rápidas ===== */
-  .quick{display:flex;gap:8px;overflow-x:auto;padding:16px 16px 4px;scroll-snap-type:x proximity;
-    -webkit-mask-image:linear-gradient(90deg,#000 90%,transparent);mask-image:linear-gradient(90deg,#000 90%,transparent);}
-  .quick::-webkit-scrollbar{height:0;}
-  .quick .q{flex:0 0 auto;scroll-snap-align:start;font-size:12.5px;font-weight:700;color:#e8e8ea;
-    padding:8px 15px;border-radius:999px;background:var(--card);border:1px solid var(--border);transition:transform .15s, border-color .2s, color .2s;}
-  .quick .q:active{transform:scale(.94);}
-  .quick .q.on{color:#fff;background:var(--grad);border-color:transparent;box-shadow:0 4px 12px rgba(var(--accent-rgb),.4);}
-
   /* ===== Filas / carruseles ===== */
-  .rows{padding:6px 0 24px;}
+  .rows{padding:12px 0 24px;}
   .row{margin-bottom:24px;}
   .row-head{display:flex;align-items:center;justify-content:space-between;padding:0 16px;margin-bottom:11px;}
   .row-title{font-size:16.5px;font-weight:800;display:flex;align-items:center;gap:8px;}
@@ -122,18 +113,31 @@
   .row-scroll::after{content:"";flex:0 0 4px;}
 
   /* Card poster */
-  .card{flex:0 0 120px;scroll-snap-align:start;cursor:pointer;transition:transform .2s;}
-  .card:active{transform:scale(.96);}
-  .card .poster{position:relative;width:120px;height:176px;border-radius:14px;overflow:hidden;background:var(--bg2);border:1px solid var(--border);box-shadow:0 8px 20px -6px rgba(0,0,0,.6);}
-  .card .poster img{width:100%;height:100%;object-fit:cover;transition:transform .4s;}
-  .card:active .poster img{transform:scale(1.06);}
-  .card .poster::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.5));}
-  .card .badge{position:absolute;left:8px;top:8px;z-index:1;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;padding:3px 8px;border-radius:7px;background:rgba(0,0,0,.55);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);border:1px solid rgba(255,255,255,.12);}
-  .card .badge.new{background:var(--grad);border-color:transparent;}
-  .card .crate{position:absolute;right:8px;bottom:8px;z-index:1;display:flex;align-items:center;gap:3px;font-size:10.5px;font-weight:800;color:#fff;}
-  .card .crate svg{width:12px;height:12px;fill:#ffd04a;}
-  .card .ctitle{font-size:12.5px;font-weight:700;margin-top:8px;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .card .csub{font-size:11px;color:var(--muted);margin-top:1px;}
+  .card{flex:0 0 128px;scroll-snap-align:start;cursor:pointer;transition:transform .22s;}
+  .card:active{transform:scale(.95);}
+  .card .poster{
+    position:relative;width:128px;height:188px;border-radius:16px;overflow:hidden;background:var(--bg2);
+    box-shadow:0 10px 24px -8px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.06);
+    transition:box-shadow .3s, transform .3s;
+  }
+  .card:active .poster{box-shadow:0 14px 30px -6px rgba(var(--accent-rgb),.5), 0 0 0 1px rgba(var(--accent-rgb),.5);}
+  .card .poster img{width:100%;height:100%;object-fit:cover;transition:transform .5s cubic-bezier(.22,.61,.36,1);}
+  .card:active .poster img{transform:scale(1.08);}
+  /* degradado inferior para legibilidad del rating/tipo */
+  .card .poster::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.25) 0%,transparent 28%,transparent 58%,rgba(0,0,0,.72) 100%);}
+  /* badge tipo cristal arriba-izquierda */
+  .card .badge{position:absolute;left:8px;top:8px;z-index:2;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
+    padding:4px 9px;border-radius:999px;background:rgba(12,12,14,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.16);}
+  .card .badge.new{background:var(--grad);border-color:transparent;box-shadow:0 2px 8px rgba(var(--accent-rgb),.5);}
+  /* rating abajo-izquierda sobre el degradado */
+  .card .crate{position:absolute;left:9px;bottom:9px;z-index:2;display:flex;align-items:center;gap:3px;font-size:11px;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);}
+  .card .crate svg{width:13px;height:13px;fill:#ffd04a;}
+  /* etiqueta de tipo abajo-derecha (eps / película) */
+  .card .ctype{position:absolute;right:8px;bottom:9px;z-index:2;font-size:9.5px;font-weight:700;color:#eee;
+    padding:2px 7px;border-radius:7px;background:rgba(12,12,14,.6);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
+  .card .ctitle{font-size:13px;font-weight:700;margin-top:9px;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .card .csub{font-size:11px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:5px;}
+  .card .csub .lang{color:var(--accent-2);font-weight:700;}
 
   /* Card ancha (episodios nuevos) */
   .card-wide{flex:0 0 220px;scroll-snap-align:start;cursor:pointer;}
@@ -226,7 +230,6 @@
   <!-- ===== Contenido ===== -->
   <main id="app">
     <section class="hero" id="hero"></section>
-    <div class="quick" id="quick"></div>
     <div class="rows" id="rows"></div>
   </main>
 
@@ -368,13 +371,15 @@ function startHero(){ clearInterval(heroTimer); heroTimer=setInterval(()=>showHe
 function cardHTML(it){
   const badge = it.nuevo ? '<span class="badge new">Nuevo</span>'
     : `<span class="badge">${it.type==="pelicula"?"Película":"Serie"}</span>`;
-  const sub=[]; if(it.dub)sub.push("Dob"); if(it.sub)sub.push("Sub");
+  const ctype = it.type==="pelicula" ? "Película" : (it.eps+" eps");
+  const langs=[]; if(it.dub)langs.push("DOB"); if(it.sub)langs.push("SUB");
   return `<div class="card" data-id="${esc(it.id)}">
     <div class="poster">${badge}
       <span class="crate"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>${it.rating}</span>
+      <span class="ctype">${ctype}</span>
       <img src="${img(it.poster)}" onerror="this.src='${FALL}'" alt=""/></div>
     <div class="ctitle">${esc(it.title)}</div>
-    <div class="csub">${sub.join(" · ")||"&nbsp;"}</div>
+    <div class="csub"><span>${it.year}</span>${langs.length?`<span class="lang">${langs.join(" · ")}</span>`:""}</div>
   </div>`;
 }
 function wideHTML(it){
@@ -397,35 +402,16 @@ function rowHTML(title,items,variant){
     <div class="row-scroll">${inner}</div></div>`;
 }
 
-function renderRows(genre){
+function renderRows(){
   const c=document.getElementById("rows");
   let html="";
-  if(genre && genre!=="Todo"){
-    // vista filtrada: una sola fila-grid con el género elegido
-    const items=DATA.filter(d=>d.genres.includes(genre));
-    html = rowHTML(genre, items);
-    html += top10HTML(items.slice().sort((a,b)=>b.rating-a.rating));
-  } else {
-    ROWS.forEach(r=>{ html += rowHTML(r.title, DATA.filter(r.filter), r.variant); });
-    html += top10HTML(DATA.slice().sort((a,b)=>b.rating-a.rating));
-  }
+  ROWS.forEach(r=>{ html += rowHTML(r.title, DATA.filter(r.filter), r.variant); });
+  html += top10HTML(DATA.slice().sort((a,b)=>b.rating-a.rating));
   c.innerHTML = html;
   c.querySelectorAll(".card,.card-wide,.top10-card").forEach(el=>{
     el.addEventListener("click",()=>{ const it=DATA.find(x=>x.id===el.dataset.id); if(it) go(it); });
   });
   c.querySelectorAll(".row").forEach((row,i)=>row.style.animationDelay=(i*70)+"ms");
-}
-
-function renderQuick(){
-  const cats=["Todo",...Array.from(new Set(DATA.flatMap(d=>d.genres)))];
-  const q=document.getElementById("quick");
-  q.innerHTML=cats.map((c,i)=>`<button class="q ${i===0?'on':''}" data-g="${esc(c)}">${esc(c)}</button>`).join("");
-  q.querySelectorAll(".q").forEach(b=>b.addEventListener("click",()=>{
-    q.querySelectorAll(".q").forEach(x=>x.classList.remove("on"));
-    b.classList.add("on");
-    renderRows(b.dataset.g);
-    document.getElementById("app").scrollTo({top:document.querySelector(".quick").offsetTop-60,behavior:"smooth"});
-  }));
 }
 
 /* ----- Topbar sólida al hacer scroll ----- */
@@ -461,7 +447,6 @@ document.querySelectorAll(".nav-item").forEach(b=>{
 
 /* ----- Init ----- */
 renderHero();
-renderQuick();
 renderRows();
 </script>
 </body>
