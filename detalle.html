@@ -376,6 +376,57 @@
   .player-box{width:100%;max-width:900px;aspect-ratio:16/9;background:#111;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:var(--muted);}
   .player-box svg{width:64px;height:64px;fill:var(--accent);}
 
+  /* ====== Bottom sheet "Mi lista" ====== */
+  .sheet-backdrop{
+    position:fixed;inset:0;z-index:110;background:rgba(0,0,0,.6);
+    display:flex;align-items:flex-end;justify-content:center;
+    opacity:0;pointer-events:none;transition:opacity .3s;
+  }
+  .sheet-backdrop.open{opacity:1;pointer-events:auto;}
+  .sheet{
+    width:100%;max-width:520px;
+    background:#1b1b1f;border:1px solid var(--border);border-bottom:none;
+    border-radius:20px 20px 0 0;padding:10px 18px calc(env(safe-area-inset-bottom) + 20px);
+    transform:translateY(100%);transition:transform .32s cubic-bezier(.22,.61,.36,1);
+    box-shadow:0 -12px 40px rgba(0,0,0,.6);
+  }
+  .sheet-backdrop.open .sheet{transform:translateY(0);}
+  .sheet-grip{width:40px;height:4px;border-radius:999px;background:#444;margin:4px auto 14px;}
+  .sheet-head{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .sheet-title{font-size:16px;font-weight:800;}
+  .sheet-x{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.08);color:#fff;}
+  .sheet-x svg{width:20px;height:20px;}
+  .sheet-sub{font-size:12.5px;color:var(--muted);margin:2px 0 14px;}
+  .sheet-options{display:flex;flex-direction:column;gap:8px;}
+  .list-opt{
+    display:flex;align-items:center;gap:13px;width:100%;text-align:left;
+    padding:13px 14px;border-radius:13px;
+    background:var(--card);border:1px solid var(--border);color:#fff;
+    transition:transform .15s, background .2s, border-color .2s;
+  }
+  .list-opt:active{transform:scale(.98);}
+  .list-opt .ic{
+    flex:0 0 auto;width:34px;height:34px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(255,255,255,.07);color:var(--accent);
+  }
+  .list-opt .ic svg{width:19px;height:19px;}
+  .list-opt .txt{flex:1;min-width:0;}
+  .list-opt .txt b{display:block;font-size:14px;font-weight:700;}
+  .list-opt .txt small{display:block;font-size:11.5px;color:var(--muted);margin-top:1px;}
+  .list-opt .tick{width:20px;height:20px;flex:0 0 auto;color:var(--accent);opacity:0;transition:opacity .2s;}
+  .list-opt .tick svg{width:20px;height:20px;}
+  .list-opt.selected{background:rgba(244,117,33,.12);border-color:rgba(244,117,33,.5);}
+  .list-opt.selected .tick{opacity:1;}
+  .sheet-remove{
+    display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+    margin-top:14px;padding:12px;border-radius:12px;font-size:14px;font-weight:700;
+    background:rgba(229,57,53,.12);border:1px solid rgba(229,57,53,.4);color:#ff6b66;
+    transition:transform .15s;
+  }
+  .sheet-remove:active{transform:scale(.98);}
+  .sheet-remove svg{width:18px;height:18px;}
+
   /* Toast */
   .toast{
     position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 24px);
@@ -437,7 +488,8 @@
         <span id="btnPlayLabel">Reproducir</span>
       </button>
       <button class="btn-ghost" id="btnFav" aria-label="Mi lista" title="Mi lista">
-        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        <!-- icono de "añadir a lista" (+ con líneas) -->
+        <svg id="btnFavIcon" viewBox="0 0 24 24"><path d="M14 10H3v2h11v-2zm0-4H3v2h11V6zM3 16h7v-2H3v2zm13-6v4h-3v2h3v4h2v-4h3v-2h-3v-4h-2z"/></svg>
       </button>
     </div>
 
@@ -498,6 +550,25 @@
     <div class="player-box" id="playerBox">
       <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
       <span id="playerLabel">Reproduciendo…</span>
+    </div>
+  </div>
+
+  <!-- ===== Modal: Mi lista (bottom sheet) ===== -->
+  <div class="sheet-backdrop" id="listSheet">
+    <div class="sheet" id="listSheetBox" role="dialog" aria-label="Añadir a Mi lista">
+      <div class="sheet-grip"></div>
+      <div class="sheet-head">
+        <h3 class="sheet-title">Añadir a Mi lista</h3>
+        <button class="sheet-x" id="listSheetClose" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </div>
+      <p class="sheet-sub">Elige el estado de este anime</p>
+      <div class="sheet-options" id="listOptions"></div>
+      <button class="sheet-remove" id="listRemove" hidden>
+        <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+        Quitar de Mi lista
+      </button>
     </div>
   </div>
 
@@ -600,7 +671,7 @@ function makePlaceholder(label){
   let l1 = "", l2 = "";
   for (const w of words){ if ((l1+" "+w).trim().length <= 12) l1 = (l1+" "+w).trim(); else l2 = (l2+" "+w).trim(); }
   l2 = l2.slice(0,14);
-  return "data:image/svg+xml;utf8," + encodeURIComponent(
+  const svg =
   `<svg xmlns='http://www.w3.org/2000/svg' width='300' height='450'>
      <defs>
        <linearGradient id='bg' x1='0' y1='0' x2='1' y2='1'>
@@ -620,7 +691,9 @@ function makePlaceholder(label){
      <text x='150' y='300' font-size='24' text-anchor='middle' fill='#fff' font-family='Arial' font-weight='bold'>${l1}</text>
      <text x='150' y='330' font-size='24' text-anchor='middle' fill='#fff' font-family='Arial' font-weight='bold'>${l2}</text>
      <rect x='110' y='352' width='80' height='4' rx='2' fill='#f47521'/>
-   </svg>`);
+   </svg>`;
+  // base64 evita problemas de escape con '#' en los url(#id) de los gradientes
+  return "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg)));
 }
 const PLACEHOLDER = makePlaceholder("");
 
@@ -821,11 +894,71 @@ $("readMore").addEventListener("click", function(){
   this.textContent = clamped ? "Leer más ▾" : "Leer menos ▴";
 });
 
-/* ===== Favorito ===== */
-$("btnFav").addEventListener("click", function(){
-  this.classList.toggle("on");
-  toast(this.classList.contains("on") ? "Añadido a Mi lista" : "Quitado de Mi lista");
+/* ============================================================
+   MI LISTA — modal con estados del anime (persistente)
+   ============================================================ */
+const LIST_KEY = "nekowolf_list_" + (ANIME.title || "anime");
+let myStatus = null;
+try { myStatus = localStorage.getItem(LIST_KEY) || null; } catch(e){ myStatus = null; }
+
+// Opciones de estado (puedes añadir/quitar aquí)
+const LIST_OPTIONS = [
+  { id:"viendo",     label:"Viendo",       sub:"Lo estás viendo ahora",  icon:"M8 5v14l11-7z" },
+  { id:"completado", label:"Completado",   sub:"Ya lo terminaste",       icon:"M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" },
+  { id:"pendiente",  label:"Planeo ver",   sub:"Para ver más tarde",     icon:"M12 2a10 10 0 100 20 10 10 0 000-20zm1 11h-2V7h2z M13 15h-2v2h2z" },
+  { id:"espera",     label:"En espera",    sub:"Pausado por ahora",      icon:"M6 5h4v14H6zm8 0h4v14h-4z" },
+  { id:"abandonado", label:"Abandonado",   sub:"Dejaste de verlo",       icon:"M12 2a10 10 0 100 20 10 10 0 000-20zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z" }
+];
+
+const btnFav     = $("btnFav");
+const listSheet  = $("listSheet");
+const listBox    = $("listSheetBox");
+const listOptions= $("listOptions");
+const listRemove = $("listRemove");
+
+function statusLabel(id){ const o = LIST_OPTIONS.find(x=>x.id===id); return o ? o.label : null; }
+
+function renderListOptions(){
+  listOptions.innerHTML = LIST_OPTIONS.map(o => `
+    <button class="list-opt ${myStatus===o.id?'selected':''}" data-id="${o.id}">
+      <span class="ic"><svg viewBox="0 0 24 24"><path d="${o.icon}"/></svg></span>
+      <span class="txt"><b>${o.label}</b><small>${o.sub}</small></span>
+      <span class="tick"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
+    </button>`).join("");
+  listRemove.hidden = !myStatus;
+
+  listOptions.querySelectorAll(".list-opt").forEach(btn =>
+    btn.addEventListener("click", () => {
+      myStatus = btn.dataset.id;
+      try { localStorage.setItem(LIST_KEY, myStatus); } catch(e){}
+      updateFavUI();
+      renderListOptions();
+      toast("Guardado en Mi lista: " + statusLabel(myStatus));
+      setTimeout(closeListSheet, 250);
+    }));
+}
+
+function updateFavUI(){
+  btnFav.classList.toggle("on", !!myStatus);
+  btnFav.title = myStatus ? ("Mi lista · " + statusLabel(myStatus)) : "Mi lista";
+}
+
+function openListSheet(){ renderListOptions(); listSheet.classList.add("open"); }
+function closeListSheet(){ listSheet.classList.remove("open"); }
+
+btnFav.addEventListener("click", openListSheet);
+$("listSheetClose").addEventListener("click", closeListSheet);
+listSheet.addEventListener("click", (e) => { if (e.target === listSheet) closeListSheet(); });
+listBox.addEventListener("click", (e) => e.stopPropagation());
+listRemove.addEventListener("click", () => {
+  myStatus = null;
+  try { localStorage.removeItem(LIST_KEY); } catch(e){}
+  updateFavUI();
+  renderListOptions();
+  toast("Quitado de Mi lista");
+  setTimeout(closeListSheet, 200);
 });
+updateFavUI();
 
 /* ===== Reproductor ===== */
 const player = $("player");
