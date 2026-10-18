@@ -44,8 +44,10 @@
   .icon-btn svg{width:23px;height:23px;}
 
   /* ===== Scroll container ===== */
-  main{position:absolute;top:0;left:0;right:0;bottom:var(--nav-h);overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  main{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}
   main::-webkit-scrollbar{width:0;}
+  /* espacio al final para que la navbar flotante no tape el contenido */
+  .rows{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 20px) !important;}
 
   /* ===== Hero destacado (mejorado) ===== */
   .hero{position:relative;height:76vh;min-height:470px;max-height:640px;}
@@ -138,35 +140,38 @@
   .top10-card .poster img{width:100%;height:100%;object-fit:cover;}
 
   /* ===== Barra inferior (navbar moderna) ===== */
+  /* NAVBAR FLOTANTE: separada de los bordes, redondeada y centrada */
   .bottom-nav{
-    position:fixed;left:0;right:0;bottom:0;z-index:50;
-    height:calc(var(--nav-h) + env(safe-area-inset-bottom));
-    padding:8px 12px env(safe-area-inset-bottom);
-    display:flex;align-items:center;gap:8px;
-    background:rgba(14,14,16,.9);
-    -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
-    border-top:1px solid var(--border);
+    position:fixed;left:50%;transform:translateX(-50%);
+    bottom:calc(env(safe-area-inset-bottom) + 14px);z-index:50;
+    width:max-content;max-width:calc(100% - 28px);
+    padding:7px;display:flex;align-items:center;gap:6px;
+    background:rgba(18,18,21,.82);
+    -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:20px;
+    box-shadow:0 12px 34px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
   }
   .nav-item{
-    flex:0 0 auto;position:relative;height:48px;min-width:48px;border-radius:15px;
+    flex:0 0 auto;position:relative;height:44px;width:44px;border-radius:14px;
     display:flex;flex-direction:row;align-items:center;justify-content:center;gap:0;
     color:var(--muted);overflow:hidden;
-    transition:color .25s, flex-grow .35s cubic-bezier(.22,.61,.36,1), background .3s, padding .3s;
+    transition:color .25s, width .35s cubic-bezier(.22,.61,.36,1), background .3s, padding .3s;
   }
   /* iconos de CONTORNO (outline): sin relleno, solo trazo */
-  .nav-item svg{width:23px;height:23px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .25s;}
+  .nav-item svg{width:22px;height:22px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .25s;}
   /* por defecto (inactivo): SOLO icono, texto oculto */
-  .nav-item span{font-size:12.5px;font-weight:800;letter-spacing:.2px;max-width:0;opacity:0;margin-left:0;white-space:nowrap;transition:max-width .35s cubic-bezier(.22,.61,.36,1), opacity .25s, margin-left .3s;}
+  .nav-item span{font-size:12.5px;font-weight:800;letter-spacing:.2px;max-width:0;opacity:0;margin-left:0;white-space:nowrap;transition:max-width .35s cubic-bezier(.22,.61,.36,1), opacity .2s, margin-left .3s;}
   .nav-item:active svg{transform:scale(.88);}
 
-  /* botón ACTIVO: píldora redondeada con fondo degradado + icono y texto */
+  /* botón ACTIVO: píldora compacta con fondo degradado + icono y texto */
   .nav-item.active{
-    flex:1 1 auto;color:#fff;padding:0 18px;
+    width:auto;color:#fff;padding:0 15px;
     background:var(--grad);
-    box-shadow:0 6px 18px rgba(var(--accent-rgb),.4), inset 0 1px 0 rgba(255,255,255,.25);
+    box-shadow:0 5px 14px rgba(var(--accent-rgb),.42), inset 0 1px 0 rgba(255,255,255,.25);
   }
   .nav-item.active svg{stroke:#fff;}
-  .nav-item.active span{max-width:100px;opacity:1;margin-left:8px;color:#fff;}
+  .nav-item.active span{max-width:90px;opacity:1;margin-left:7px;color:#fff;}
 
   /* ===== Buscador overlay ===== */
   .search{position:fixed;inset:0;z-index:60;background:var(--bg);opacity:0;pointer-events:none;transition:opacity .25s;display:flex;flex-direction:column;}
